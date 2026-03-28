@@ -30,6 +30,19 @@ export class AuthService {
     });
   }
 
+  private async obtenerRol(uid: string): Promise<string> {
+    try {
+    console.log('Buscando UID:', uid);
+    const snap = await getDoc(doc(db, 'usuarios', uid));
+    console.log('Documento existe:', snap.exists());
+    console.log('Datos:', snap.data());
+    if (snap.exists()) return snap.data()['rol'];
+    return 'cliente';
+  } catch (e) {
+    console.error('Error obteniendo rol:', e);
+    return 'cliente';
+  }
+  }
 
   async login(email: string, password: string) {
     const result = await signInWithEmailAndPassword(auth, email, password);
