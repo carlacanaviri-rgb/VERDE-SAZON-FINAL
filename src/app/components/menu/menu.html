@@ -45,6 +45,17 @@
 
 
 
+      <!-- Filtro tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">
+        <button *ngFor="let cat of categorias"
+          (click)="categoriaActiva = cat"
+          [style]="categoriaActiva === cat ?
+            'padding:6px 18px;border-radius:20px;border:none;background:#1D9E75;color:white;font-size:13px;font-weight:500;cursor:pointer' :
+            'padding:6px 18px;border-radius:20px;border:1px solid #ddd;background:white;color:#555;font-size:13px;cursor:pointer'">
+          {{ cat }}
+        </button>
+      </div>
+
       <!-- Grid de cards -->
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px">
         <div *ngFor="let p of productosFiltrados"
@@ -88,6 +99,20 @@
       </div>
     </section>
 
+    <!-- Ofertas especiales -->
+    <section style="margin-bottom:40px">
+      <h2 style="margin:0 0 20px;font-size:20px;font-weight:700;color:#111">Ofertas especiales</h2>
+      <div style="background:linear-gradient(135deg,#1D9E75,#0F6E56);border-radius:16px;padding:32px;color:white;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <h3 style="margin:0 0 8px;font-size:22px;font-weight:700">2x1 en hamburguesas</h3>
+          <p style="margin:0 0 20px;opacity:0.9;font-size:14px">Todos los miércoles • Válido hasta agotar existencias</p>
+          <button style="background:white;color:#1D9E75;border:none;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer">
+            Ver oferta
+          </button>
+        </div>
+        <div style="font-size:80px">🍔</div>
+      </div>
+    </section>
 
   </div>
 
