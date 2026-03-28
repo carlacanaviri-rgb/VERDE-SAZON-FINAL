@@ -28,6 +28,10 @@ export class MenuComponent implements OnInit {
     return disponibles.filter(p => p.categoria === this.categoriaActiva);
   }
 
+  get totalDisponibles(): number {
+    return this.productos.filter(p => p.disponible).length;
+  }
+
   ngOnInit() {
     this.svc.getProductos().subscribe(data => this.productos = data);
   }
@@ -51,4 +55,18 @@ export class MenuComponent implements OnInit {
     return emojis[categoria.toLowerCase()] ?? '🍽️';
   }
 
+  getColorCategoria(categoria: string): string {
+    const colores: { [key: string]: string } = {
+      hamburguesa: '#fff3e0', hamburguesas: '#fff3e0',
+      pizza: '#fce4ec',
+      ensalada: '#e8f5e9', ensaladas: '#e8f5e9',
+      bebida: '#e3f2fd', bebidas: '#e3f2fd',
+      postre: '#f3e5f5', postres: '#f3e5f5',
+      bowl: '#e1f5ee', bowls: '#e1f5ee',
+      wrap: '#fff8e1', wraps: '#fff8e1',
+      smoothie: '#fce4ec', smoothies: '#fce4ec',
+      snack: '#fff3e0', snacks: '#fff3e0',
+    };
+    return colores[categoria.toLowerCase()] ?? '#f0f7f0';
+  }
 }
