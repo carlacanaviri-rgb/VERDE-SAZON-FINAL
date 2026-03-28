@@ -51,5 +51,14 @@ export class ProductosComponent implements OnInit {
   }
 }
 
+  cancelar() {
+    this.editando = null;
+    this.form = this.formVacio();
+  }
+  async logout() {
+  await this.authSvc.logout();
+  this.router.navigate(['/login']);
+}
+  
 }
 
