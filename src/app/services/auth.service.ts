@@ -42,4 +42,11 @@ export class AuthService {
     return signOut(auth);
   }
 
+  get usuarioLogueado(): User | null {
+    return this.usuarioActual.value;
+  }
+
+  get rolUsuario(): string | null {
+    return this.rolActual.value;
+  }
 }
