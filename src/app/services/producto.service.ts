@@ -50,10 +50,10 @@ export class ProductoService {
   async addProducto(p: Producto) {
     try {
       const result = await addDoc(collection(db, 'productos'), p);
-      
+      await this.log('CREAR', { ...p, id: result.id }, `Producto creado exitosamente`);
       return result;
     } catch (e: any) {
-     
+      await this.log('ERROR', p, `Error al crear: ${e.message}`);
       throw e;
     }
   }
