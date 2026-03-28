@@ -1,6 +1,31 @@
 <div style="display:flex;min-height:100vh;font-family:'Segoe UI',sans-serif;background:#f8faf8">
   
-     
+      <nav style="flex:1;display:flex;flex-direction:column;gap:4px">
+      <div style="background:#f0f7f0;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:#1D9E75;cursor:pointer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
+      <div style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer;border-radius:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        Platillos
+      </div>
+      <div style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer;border-radius:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h9"/></svg>
+        Categorías
+      </div>
+      <div style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer;border-radius:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+        Pedidos
+      </div>
+      <div style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer;border-radius:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Usuarios
+      </div>
+      <div style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer;border-radius:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Reportes
+      </div>
+    </nav>
 
     <!-- ✅ logout() coincide con el método del TS -->
     <div (click)="logout()" style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#e74c3c;cursor:pointer;border-radius:8px">
@@ -15,7 +40,26 @@
     <h1 style="margin:0 0 4px;font-size:24px;font-weight:600;color:#111">Dashboard</h1>
     <p style="margin:0 0 24px;font-size:14px;color:#888">Panel de administración de Verde Sazón</p>
 
-   
+    <!-- Stat cards -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px">
+      <div style="background:white;border-radius:10px;border:1px solid #e5e5e5;padding:16px">
+        <p style="margin:0 0 8px;font-size:12px;color:#888">Ventas del día</p>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:22px;font-weight:600;color:#111">$1,234</span>
+          <div style="width:36px;height:36px;background:#e1f5ee;border-radius:50%;display:flex;align-items:center;justify-content:center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          </div>
+        </div>
+      </div>
+      <div style="background:white;border-radius:10px;border:1px solid #e5e5e5;padding:16px">
+        <p style="margin:0 0 8px;font-size:12px;color:#888">Pedidos activos</p>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:22px;font-weight:600;color:#111">12</span>
+          <div style="width:36px;height:36px;background:#e6f1fb;border-radius:50%;display:flex;align-items:center;justify-content:center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/></svg>
+          </div>
+        </div>
+      </div>
 
       <!-- ✅ productos.length existe en el TS -->
       <div style="background:white;border-radius:10px;border:1px solid #e5e5e5;padding:16px">
