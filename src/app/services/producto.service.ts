@@ -40,7 +40,7 @@ export class ProductoService {
         })) as Producto[];
         observer.next(productos);
       }, error => {
-        
+        this.log('ERROR', {}, error.message);
         observer.error(error);
       });
       return () => unsub();
