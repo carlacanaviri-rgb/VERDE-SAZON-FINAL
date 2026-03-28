@@ -59,6 +59,20 @@ export class ProductosComponent implements OnInit {
   await this.authSvc.logout();
   this.router.navigate(['/login']);
 }
-  
+  private authSvc = inject(AuthService);
+private router = inject(Router);
+// Agregar junto a las otras propiedades
+mostrarFormulario = false;
+
+// Reemplaza el pipe 'array' — calcula disponibles aquí directamente
+get productosDisponibles(): number {
+  return this.productos.filter(p => p.disponible).length;
+}
+
+// Reemplaza la lógica inline del botón que usaba 'if' en el template
+toggleFormulario() {
+  this.mostrarFormulario = !this.mostrarFormulario;
+  if (!this.mostrarFormulario) this.cancelar();
+}
 }
 
