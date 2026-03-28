@@ -38,4 +38,8 @@ export class AuthService {
     return { user: result.user, rol };
   }
 
+  logout() {
+    return signOut(auth);
+  }
+
 }
