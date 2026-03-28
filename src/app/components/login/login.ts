@@ -14,5 +14,10 @@ export class LoginComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
 
-  
+  email = '';
+  password = '';
+  error = '';
+  cargando = false;
+
+
 }
