@@ -47,7 +47,58 @@
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <h2 style="margin:0;font-size:16px;font-weight:600;color:#111">Gestión de Platillos</h2>
 
-       
+        <!-- ✅ mostrarFormulario ahora viene del TS -->
+       <button (click)="toggleFormulario()">
+          {{ mostrarFormulario ? '✕ Cerrar' : '+ Nuevo platillo' }}
+        </button>
+      </div>
+
+      <!-- Formulario desplegable -->
+      <div *ngIf="mostrarFormulario" style="background:#f8faf8;border:1px solid #e5e5e5;border-radius:10px;padding:20px;margin-bottom:24px">
+
+        <!-- ✅ editando viene del TS (tipo Producto | null) -->
+        <h3 style="margin:0 0 16px;font-size:14px;font-weight:600;color:#111">{{ editando ? 'Editar platillo' : 'Nuevo platillo' }}</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">Nombre</label>
+            <input [(ngModel)]="form.nombre" placeholder="Nombre del platillo"
+              style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">Categoría</label>
+            <input [(ngModel)]="form.categoria" placeholder="hamburguesas, pizza..."
+              style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">Precio</label>
+            <input [(ngModel)]="form.precio" type="number" placeholder="0.00"
+              style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">Descripción</label>
+            <input [(ngModel)]="form.descripcion" placeholder="Descripción breve"
+              style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer">
+            <input [(ngModel)]="form.disponible" type="checkbox"> Disponible
+          </label>
+          <div style="display:flex;gap:8px">
+            <!-- ✅ cancelar() coincide con el método del TS -->
+            <button (click)="cancelar(); mostrarFormulario = false"
+              style="padding:8px 16px;border:1px solid #ddd;border-radius:8px;background:white;font-size:13px;cursor:pointer;color:#555">
+              Cancelar
+            </button>
+            <!-- ✅ guardar() coincide con el método del TS -->
+            <button (click)="guardar()"
+              style="padding:8px 16px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">
+              {{ editando ? 'Actualizar' : 'Guardar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Tabla -->
       <table style="width:100%;border-collapse:collapse">
         <thead>
