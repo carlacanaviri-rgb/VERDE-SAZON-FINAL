@@ -50,7 +50,7 @@ export class ProductoService {
   async addProducto(p: Producto) {
     try {
       const result = await addDoc(collection(db, 'productos'), p);
-      await this.log('CREAR', { ...p, id: result.id }, `Producto creado exitosamente`); //log para crear solamente el producto
+      await this.log('CREAR', { ...p, id: result.id }, `Producto creado exitosamente`);
       return result;
     } catch (e: any) {
       await this.log('ERROR', p, `Error al crear: ${e.message}`);
@@ -72,7 +72,7 @@ export class ProductoService {
       }
     }
 
-    await this.log('EDITAR', { id, ...cambios }, ''); //log para editar solamente los cambios
+    await this.log('EDITAR', { id, ...cambios }, '');
     await addDoc(collection(db, 'logs'), {
       accion: 'EDITAR',
       fecha: serverTimestamp(),
@@ -92,7 +92,6 @@ async deleteProducto(id: string, producto: Producto) {
   try {
     await deleteDoc(doc(db, 'productos', id));
     await addDoc(collection(db, 'logs'), {
-      //eliminacion con datos completos
       accion: 'ELIMINAR',
       fecha: serverTimestamp(),
       detalle: 'Producto eliminado exitosamente',
@@ -108,7 +107,6 @@ async deleteProducto(id: string, producto: Producto) {
   } catch (e: any) {
     await this.log('ERROR', { ...producto, id }, `Error al eliminar: ${e.message}`);
     throw e;
-
   }
 }
 }
