@@ -19,5 +19,16 @@ export class LoginComponent {
   error = '';
   cargando = false;
 
-
+async login() {
+  this.error = '';
+  this.cargando = true;
+  try {
+    const { rol } = await this.auth.login(this.email, this.password);
+    this.router.navigate([rol === 'admin' ? '/admin' : '/menu']);
+  } catch (e: any) {
+    this.error = 'Credenciales incorrectas. Intenta de nuevo.';
+  } finally {
+    this.cargando = false;
+  }
+}
 }
