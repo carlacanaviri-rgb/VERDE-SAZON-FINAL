@@ -72,9 +72,18 @@ export class ProductoService {
       }
     }
 
-    
+    await this.log('EDITAR', { id, ...cambios }, '');
+    await addDoc(collection(db, 'logs'), {
+      accion: 'EDITAR',
+      fecha: serverTimestamp(),
+      detalle: `Producto actualizado exitosamente`,
+      id_producto: id,
+      nombre_producto: cambios.nombre ?? null,
+      cambios: modificados,
+      valores_anteriores: anteriores
+    });
   } catch (e: any) {
-    
+    await this.log('ERROR', { ...cambios, id }, `Error al editar: ${e.message}`);
     throw e;
   }
 }
@@ -96,7 +105,7 @@ async deleteProducto(id: string, producto: Producto) {
       }
     });
   } catch (e: any) {
-    
+    await this.log('ERROR', { ...producto, id }, `Error al eliminar: ${e.message}`);
     throw e;
   }
 }
