@@ -1,59 +1,82 @@
-# FastFoodApp
+# 🥗 Verde Sazón - FastFoodApp (Final)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.2.
+Este es el sistema central de **Verde Sazón**, construido con **Angular 17+** y **Firebase**. La aplicación gestiona tres perfiles críticos: **Clientes** (pedido), **Cocina** (preparación) y **Admin** (gestión).
 
-## Development server
+---
 
-To start a local development server, run:
+## 🛠️ Requisitos e Instalación Técnica
+
+Además de **Node.js**, este proyecto depende de servicios externos que deben estar configurados:
+
+### 1. Clonado y Dependencias
+
+```bash
+git clone https://github.com/carlacanaviri-rgb/VERDE-SAZON-FINAL.git
+cd VERDE-SAZON-FINAL
+npm install
+```
+
+### 2. Configuración de Firebase (Obligatorio)
+
+El proyecto usa **Firebase Authentication** y **Firestore**. Debes crear un archivo `src/environments/environment.ts` (y su versión `.prod.ts`) con el siguiente objeto de configuración obtenido de tu consola de Firebase:
+
+```typescript
+export const environment = {
+  production: false,
+  firebaseConfig: {
+    apiKey: "TU_API_KEY",
+    authDomain: "verde-sazon-id.firebaseapp.com",
+    projectId: "verde-sazon-id",
+    storageBucket: "verde-sazon-id.appspot.com",
+    messagingSenderId: "ID_SENDER",
+    appId: "ID_APP"
+  },
+  geoapifyApiKey: "TU_CLAVE_GEOAPIFY"
+};
+```
+
+### 3. API de Mapas (Geoapify)
+
+La validación de cobertura y el cálculo de distancias (**Sprint 3**) dependen de **Geoapify**. Sin la `geoapifyApiKey` en el environment, el buscador de direcciones no funcionará.
+
+---
+
+## 🚀 Ejecución del Proyecto
+
+Puedes ver la aplicación desplegada en:  
+https://carlacanaviri-rgb.github.io/VERDE-SAZON-FINAL/menu
+
+Para ejecutarlo localmente:
 
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+---
 
-## Code scaffolding
+## 📂 Lo que debes saber sobre la estructura
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Al navegar por el código, encontrarás:
 
-```bash
-ng generate component component-name
-```
+* `src/app/core/guards`: Restricciones de acceso (roles de Admin/Cocina).
+* `src/app/services`: Lógica de comunicación con Firestore (ej. `order.service.ts`).
+* `src/app/modules`: Módulos divididos por perfiles. Para el **Sprint 3**, los focos son `modules/kitchen` y `modules/checkout`.
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+---
 
-```bash
-ng generate --help
-```
+## 🧪 Pruebas con Vitest
 
-## Building
-
-To build the project run:
+Este proyecto utiliza **Vitest** en lugar de Karma para mayor velocidad en los tests:
 
 ```bash
-ng build
+npm test
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+---
 
-## Running unit tests
+## 👥 Desarrolladores
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+* Carla Adriana Cañaviri Alvarado  
+* Javier Alejandro Daza Torrico  
+* Libia Nataly Roman Arevalo  
+* Boris Alvaro Torrico Ramirez
