@@ -2,7 +2,21 @@
 
 Este es el sistema central de **Verde Sazón**, construido con **Angular 17+** y **Firebase**. La aplicación gestiona tres perfiles críticos: **Clientes** (pedido), **Cocina** (preparación) y **Admin** (gestión).
 
+<<<<<<< HEAD
 ---
+=======
+## Backend target
+
+The `ProductoService` now consumes the Java Spring Boot API (`fast-food-api-java`) through `environment.apiBaseUrl`.
+
+Default value:
+
+- `http://localhost:3000`
+
+Update this value in `src/environments/environment.ts` if your API runs on a different host/port.
+
+## Development server
+>>>>>>> ba7e2eb (feat: migrate backend modules to Spring Boot and update frontend API integration)
 
 ## 🛠️ Requisitos e Instalación Técnica
 

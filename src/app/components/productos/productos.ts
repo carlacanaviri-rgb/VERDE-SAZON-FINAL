@@ -16,15 +16,21 @@ import { Router } from '@angular/router';
 
 export class ProductosComponent implements OnInit {
   readonly svc = inject(ProductoService);
+  readonly authSvc = inject(AuthService);
+  readonly router = inject(Router);
 
   productos: Producto[] = [];
   editando: Producto | null = null;
+  mostrarFormulario = false;
 
   form: Producto = this.formVacio();
 
   ngOnInit() {
+    this.cargarProductos();
+  }
+
+  cargarProductos() {
     this.svc.getProductos().subscribe(data => this.productos = data);
-     
   }
 
   formVacio(): Producto {
@@ -32,13 +38,16 @@ export class ProductosComponent implements OnInit {
   }
 
   async guardar() {
-  if (this.editando?.id) {
-    await this.svc.updateProducto(this.editando.id, this.form, this.editando);
-  } else {
-    await this.svc.addProducto({ ...this.form });
+    if (this.editando?.id) {
+      await this.svc.updateProducto(this.editando.id, this.form, this.editando);
+    } else {
+      await this.svc.addProducto({ ...this.form });
+    }
+
+    this.cancelar();
+    this.mostrarFormulario = false;
+    this.cargarProductos();
   }
-  this.cancelar();
-}
 
   editar(p: Producto) {
     this.editando = p;
@@ -46,33 +55,30 @@ export class ProductosComponent implements OnInit {
   }
 
   async eliminar(p: Producto) {
-  if (confirm('¿Eliminar producto?')) {
-    await this.svc.deleteProducto(p.id!, p);
+    if (confirm('¿Eliminar producto?')) {
+      await this.svc.deleteProducto(p.id!, p);
+      this.cargarProductos();
+    }
   }
-}
 
   cancelar() {
     this.editando = null;
     this.form = this.formVacio();
   }
+
   async logout() {
-  await this.authSvc.logout();
-  this.router.navigate(['/login']);
-}
-  private authSvc = inject(AuthService);
-private router = inject(Router);
-// Agregar junto a las otras propiedades
-mostrarFormulario = false;
+    await this.authSvc.logout();
+    this.router.navigate(['/login']);
+  }
 
-// Reemplaza el pipe 'array' — calcula disponibles aquí directamente
-get productosDisponibles(): number {
-  return this.productos.filter(p => p.disponible).length;
-}
+  get productosDisponibles(): number {
+    return this.productos.filter(p => p.disponible).length;
+  }
 
-// Reemplaza la lógica inline del botón que usaba 'if' en el template
-toggleFormulario() {
-  this.mostrarFormulario = !this.mostrarFormulario;
-  if (!this.mostrarFormulario) this.cancelar();
+  toggleFormulario() {
+    this.mostrarFormulario = !this.mostrarFormulario;
+    if (!this.mostrarFormulario) {
+      this.cancelar();
+    }
+  }
 }
-}
-
