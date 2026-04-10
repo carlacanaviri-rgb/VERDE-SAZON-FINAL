@@ -1,92 +1,81 @@
-# 🥗 Verde Sazón - FastFoodApp (Final)
+# Verde Sazon - Proyecto Final
 
-Este es el sistema central de **Verde Sazón**, construido con **Angular 17+** y **Firebase**. La aplicación gestiona tres perfiles críticos: **Clientes** (pedido), **Cocina** (preparación) y **Admin** (gestión).
+Documentacion unica del repositorio `VERDE-SAZON-FINAL`.
 
----
+## Arquitectura
 
-## Backend target
+- Frontend: Angular (`src/` en la raiz).
+- Backend principal: Spring Boot (`fast-food-api-java/`).
+- Base de datos y auth: Firebase.
 
-The `ProductoService` now consumes the Java Spring Boot API (`fast-food-api-java`) through `environment.apiBaseUrl`.
+## Endpoints principales del backend
 
-Default value:
+- `GET /productos`
+- `GET /productos/{id}`
+- `POST /productos`
+- `PUT /productos/{id}` con body `{ "dto": {...}, "original": {...} }`
+- `DELETE /productos/{id}` con body `{ "nombre": "..." }`
+- `GET /logs-local?limite=50`
+- `GET /logs-local/antes-de-error`
 
-- `http://localhost:3000`
+## Requisitos
 
-Update this value in `src/environments/environment.ts` if your API runs on a different host/port.
+- Node.js + npm
+- Java 17+
+- Maven
 
-## 🛠️ Requisitos e Instalación Técnica
+## Configuracion
 
-Además de **Node.js**, este proyecto depende de servicios externos que deben estar configurados:
+### Frontend (`src/environments/environment.ts`)
 
-### 1. Clonado y Dependencias
+Ajusta al menos:
+
+- `apiBaseUrl` (por defecto `http://localhost:3000`)
+- `firebaseConfig`
+
+### Backend Java (`fast-food-api-java`)
+
+Opciones para credenciales Firebase:
+
+1. `firebase.credentials.path` en `fast-food-api-java/src/main/resources/application.properties`
+2. Variable de entorno `FIREBASE_ADMIN_JSON`
+3. Archivo heredado `../fast-food-api/src/firebase-admin.json` (si existe)
+
+## Ejecucion local
+
+### 1) Frontend
 
 ```bash
-git clone https://github.com/carlacanaviri-rgb/VERDE-SAZON-FINAL.git
-cd VERDE-SAZON-FINAL
 npm install
+npm start
 ```
 
-### 2. Configuración de Firebase (Obligatorio)
-
-El proyecto usa **Firebase Authentication** y **Firestore**. Debes crear un archivo `src/environments/environment.ts` (y su versión `.prod.ts`) con el siguiente objeto de configuración obtenido de tu consola de Firebase:
-
-```typescript
-export const environment = {
-  production: false,
-  firebaseConfig: {
-    apiKey: "TU_API_KEY",
-    authDomain: "verde-sazon-id.firebaseapp.com",
-    projectId: "verde-sazon-id",
-    storageBucket: "verde-sazon-id.appspot.com",
-    messagingSenderId: "ID_SENDER",
-    appId: "ID_APP"
-  },
-  geoapifyApiKey: "TU_CLAVE_GEOAPIFY"
-};
-```
-
-### 3. API de Mapas (Geoapify)
-
-La validación de cobertura y el cálculo de distancias (**Sprint 3**) dependen de **Geoapify**. Sin la `geoapifyApiKey` en el environment, el buscador de direcciones no funcionará.
-
----
-
-## 🚀 Ejecución del Proyecto
-
-Puedes ver la aplicación desplegada en:  
-https://carlacanaviri-rgb.github.io/VERDE-SAZON-FINAL/menu
-
-Para ejecutarlo localmente:
+### 2) Backend Spring Boot
 
 ```bash
-ng serve
+cd fast-food-api-java
+mvn spring-boot:run
 ```
 
----
+API en `http://localhost:3000`.
 
-## 📂 Lo que debes saber sobre la estructura
-
-Al navegar por el código, encontrarás:
-
-* `src/app/core/guards`: Restricciones de acceso (roles de Admin/Cocina).
-* `src/app/services`: Lógica de comunicación con Firestore (ej. `order.service.ts`).
-* `src/app/modules`: Módulos divididos por perfiles. Para el **Sprint 3**, los focos son `modules/kitchen` y `modules/checkout`.
-
----
-
-## 🧪 Pruebas con Vitest
-
-Este proyecto utiliza **Vitest** en lugar de Karma para mayor velocidad en los tests:
+## Pruebas rapidas
 
 ```bash
 npm test
+cd fast-food-api-java && mvn test
 ```
 
----
+## Deploy
 
-## 👥 Desarrolladores
+Sitio publicado en:
 
-* Carla Adriana Cañaviri Alvarado  
-* Javier Alejandro Daza Torrico  
-* Libia Nataly Roman Arevalo  
-* Boris Alvaro Torrico Ramirez
+- `https://carlacanaviri-rgb.github.io/VERDE-SAZON-FINAL/`
+- `https://carlacanaviri-rgb.github.io/VERDE-SAZON-FINAL/menu`
+
+## Equipo
+
+- Carla Adriana Canaviri Alvarado
+- Javier Alejandro Daza Torrico
+- Libia Nataly Roman Arevalo
+- Boris Alvaro Torrico Ramirez
