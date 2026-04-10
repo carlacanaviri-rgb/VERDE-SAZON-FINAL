@@ -95,7 +95,8 @@ public class LocalLoggerService {
             return todos.stream().limit(10).toList();
         }
 
-        return todos.subList(0, indexError + 1);
+        int toIndex = Math.min(todos.size(), indexError + 10);
+        return todos.subList(indexError, toIndex);
     }
 
     public Path getLogPath() {
