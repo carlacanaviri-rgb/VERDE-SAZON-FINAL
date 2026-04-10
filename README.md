@@ -4,7 +4,7 @@ Documentacion unica del repositorio `VERDE-SAZON-FINAL`.
 
 ## Arquitectura
 
-- Frontend: Angular (`src/` en la raiz).
+- Frontend: Angular (`fast-food-app/src`).
 - Backend principal: Spring Boot (`fast-food-api-java/`).
 - Base de datos y auth: Firebase.
 
@@ -26,7 +26,7 @@ Documentacion unica del repositorio `VERDE-SAZON-FINAL`.
 
 ## Configuracion
 
-### Frontend (`src/environments/environment.ts`)
+### Frontend (`fast-food-app/src/environments/environment.ts`)
 
 Ajusta al menos:
 
@@ -46,6 +46,7 @@ Opciones para credenciales Firebase:
 ### 1) Frontend
 
 ```bash
+cd fast-food-app
 npm install
 npm start
 ```
@@ -62,7 +63,7 @@ API en `http://localhost:3000`.
 ## Pruebas rapidas
 
 ```bash
-npm test
+cd fast-food-app && npm test
 cd fast-food-api-java && mvn test
 ```
 
