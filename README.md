@@ -68,7 +68,7 @@ cd fast-food-app
 npm install
 ng build --configuration production
 # Output: dist/fast-food-app/
-# Usa: environment.ts
+# Usa: environment.development.ts
 ```
 
 ### Backend
@@ -107,7 +107,7 @@ VerdeAdri-main/
 │   │   │   ├── app.config.ts
 │   │   │   └── app.ts
 │   │   ├── environments/ ✅ CREDENCIALES AQUÍ
-│   │   │   ├── environment.ts (Producción)
+│   │   │   ├── environmentDevelopment.ts (Producción)
 │   │   │   └── environment.development.ts (Desarrollo)
 │   │   ├── main.ts
 │   │   └── index.html
@@ -186,7 +186,7 @@ VerdeAdri-main/
 │  │                                                               │   │
 │  │  ng serve (Desarrollo)        ng build (Producción)           │   │
 │  │      ↓                                 ↓                      │   │
-│  │  environment.development.ts     environment.ts                │   │
+│  │  environment.development.ts     environment.development.ts                │   │
 │  │  production: false              production: true              │   │
 │  │                                                               │   │
 │  │  ┌─────────────────────────────────────────────────────────┐  │   │
@@ -406,7 +406,7 @@ app/
 │   └── producto.service.ts
 │       ├─ API REST (getProductos, addProducto)
 │       ├─ HttpClient (GET, POST, PUT, DELETE)
-│       └─ Usa environment.apiBaseUrl
+│       └─ Usa environmentDevelopment.apiBaseUrl
 │
 ├── guards/
 │   └── auth-guard.ts
@@ -417,8 +417,8 @@ app/
 │   └─ zona-cobertura.model.ts
 │
 ├── environments/
-│   ├── environment.ts (Producción)
-│   └── environment.development.ts (Desarrollo)
+│   ├── environment.development.ts (Producción)
+│   └── environmentDevelopment.ts (Desarrollo)
 │
 ├── app.ts (Root)
 ├── app.routes.ts (Rutas)
@@ -475,17 +475,17 @@ app.config.ts (ApplicationConfig)
 └── Services (providedIn: 'root')
     │
     ├── AuthService
-    │   ├─ environment.firebaseConfig
+    │   ├─ environmentDevelopment.firebaseConfig
     │   ├─ Firebase SDK
     │   └─ usuario$, rol$ Observables
     │
     ├── CoberturaService
-    │   ├─ environment.firebaseConfig
+    │   ├─ environmentDevelopment.firebaseConfig
     │   ├─ Firestore SDK
     │   └─ zonas$ Observable
     │
     └── ProductoService
-        ├─ environment.apiBaseUrl
+        ├─ environmentDevelopment.apiBaseUrl
         └─ HttpClient
 ```
 
@@ -540,8 +540,8 @@ cd fast-food-api-java && mvn spring-boot:run             # Dev
 **Credenciales**:
 ```
 Firebase Project: verdesazon-92639
-Environment Prod: src/environments/environment.ts
-Environment Dev: src/environments/environment.development.ts
+Environment Prod: src/environments/environment.development.ts
+Environment Dev: src/environments/environmentDevelopment.ts
 ```
 
 ---

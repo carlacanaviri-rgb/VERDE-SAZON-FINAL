@@ -14,6 +14,23 @@ export const authGuard: CanActivateFn = () => {
         router.navigate(['/login']);
         return false;
       }
+      return true;
+    })
+  );
+};
+
+// Guard solo para admins
+export const adminGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  return auth.usuario$.pipe(
+    take(1),
+    switchMap(async user => {
+      if (!user) {
+        router.navigate(['/login']);
+        return false;
+      }
       const rol = auth.rolUsuario ?? await new Promise<string>(resolve => {
         auth.rol$.pipe(take(1)).subscribe(r => resolve(r ?? 'cliente'));
       });

@@ -16,8 +16,47 @@
     <div style="display:flex;align-items:center;gap:16px">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" style="cursor:pointer"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" style="cursor:pointer"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-      <div (click)="irLogin()" style="width:32px;height:32px;background:#f0f7f0;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+
+      <div style="position:relative">
+        <div (click)="mostrarDropdown = !mostrarDropdown"
+             style="width:32px;height:32px;background:#f0f7f0;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+
+        <div *ngIf="mostrarDropdown"
+             style="position:absolute;right:0;top:44px;background:white;border-radius:12px;border:1px solid #e5e5e5;box-shadow:0 8px 24px rgba(0,0,0,0.1);width:260px;padding:8px;z-index:200">
+
+          <div style="padding:12px 16px;border-bottom:1px solid #f0f0f0;margin-bottom:8px">
+            <p style="margin:0 0 2px;font-weight:600;font-size:14px;color:#111">{{ nombreUsuario }}</p>
+            <p style="margin:0 0 4px;font-size:12px;color:#888">{{ emailUsuario }}</p>
+            <span style="font-size:11px;color:#1D9E75">Cuenta de prueba</span>
+          </div>
+
+          <div style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer;background:#f0f7f0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span style="font-size:14px;color:#111">Perfil</span>
+          </div>
+          <div style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            <span style="font-size:14px;color:#555">Favoritos</span>
+          </div>
+          <div style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            <span style="font-size:14px;color:#555">Historial</span>
+          </div>
+          <div style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <span style="font-size:14px;color:#555">Suscripciones</span>
+          </div>
+
+          <div style="border-top:1px solid #f0f0f0;margin-top:8px;padding-top:8px">
+            <div (click)="cerrarSesion()"
+                 style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <span style="font-size:14px;color:#dc2626">Cerrar sesión</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </header>

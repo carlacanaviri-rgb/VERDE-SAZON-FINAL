@@ -2,9 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Producto } from '../models/producto.model';
-import { environment } from '../../environments/environment';
+import { environmentDevelopment } from '../../environments/environment.development';
 
-const API = environment.apiBaseUrl;
+const API = environmentDevelopment.apiBaseUrl;
 
 @Injectable({ providedIn: 'root' })
 export class ProductoService {
