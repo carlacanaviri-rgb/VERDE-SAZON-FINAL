@@ -44,3 +44,9 @@ __screenshots__/
 Thumbs.db
 
 src/environments/environment.development.ts
+
+
+target/
+*.jar
+*.log
+*.jar.original
