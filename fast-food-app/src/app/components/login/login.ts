@@ -24,7 +24,9 @@ async login() {
   this.cargando = true;
   try {
     const { rol } = await this.auth.login(this.email, this.password);
-    this.router.navigate([rol === 'admin' ? '/admin' : '/menu']);
+    if (rol === 'admin') this.router.navigate(['/admin']);
+    else if (rol === 'cocina') this.router.navigate(['/cocina']);
+    else this.router.navigate(['/menu']);
   } catch (e: any) {
     this.error = 'Credenciales incorrectas. Intenta de nuevo.';
   } finally {
