@@ -2,13 +2,17 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './components/login/login';
 import { ProductosComponent } from './components/productos/productos';
 import { MenuComponent } from './components/menu/menu';
-import { authGuard, adminGuard } from './guards/auth-guard';
+import { authGuard, adminGuard, cocinaGuard } from './guards/auth-guard';
+import { LandingComponent } from './components/landing/landing';
+import { CocinaComponent } from './components/cocina/cocina';
 
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '', component: LandingComponent },
+  //{ path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'menu', component: MenuComponent, canActivate: [authGuard] },
   { path: 'productos', component: ProductosComponent, canActivate: [adminGuard] },
   { path: 'admin', component: ProductosComponent, canActivate: [adminGuard] },
+  { path: 'cocina', component: CocinaComponent, canActivate: [cocinaGuard] },
 ];
