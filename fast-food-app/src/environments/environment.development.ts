@@ -1,4 +1,4 @@
-export const environment = {
+export const environmentDevelopment = {
   production: false,
   apiBaseUrl: 'http://localhost:3000',
   firebaseConfig: {

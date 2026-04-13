@@ -1,5 +1,5 @@
 <div style="display:flex;min-height:100vh;font-family:'Segoe UI',sans-serif;background:#f8faf8">
-  
+
   <!-- Sidebar -->
   <div style="width:220px;background:white;border-right:1px solid #e5e5e5;padding:24px 16px;display:flex;flex-direction:column;position:fixed;height:100vh;box-sizing:border-box">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:32px;padding:0 8px">
@@ -112,25 +112,33 @@
         <!-- ✅ editando viene del TS (tipo Producto | null) -->
         <h3 style="margin:0 0 16px;font-size:14px;font-weight:600;color:#111">{{ editando ? 'Editar platillo' : 'Nuevo platillo' }}</h3>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <!-- Nombre -->
           <div>
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">Nombre</label>
             <input [(ngModel)]="form.nombre" placeholder="Nombre del platillo"
-              style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+                   [style]="'width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid ' + (errores['nombre'] ? '#dc2626' : '#ddd') + ';border-radius:8px;font-size:13px'">
+            <span *ngIf="errores['nombre']" style="font-size:11px;color:#dc2626">{{ errores['nombre'] }}</span>
           </div>
+          <!-- Categoría -->
           <div>
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">Categoría</label>
             <input [(ngModel)]="form.categoria" placeholder="hamburguesas, pizza..."
-              style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+                   [style]="'width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid ' + (errores['categoria'] ? '#dc2626' : '#ddd') + ';border-radius:8px;font-size:13px'">
+            <span *ngIf="errores['categoria']" style="font-size:11px;color:#dc2626">{{ errores['categoria'] }}</span>
           </div>
+          <!-- Precio -->
           <div>
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">Precio</label>
             <input [(ngModel)]="form.precio" type="number" placeholder="0.00"
-              style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+                   [style]="'width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid ' + (errores['precio'] ? '#dc2626' : '#ddd') + ';border-radius:8px;font-size:13px'">
+            <span *ngIf="errores['precio']" style="font-size:11px;color:#dc2626">{{ errores['precio'] }}</span>
           </div>
+          <!-- Descripción -->
           <div>
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">Descripción</label>
             <input [(ngModel)]="form.descripcion" placeholder="Descripción breve"
-              style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+                   [style]="'width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid ' + (errores['descripcion'] ? '#dc2626' : '#ddd') + ';border-radius:8px;font-size:13px'">
+            <span *ngIf="errores['descripcion']" style="font-size:11px;color:#dc2626">{{ errores['descripcion'] }}</span>
           </div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between">
