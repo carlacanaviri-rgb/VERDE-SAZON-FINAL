@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000'  // ← make sure http:// is here
+  apiUrl: 'https://verde-sazon-final-production.up.railway.app'  // ← make sure http:// is here
 };
