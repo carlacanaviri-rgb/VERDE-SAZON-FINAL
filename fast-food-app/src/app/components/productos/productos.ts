@@ -5,11 +5,14 @@ import { ProductoService } from '../../services/producto.service';
 import { Producto } from '../../models/producto.model';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { LangSwitchComponent } from '../lang-switch/lang-switch';
+
 
 @Component({
   selector: 'app-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule, LangSwitchComponent],
   templateUrl: './productos.html',
 })
 
@@ -18,13 +21,12 @@ export class ProductosComponent implements OnInit {
   readonly svc = inject(ProductoService);
   readonly authSvc = inject(AuthService);
   readonly router = inject(Router);
+  readonly translate = inject(TranslateService);
 
   productos: Producto[] = [];
   editando: Producto | null = null;
   mostrarFormulario = false;
-
   errores: { [key: string]: string } = {};
-
   form: Producto = this.formVacio();
 
   ngOnInit() {

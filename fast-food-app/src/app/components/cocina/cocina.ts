@@ -4,11 +4,14 @@ import { Router } from '@angular/router';
 import { PedidoService } from '../../services/pedido.service';
 import { AuthService } from '../../services/auth.service';
 import { Pedido } from '../../models/pedido.model';
+import { TranslateModule } from '@ngx-translate/core';
+import { LangSwitchComponent } from '../lang-switch/lang-switch';
+
 
 @Component({
   selector: 'app-cocina',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule, LangSwitchComponent],
   templateUrl: './cocina.html',
 })
 export class CocinaComponent implements OnInit {
