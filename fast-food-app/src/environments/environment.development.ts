@@ -1,6 +1,6 @@
 export const environmentDevelopment = {
   production: false,
-  apiBaseUrl: 'https://verde-sazon-final-production.up.railway.app',
+  apiBaseUrl: 'http://localhost:3000',
   firebaseConfig: {
     apiKey: "AIzaSyCJl2KhPsfklxxRTaT9e20lb0N9V1OYfcw",
     authDomain: "verdesazon-92639.firebaseapp.com",
