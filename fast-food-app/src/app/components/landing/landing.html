@@ -2,26 +2,31 @@
 
   <!-- Hero -->
   <section style="text-align:center;padding:80px 40px 60px;background:#e8f7ef">
+
+    <!-- Switch idioma -->
+    <div style="position:absolute;top:20px;right:40px">
+      <app-lang-switch></app-lang-switch>
+    </div>
+
     <div style="width:72px;height:72px;background:#1D9E75;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px">
       <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a9 9 0 00-6.36 2.64C3.55 6.73 2 9.27 2 12c0 5.52 4.48 10 10 10s10-4.48 10-10S17.52 2 12 2z"/><path d="M8 12c0-2.2 1.8-4 4-4s4 1.8 4 4"/></svg>
     </div>
     <h1 style="margin:0 0 16px;font-size:48px;font-weight:800;color:#111">Verde Sazón</h1>
     <p style="margin:0 0 36px;font-size:18px;color:#555;max-width:600px;margin-left:auto;margin-right:auto">
-      Comida saludable, rápida y personalizada para profesionales ocupados
+      {{ 'LANDING.SUBTITULO' | translate }}
     </p>
     <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
       <button (click)="irLogin()"
-              style="padding:14px 32px;background:#1D9E75;color:white;border:none;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px">
-        Iniciar sesión →
+              style="padding:14px 32px;background:#1D9E75;color:white;border:none;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer">
+        {{ 'LANDING.INICIAR' | translate }} →
       </button>
-      <button
-        style="padding:14px 32px;background:white;color:#111;border:2px solid #e0e0e0;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer">
-        Crear cuenta
+      <button style="padding:14px 32px;background:white;color:#111;border:2px solid #e0e0e0;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer">
+        {{ 'LANDING.CREAR' | translate }}
       </button>
     </div>
   </section>
 
-  <!-- Imagen comida -->
+  <!-- Imagen -->
   <section style="padding:0 80px;background:#e8f7ef">
     <div style="border-radius:24px;overflow:hidden;max-height:400px">
       <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1200&q=80"
@@ -31,45 +36,44 @@
 
   <!-- Features -->
   <section style="padding:80px 40px;background:#f0faf4;text-align:center">
-    <h2 style="margin:0 0 48px;font-size:32px;font-weight:800;color:#111">¿Por qué elegir Verde Sazón?</h2>
+    <h2 style="margin:0 0 48px;font-size:32px;font-weight:800;color:#111">{{ 'LANDING.POR_QUE' | translate }}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;max-width:1100px;margin:0 auto">
 
       <div style="background:white;border-radius:16px;padding:32px 24px;text-align:left;border:1px solid #e5e5e5">
         <div style="width:48px;height:48px;background:#e8f5e9;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:20px">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
-        <h3 style="margin:0 0 12px;font-size:16px;font-weight:700;color:#111">100% Natural</h3>
-        <p style="margin:0;font-size:14px;color:#888;line-height:1.6">Ingredientes frescos y orgánicos en todos nuestros platillos</p>
+        <h3 style="margin:0 0 12px;font-size:16px;font-weight:700;color:#111">{{ 'LANDING.NATURAL_TITULO' | translate }}</h3>
+        <p style="margin:0;font-size:14px;color:#888;line-height:1.6">{{ 'LANDING.NATURAL_DESC' | translate }}</p>
       </div>
 
       <div style="background:white;border-radius:16px;padding:32px 24px;text-align:left;border:1px solid #e5e5e5">
         <div style="width:48px;height:48px;background:#e3f2fd;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:20px">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
-        <h3 style="margin:0 0 12px;font-size:16px;font-weight:700;color:#111">Entrega Rápida</h3>
-        <p style="margin:0;font-size:14px;color:#888;line-height:1.6">Recibe tu pedido en menos de 30 minutos</p>
+        <h3 style="margin:0 0 12px;font-size:16px;font-weight:700;color:#111">{{ 'LANDING.RAPIDA_TITULO' | translate }}</h3>
+        <p style="margin:0;font-size:14px;color:#888;line-height:1.6">{{ 'LANDING.RAPIDA_DESC' | translate }}</p>
       </div>
 
       <div style="background:white;border-radius:16px;padding:32px 24px;text-align:left;border:1px solid #e5e5e5">
         <div style="width:48px;height:48px;background:#fce4ec;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:20px">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e91e63" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
         </div>
-        <h3 style="margin:0 0 12px;font-size:16px;font-weight:700;color:#111">Personalizable</h3>
-        <p style="margin:0;font-size:14px;color:#888;line-height:1.6">Adapta cada platillo a tus preferencias alimentarias</p>
+        <h3 style="margin:0 0 12px;font-size:16px;font-weight:700;color:#111">{{ 'LANDING.PERSONALIZABLE_TITULO' | translate }}</h3>
+        <p style="margin:0;font-size:14px;color:#888;line-height:1.6">{{ 'LANDING.PERSONALIZABLE_DESC' | translate }}</p>
       </div>
 
       <div style="background:white;border-radius:16px;padding:32px 24px;text-align:left;border:1px solid #e5e5e5">
         <div style="width:48px;height:48px;background:#f3e5f5;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:20px">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9c27b0" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
-        <h3 style="margin:0 0 12px;font-size:16px;font-weight:700;color:#111">Calidad Garantizada</h3>
-        <p style="margin:0;font-size:14px;color:#888;line-height:1.6">Preparado por chefs profesionales con los más altos estándares</p>
+        <h3 style="margin:0 0 12px;font-size:16px;font-weight:700;color:#111">{{ 'LANDING.CALIDAD_TITULO' | translate }}</h3>
+        <p style="margin:0;font-size:14px;color:#888;line-height:1.6">{{ 'LANDING.CALIDAD_DESC' | translate }}</p>
       </div>
 
     </div>
   </section>
 
-  <!-- Footer -->
   <footer style="background:white;border-top:1px solid #e5e5e5;padding:24px 40px;text-align:center">
     <p style="margin:0;font-size:13px;color:#888">© 2026 Verde Sazón · Todos los derechos reservados</p>
   </footer>
