@@ -50,3 +50,5 @@ target/
 *.jar
 *.log
 *.jar.original
+
+firebase-admin.json
