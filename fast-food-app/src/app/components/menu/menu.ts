@@ -1,5 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ProductoService } from '../../services/producto.service';
 import { Producto } from '../../models/producto.model';
@@ -12,6 +13,7 @@ import { CartService } from '../../services/cart.service';
 import { CarritoItem } from '../../models/carrito-item.model';
 import { PedidoService } from '../../services/pedido.service';
 import { CrearPedidoRequest, PedidoHistorialItem } from '../../models/pedido.model';
+import { TimeoutError } from 'rxjs';
 
 
 @Component({
@@ -174,14 +176,34 @@ export class MenuComponent implements OnInit {
       this.cargarHistorialPedidos(usuario.uid);
     } catch (error) {
       console.error('Error creando pedido:', error);
-      this.errorPedido = this.t(
-        'MENU_CART.ERROR_CREATE_ORDER',
-        undefined,
-        'No se pudo crear el pedido. Verifica que el backend este activo.'
-      );
+      this.errorPedido = this.resolverMensajeErrorPedido(error);
     } finally {
       this.procesandoPedido = false;
     }
+  }
+
+  private resolverMensajeErrorPedido(error: unknown): string {
+    if (error instanceof TimeoutError) {
+      return this.t(
+        'MENU_CART.ERROR_CREATE_ORDER',
+        undefined,
+        'La creacion del pedido tardó demasiado. Verifica que el backend y Firebase esten disponibles e intenta nuevamente.'
+      );
+    }
+
+    if (error instanceof HttpErrorResponse && error.status === 0) {
+      return this.t(
+        'MENU_CART.ERROR_CREATE_ORDER',
+        undefined,
+        'No se pudo conectar con el backend local. Verifica que la API en el puerto 3000 este activa.'
+      );
+    }
+
+    return this.t(
+      'MENU_CART.ERROR_CREATE_ORDER',
+      undefined,
+      'No se pudo crear el pedido. Verifica que el backend este activo.'
+    );
   }
 
   cerrarModalExito(): void {

@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,7 @@ public class ClienteClasificacionService {
 
     private static final String COLECCION_PEDIDOS = "pedidos";
     private static final String COLECCION_USUARIOS = "usuarios";
+    private static final long FIRESTORE_TIMEOUT_SECONDS = 15;
     private static final DateTimeFormatter HORA_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
             .withZone(ZoneId.systemDefault());
 
@@ -61,7 +63,7 @@ public class ClienteClasificacionService {
             payload.put("total", totalCalculado);
             payload.put("creadoEn", Instant.now().toString());
 
-            pedidoRef.set(payload, SetOptions.merge()).get();
+            await(pedidoRef.set(payload, SetOptions.merge()));
 
             return new PedidoCreateResponse(pedidoRef.getId(), numeroPedido, "pendiente", hora, totalCalculado);
         } catch (Exception e) {
@@ -75,10 +77,10 @@ public class ClienteClasificacionService {
         }
 
         try {
-            QuerySnapshot snapshot = firestore.collection(COLECCION_PEDIDOS)
+            QuerySnapshot snapshot = await(firestore.collection(COLECCION_PEDIDOS)
                     .whereEqualTo("clienteId", clienteId.trim())
                     .get()
-                    .get();
+                    );
 
             List<PedidoHistorialResponse> pedidos = new ArrayList<>();
             for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
@@ -100,12 +102,12 @@ public class ClienteClasificacionService {
     public Map<String, Object> actualizarEstadoPedido(String pedidoId, String estado) {
         try {
             DocumentReference pedidoRef = firestore.collection(COLECCION_PEDIDOS).document(pedidoId);
-            DocumentSnapshot pedidoSnapshot = pedidoRef.get().get();
+            DocumentSnapshot pedidoSnapshot = await(pedidoRef.get());
             if (!pedidoSnapshot.exists()) {
                 throw new IllegalArgumentException("Pedido no encontrado: " + pedidoId);
             }
 
-            WriteResult writeResult = pedidoRef.update("estado", estado).get();
+            WriteResult writeResult = await(pedidoRef.update("estado", estado));
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("pedidoId", pedidoId);
             response.put("estado", estado);
@@ -129,7 +131,7 @@ public class ClienteClasificacionService {
 
     public ClientePerfilResponse obtenerPerfilCliente(String clienteId) {
         try {
-            DocumentSnapshot userSnapshot = firestore.collection(COLECCION_USUARIOS).document(clienteId).get().get();
+            DocumentSnapshot userSnapshot = await(firestore.collection(COLECCION_USUARIOS).document(clienteId).get());
             if (!userSnapshot.exists()) {
                 return new ClientePerfilResponse(clienteId, "Nuevo", 0, 0);
             }
@@ -198,7 +200,7 @@ public class ClienteClasificacionService {
             patch.put("pedidosCompletados", pedidosCompletados);
             patch.put("montoTotalCompletado", montoTotalCompletado);
             patch.put("clasificacionActualizadaEn", Instant.now().toString());
-            firestore.collection(COLECCION_USUARIOS).document(clienteId).set(patch, SetOptions.merge()).get();
+            await(firestore.collection(COLECCION_USUARIOS).document(clienteId).set(patch, SetOptions.merge()));
 
             return new ClientePerfilResponse(clienteId, clasificacion, pedidosCompletados, montoTotalCompletado);
         } catch (Exception e) {
@@ -211,7 +213,7 @@ public class ClienteClasificacionService {
         String email = "";
 
         try {
-            DocumentSnapshot usuario = firestore.collection(COLECCION_USUARIOS).document(clienteId).get().get();
+            DocumentSnapshot usuario = await(firestore.collection(COLECCION_USUARIOS).document(clienteId).get());
             if (usuario.exists() && usuario.getData() != null) {
                 Map<String, Object> data = usuario.getData();
                 String nombreDoc = firstNotBlank(
@@ -241,7 +243,7 @@ public class ClienteClasificacionService {
     }
 
     private List<QueryDocumentSnapshot> obtenerPedidosEntregados() throws Exception {
-        QuerySnapshot snapshot = firestore.collection(COLECCION_PEDIDOS).get().get();
+        QuerySnapshot snapshot = await(firestore.collection(COLECCION_PEDIDOS).get());
         List<QueryDocumentSnapshot> entregados = new ArrayList<>();
         for (QueryDocumentSnapshot pedido : snapshot.getDocuments()) {
             String estado = asString(pedido.get("estado"));
@@ -428,6 +430,10 @@ public class ClienteClasificacionService {
         } catch (NumberFormatException ignored) {
             return 0;
         }
+    }
+
+    private <T> T await(com.google.api.core.ApiFuture<T> future) throws Exception {
+        return future.get(FIRESTORE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
     private static class ClienteStats {

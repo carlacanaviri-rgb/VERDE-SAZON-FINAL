@@ -2,13 +2,13 @@ import { Injectable } from '@angular/core';
 import { inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
-import { getApp, getApps } from 'firebase/app';
-import { Observable } from 'rxjs';
-import { firstValueFrom } from 'rxjs';
+import { Observable, firstValueFrom, timeout } from 'rxjs';
 import { CrearPedidoRequest, CrearPedidoResponse, Pedido, PedidoHistorialItem } from '../models/pedido.model';
 import { environment } from '../../environments/environment';
+import { getFirebaseApp } from './firebase-app';
 
 const API = environment.apiUrl;
+const PEDIDO_TIMEOUT_MS = 15000;
 
 @Injectable({ providedIn: 'root' })
 export class PedidoService {
@@ -16,12 +16,7 @@ export class PedidoService {
 
   getPedidos(): Observable<Pedido[]> {
     return new Observable(observer => {
-      if (getApps().length === 0) {
-        observer.next([]);
-        return;
-      }
-
-      const db = getFirestore(getApp());
+      const db = getFirestore(getFirebaseApp());
       const ref = collection(db, 'pedidos');
       return onSnapshot(ref, snapshot => {
         console.log('Pedidos encontrados:', snapshot.docs.length);
@@ -39,10 +34,16 @@ export class PedidoService {
   }
 
   async createPedido(payload: CrearPedidoRequest): Promise<CrearPedidoResponse> {
-    return firstValueFrom(this.http.post<CrearPedidoResponse>(`${API}/pedidos`, payload));
+    return firstValueFrom(
+      this.http.post<CrearPedidoResponse>(`${API}/pedidos`, payload).pipe(
+        timeout(PEDIDO_TIMEOUT_MS)
+      )
+    );
   }
 
   getPedidosPorCliente(clienteId: string): Observable<PedidoHistorialItem[]> {
-    return this.http.get<PedidoHistorialItem[]>(`${API}/pedidos/cliente/${clienteId}`);
+    return this.http.get<PedidoHistorialItem[]>(`${API}/pedidos/cliente/${clienteId}`).pipe(
+      timeout(PEDIDO_TIMEOUT_MS)
+    );
   }
 }

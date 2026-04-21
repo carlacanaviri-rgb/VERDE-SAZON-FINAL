@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth';
-import { getApps, initializeApp, getApp } from 'firebase/app';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { environmentDevelopment } from '../../environments/environment.development';
 import { BehaviorSubject } from 'rxjs';
+import { getFirebaseApp } from './firebase-app';
 
-const app = getApps().length === 0 ? initializeApp(environmentDevelopment.firebaseConfig) : getApp();
+const app = getFirebaseApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
 

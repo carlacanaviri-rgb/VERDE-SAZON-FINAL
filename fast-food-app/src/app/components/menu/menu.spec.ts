@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Observable, of } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { vi } from 'vitest';
 import { TranslateService } from '@ngx-translate/core';
@@ -134,5 +135,28 @@ describe('MenuComponent', () => {
     expect(component.exitoPedido).toContain('VS-1');
     expect(component.mostrarModalExito).toBe(true);
     expect(pedidoServiceSpy.getPedidosPorCliente).toHaveBeenCalledWith('user-1');
+  });
+
+  it('sale de estado procesando y muestra error cuando el backend no responde', async () => {
+    authServiceMock.usuarioLogueado = {
+      uid: 'user-1',
+      displayName: 'Ana',
+      email: 'ana@test.com'
+    };
+    pedidoServiceSpy.createPedido.mockRejectedValueOnce(new HttpErrorResponse({ status: 0 }));
+    component.carritoItems = [{
+      id: '1',
+      nombre: 'Ensalada de pollo',
+      descripcion: 'muy saludable',
+      precio: 59,
+      categoria: 'Ensalada',
+      cantidad: 1
+    }];
+
+    await component.finalizarPedido();
+
+    expect(component.procesandoPedido).toBe(false);
+    expect(component.errorPedido).toContain('backend local');
+    expect(cartServiceSpy.clear).not.toHaveBeenCalled();
   });
 });
