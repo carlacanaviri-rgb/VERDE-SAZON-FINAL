@@ -7,6 +7,8 @@ import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LangSwitchComponent } from '../lang-switch/lang-switch';
+import { ClienteService } from '../../services/cliente.service';
+import { ClienteRanking } from '../../models/cliente-ranking.model';
 
 
 @Component({
@@ -22,19 +24,26 @@ export class ProductosComponent implements OnInit {
   readonly authSvc = inject(AuthService);
   readonly router = inject(Router);
   readonly translate = inject(TranslateService);
+  readonly clienteSvc = inject(ClienteService);
 
   productos: Producto[] = [];
   editando: Producto | null = null;
   mostrarFormulario = false;
   errores: { [key: string]: string } = {};
   form: Producto = this.formVacio();
+  topClientes: ClienteRanking[] = [];
 
   ngOnInit() {
     this.cargarProductos();
+    this.cargarRankingClientes();
   }
 
   cargarProductos() {
     this.svc.getProductos().subscribe(data => this.productos = data);
+  }
+
+  cargarRankingClientes() {
+    this.clienteSvc.getRankingTop(10).subscribe(data => this.topClientes = data);
   }
 
   formVacio(): Producto {

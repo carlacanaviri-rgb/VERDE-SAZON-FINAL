@@ -25,6 +25,7 @@ export class CocinaComponent implements OnInit {
   get pendientes() { return this.pedidos.filter(p => p.estado === 'pendiente'); }
   get preparando() { return this.pedidos.filter(p => p.estado === 'preparando'); }
   get listos() { return this.pedidos.filter(p => p.estado === 'listo'); }
+  get entregados() { return this.pedidos.filter(p => p.estado === 'entregado'); }
 
   ngOnInit() {
     this.svc.getPedidos().subscribe(data => {
@@ -35,6 +36,7 @@ export class CocinaComponent implements OnInit {
 
   aceptar(p: Pedido) { this.svc.cambiarEstado(p.id!, 'preparando'); }
   marcarListo(p: Pedido) { this.svc.cambiarEstado(p.id!, 'listo'); }
+  marcarEntregado(p: Pedido) { this.svc.cambiarEstado(p.id!, 'entregado'); }
 
   logout() {
     this.auth.logout();

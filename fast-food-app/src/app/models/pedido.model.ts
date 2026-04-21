@@ -7,7 +7,7 @@ export interface ItemPedido {
 export interface Pedido {
   id?: string;
   numero: string;
-  estado: 'pendiente' | 'preparando' | 'listo';
+  estado: 'pendiente' | 'preparando' | 'listo' | 'entregado';
   hora: string;
   tiempoEstimado?: number;
   items: ItemPedido[];

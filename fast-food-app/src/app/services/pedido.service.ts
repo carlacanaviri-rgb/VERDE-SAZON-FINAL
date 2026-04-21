@@ -1,13 +1,18 @@
 import { Injectable } from '@angular/core';
-import { getFirestore, collection, doc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
 import { getApp } from 'firebase/app';
 import { Observable } from 'rxjs';
 import { Pedido } from '../models/pedido.model';
+import { environment } from '../../environments/environment';
 
 const db = getFirestore(getApp());
+const API = environment.apiUrl;
 
 @Injectable({ providedIn: 'root' })
 export class PedidoService {
+  private http = inject(HttpClient);
 
   getPedidos(): Observable<Pedido[]> {
     return new Observable(observer => {
@@ -23,7 +28,7 @@ export class PedidoService {
     });
   }
 
-  async cambiarEstado(id: string, estado: 'pendiente' | 'preparando' | 'listo') {
-    await updateDoc(doc(db, 'pedidos', id), { estado });
+  async cambiarEstado(id: string, estado: 'pendiente' | 'preparando' | 'listo' | 'entregado') {
+    await this.http.patch(`${API}/pedidos/${id}/estado`, { estado }).toPromise();
   }
 }

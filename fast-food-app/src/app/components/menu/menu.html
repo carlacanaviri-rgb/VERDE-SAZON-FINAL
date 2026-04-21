@@ -29,7 +29,8 @@
           <div style="padding:12px 16px;border-bottom:1px solid #f0f0f0;margin-bottom:8px">
             <p style="margin:0 0 2px;font-weight:600;font-size:14px;color:#111">{{ nombreUsuario }}</p>
             <p style="margin:0 0 4px;font-size:12px;color:#888">{{ emailUsuario }}</p>
-            <span style="font-size:11px;color:#1D9E75">Cuenta de prueba</span>
+            <span style="font-size:11px;background:#e1f5ee;color:#0F6E56;padding:3px 8px;border-radius:20px">{{ clasificacionUsuario }}</span>
+            <p style="margin:8px 0 0;font-size:11px;color:#666">{{ pedidosCompletados }} pedidos completados · ${{ montoTotalCompletado | number:'1.0-0' }}</p>
           </div>
           <div style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer;background:#f0f7f0">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>

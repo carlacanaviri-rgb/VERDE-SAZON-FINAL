@@ -7,6 +7,7 @@ import { vi } from 'vitest';
 import { ProductosComponent } from './productos';
 import { ProductoService } from '../../services/producto.service';
 import { AuthService } from '../../services/auth.service';
+import { ClienteService } from '../../services/cliente.service';
 
 describe('ProductosComponent', () => {
   let component: ProductosComponent;
@@ -41,6 +42,7 @@ describe('ProductosComponent', () => {
       providers: [
         { provide: ProductoService, useValue: productoServiceSpy as unknown as ProductoService },
         { provide: AuthService, useValue: { logout: vi.fn().mockResolvedValue(undefined) } },
+        { provide: ClienteService, useValue: { getRankingTop: vi.fn().mockReturnValue(of([])) } },
         { provide: Router, useValue: { navigate: vi.fn() } },
         { provide: TranslateService, useValue: translateServiceSpy }
       ]

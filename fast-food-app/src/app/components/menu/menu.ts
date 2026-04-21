@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { LangSwitchComponent } from '../lang-switch/lang-switch';
+import { ClienteService } from '../../services/cliente.service';
 
 
 @Component({
@@ -18,12 +19,16 @@ export class MenuComponent implements OnInit {
   private svc = inject(ProductoService);
   private router = inject(Router);
   private auth = inject(AuthService);
+  private clienteSvc = inject(ClienteService);
 
   productos: Producto[] = [];
   categoriaActiva = 'Todas';
   mostrarDropdown = false;
   nombreUsuario = '';
   emailUsuario = '';
+  clasificacionUsuario: 'Nuevo' | 'Recurrente' | 'VIP' = 'Nuevo';
+  pedidosCompletados = 0;
+  montoTotalCompletado = 0;
 
   get categorias(): string[] {
     const cats = this.productos.map(p => p.categoria);
@@ -46,6 +51,11 @@ export class MenuComponent implements OnInit {
       if (user) {
         this.nombreUsuario = user.displayName ?? 'Cliente';
         this.emailUsuario = user.email ?? '';
+        this.clienteSvc.getPerfil(user.uid).subscribe(perfil => {
+          this.clasificacionUsuario = perfil.clasificacion;
+          this.pedidosCompletados = perfil.pedidosCompletados;
+          this.montoTotalCompletado = perfil.montoTotalCompletado;
+        });
       }
     });
   }
