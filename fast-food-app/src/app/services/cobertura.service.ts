@@ -10,10 +10,10 @@ import {
   updateDoc
 } from 'firebase/firestore';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { environmentDevelopment } from '../../environments/environment.development';
 import { ZonaCobertura } from '../models/zona-cobertura.model';
 
-const app = getApps().length === 0 ? initializeApp(environment.firebaseConfig) : getApp();
+const app = getApps().length === 0 ? initializeApp(environmentDevelopment.firebaseConfig) : getApp();
 const db = getFirestore(app);
 
 @Injectable({ providedIn: 'root' })

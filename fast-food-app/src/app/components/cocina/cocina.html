@@ -1,0 +1,123 @@
+<div style="display:flex;min-height:100vh;font-family:'Segoe UI',sans-serif;background:#f8faf8">
+
+  <!-- Sidebar -->
+  <div style="width:220px;background:white;border-right:1px solid #e5e5e5;padding:24px 16px;display:flex;flex-direction:column;position:fixed;height:100vh;box-sizing:border-box">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:32px;padding:0 8px">
+      <div style="width:36px;height:36px;background:#1D9E75;border-radius:50%;display:flex;align-items:center;justify-content:center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+      </div>
+      <span style="font-weight:600;font-size:14px;color:#111">{{ 'COCINA.TITULO' | translate }}</span>
+    </div>
+
+    <!-- Resumen -->
+    <div style="background:#f8faf8;border-radius:10px;padding:16px;margin-bottom:24px">
+      <p style="margin:0 0 12px;font-size:13px;font-weight:600;color:#111">Resumen</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:13px;color:#555">{{ 'COCINA.PENDIENTES' | translate }}</span>
+        <span style="background:#1D9E75;color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">{{ pendientes.length }}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:13px;color:#555">{{ 'COCINA.EN_PREPARACION' | translate }}</span>
+        <span style="background:#f59e0b;color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">{{ preparando.length }}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:#555">{{ 'COCINA.LISTOS' | translate }}</span>
+        <span style="background:#e5e5e5;color:#555;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">{{ listos.length }}</span>
+      </div>
+    </div>
+
+    <div style="flex:1"></div>
+    <app-lang-switch style="margin-bottom:12px"></app-lang-switch>
+    <div (click)="logout()" style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#e74c3c;cursor:pointer;border-radius:8px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      {{ 'COMUN.CERRAR_SESION' | translate }}
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div style="margin-left:220px;flex:1;padding:32px">
+    <h1 style="margin:0 0 4px;font-size:28px;font-weight:700;color:#111">{{ 'COCINA.TITULO' | translate }}</h1>
+    <p style="margin:0 0 24px;font-size:14px;color:#888">{{ 'COCINA.SUBTITULO' | translate }}</p>
+
+    <!-- Alerta pendientes -->
+    <div *ngIf="pendientes.length > 0"
+         style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:14px 20px;margin-bottom:24px;display:flex;align-items:center;gap:10px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span style="font-size:14px;font-weight:500;color:#c2410c">{{ 'COCINA.ALERTA' | translate:{ count: pendientes.length } }}</span>
+    </div>
+
+    <!-- Columnas -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+
+      <!-- Recibidos -->
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+          <h2 style="margin:0;font-size:16px;font-weight:700;color:#111">{{ 'COCINA.RECIBIDOS' | translate }} ({{ pendientes.length }})</h2>
+        </div>
+        <div *ngFor="let p of pendientes" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:20px;margin-bottom:12px">
+          <p style="margin:0 0 4px;font-size:15px;font-weight:700;color:#111">#{{ p.numero }}</p>
+          <p style="margin:0 0 16px;font-size:12px;color:#888">{{ p.hora }}</p>
+          <div *ngFor="let item of p.items" style="margin-bottom:4px">
+            <span style="font-size:13px;color:#111">{{ item.cantidad }}x {{ item.nombre }}</span>
+            <span *ngIf="item.nota" style="display:block;font-size:11px;color:#888">{{ item.nota }}</span>
+          </div>
+          <button (click)="aceptar(p)"
+                  style="width:100%;margin-top:16px;padding:10px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">
+            ✓ {{ 'COCINA.ACEPTAR' | translate }}
+          </button>
+        </div>
+        <div *ngIf="pendientes.length === 0" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:32px;text-align:center;color:#aaa;font-size:13px">
+          {{ 'COCINA.NO_NUEVOS' | translate }}
+        </div>
+      </div>
+
+      <!-- En preparación -->
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <h2 style="margin:0;font-size:16px;font-weight:700;color:#111">{{ 'COCINA.EN_PREPARACION' | translate }} ({{ preparando.length }})</h2>
+        </div>
+        <div *ngFor="let p of preparando" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:20px;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <p style="margin:0 0 4px;font-size:15px;font-weight:700;color:#111">#{{ p.numero }}</p>
+              <p style="margin:0 0 16px;font-size:12px;color:#888">{{ p.hora }}</p>
+            </div>
+            <span *ngIf="p.tiempoEstimado" style="background:#e0f2fe;color:#0284c7;font-size:11px;padding:4px 8px;border-radius:20px">{{ p.tiempoEstimado }} min</span>
+          </div>
+          <div *ngFor="let item of p.items" style="margin-bottom:4px">
+            <span style="font-size:13px;color:#111">{{ item.cantidad }}x {{ item.nombre }}</span>
+            <span *ngIf="item.nota" style="display:block;font-size:11px;color:#888">{{ item.nota }}</span>
+          </div>
+          <button (click)="marcarListo(p)"
+                  style="width:100%;margin-top:16px;padding:10px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">
+            ✓ {{ 'COCINA.MARCAR_LISTO' | translate }}
+          </button>
+        </div>
+        <div *ngIf="preparando.length === 0" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:32px;text-align:center;color:#aaa;font-size:13px">
+          {{ 'COCINA.NO_PREPARACION' | translate }}
+        </div>
+      </div>
+
+      <!-- Listos -->
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <h2 style="margin:0;font-size:16px;font-weight:700;color:#111">{{ 'COCINA.LISTO_DESPACHO' | translate }} ({{ listos.length }})</h2>
+        </div>
+        <div *ngFor="let p of listos" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:20px;margin-bottom:12px">
+          <p style="margin:0 0 4px;font-size:15px;font-weight:700;color:#111">#{{ p.numero }}</p>
+          <p style="margin:0 0 16px;font-size:12px;color:#888">{{ p.hora }}</p>
+          <div *ngFor="let item of p.items" style="margin-bottom:4px">
+            <span style="font-size:13px;color:#111">{{ item.cantidad }}x {{ item.nombre }}</span>
+          </div>
+        </div>
+        <div *ngIf="listos.length === 0" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:32px;text-align:center;color:#aaa;font-size:13px">
+          {{ 'COCINA.NO_LISTOS' | translate }}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
