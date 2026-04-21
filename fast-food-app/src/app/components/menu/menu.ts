@@ -25,8 +25,6 @@ export class MenuComponent implements OnInit {
   nombreUsuario = '';
   emailUsuario = '';
 
-
-
   get categorias(): string[] {
     const cats = this.productos.map(p => p.categoria);
     return ['Todas', ...new Set(cats)];
@@ -50,6 +48,13 @@ export class MenuComponent implements OnInit {
         this.emailUsuario = user.email ?? '';
       }
     });
+  }
+
+  irASeccion(id: string): void {
+    const section = document.getElementById(id);
+    if (!section) return;
+
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   cerrarSesion() {
