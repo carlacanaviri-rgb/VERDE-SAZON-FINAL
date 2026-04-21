@@ -3,19 +3,29 @@ import { CommonModule } from '@angular/common';
 import { ProductoService } from '../../services/producto.service';
 import { Producto } from '../../models/producto.model';
 import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { TranslateModule } from '@ngx-translate/core';
+import { LangSwitchComponent } from '../lang-switch/lang-switch';
+
 
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule, LangSwitchComponent],
   templateUrl: './menu.html',
 })
 export class MenuComponent implements OnInit {
   private svc = inject(ProductoService);
   private router = inject(Router);
+  private auth = inject(AuthService);
 
   productos: Producto[] = [];
   categoriaActiva = 'Todas';
+  mostrarDropdown = false;
+  nombreUsuario = '';
+  emailUsuario = '';
+
+
 
   get categorias(): string[] {
     const cats = this.productos.map(p => p.categoria);
@@ -34,9 +44,16 @@ export class MenuComponent implements OnInit {
 
   ngOnInit() {
     this.svc.getProductos().subscribe(data => this.productos = data);
+    this.auth.usuario$.subscribe(user => {
+      if (user) {
+        this.nombreUsuario = user.displayName ?? 'Cliente';
+        this.emailUsuario = user.email ?? '';
+      }
+    });
   }
 
-  irLogin() {
+  cerrarSesion() {
+    this.auth.logout();
     this.router.navigate(['/login']);
   }
 
@@ -69,4 +86,5 @@ export class MenuComponent implements OnInit {
     };
     return colores[categoria.toLowerCase()] ?? '#f0f7f0';
   }
+
 }

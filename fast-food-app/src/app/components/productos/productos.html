@@ -1,5 +1,5 @@
 <div style="display:flex;min-height:100vh;font-family:'Segoe UI',sans-serif;background:#f8faf8">
-  
+
   <!-- Sidebar -->
   <div style="width:220px;background:white;border-right:1px solid #e5e5e5;padding:24px 16px;display:flex;flex-direction:column;position:fixed;height:100vh;box-sizing:border-box">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:32px;padding:0 8px">
@@ -12,47 +12,47 @@
     <nav style="flex:1;display:flex;flex-direction:column;gap:4px">
       <div style="background:#f0f7f0;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:#1D9E75;cursor:pointer">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        Dashboard
+        {{ 'ADMIN.SIDEBAR.DASHBOARD' | translate }}
       </div>
       <div style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer;border-radius:8px">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
-        Platillos
+        {{ 'ADMIN.SIDEBAR.PLATILLOS' | translate }}
       </div>
       <div style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer;border-radius:8px">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h9"/></svg>
-        Categorías
+        {{ 'ADMIN.SIDEBAR.CATEGORIAS' | translate }}
       </div>
       <div style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer;border-radius:8px">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
-        Pedidos
+        {{ 'ADMIN.SIDEBAR.PEDIDOS' | translate }}
       </div>
       <div style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer;border-radius:8px">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-        Usuarios
+        {{ 'ADMIN.SIDEBAR.USUARIOS' | translate }}
       </div>
       <div style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer;border-radius:8px">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Reportes
+        {{ 'ADMIN.SIDEBAR.REPORTES' | translate }}
       </div>
     </nav>
 
-    <!-- ✅ logout() coincide con el método del TS -->
+    <app-lang-switch style="margin-bottom:12px"></app-lang-switch>
     <div (click)="logout()" style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#e74c3c;cursor:pointer;border-radius:8px">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Cerrar sesión
+      {{ 'COMUN.CERRAR_SESION' | translate }}
     </div>
   </div>
 
   <!-- Main content -->
   <div style="margin-left:220px;flex:1;padding:32px">
 
-    <h1 style="margin:0 0 4px;font-size:24px;font-weight:600;color:#111">Dashboard</h1>
-    <p style="margin:0 0 24px;font-size:14px;color:#888">Panel de administración de Verde Sazón</p>
+    <h1 style="margin:0 0 4px;font-size:24px;font-weight:600;color:#111">{{ 'ADMIN.TITULO' | translate }}</h1>
+    <p style="margin:0 0 24px;font-size:14px;color:#888">{{ 'ADMIN.SUBTITULO' | translate }}</p>
 
     <!-- Stat cards -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px">
       <div style="background:white;border-radius:10px;border:1px solid #e5e5e5;padding:16px">
-        <p style="margin:0 0 8px;font-size:12px;color:#888">Ventas del día</p>
+        <p style="margin:0 0 8px;font-size:12px;color:#888">{{ 'ADMIN.VENTAS' | translate }}</p>
         <div style="display:flex;align-items:center;justify-content:space-between">
           <span style="font-size:22px;font-weight:600;color:#111">$1,234</span>
           <div style="width:36px;height:36px;background:#e1f5ee;border-radius:50%;display:flex;align-items:center;justify-content:center">
@@ -61,7 +61,7 @@
         </div>
       </div>
       <div style="background:white;border-radius:10px;border:1px solid #e5e5e5;padding:16px">
-        <p style="margin:0 0 8px;font-size:12px;color:#888">Pedidos activos</p>
+        <p style="margin:0 0 8px;font-size:12px;color:#888">{{ 'ADMIN.PEDIDOS_ACTIVOS' | translate }}</p>
         <div style="display:flex;align-items:center;justify-content:space-between">
           <span style="font-size:22px;font-weight:600;color:#111">12</span>
           <div style="width:36px;height:36px;background:#e6f1fb;border-radius:50%;display:flex;align-items:center;justify-content:center">
@@ -69,10 +69,8 @@
           </div>
         </div>
       </div>
-
-      <!-- ✅ productos.length existe en el TS -->
       <div style="background:white;border-radius:10px;border:1px solid #e5e5e5;padding:16px">
-        <p style="margin:0 0 8px;font-size:12px;color:#888">Productos</p>
+        <p style="margin:0 0 8px;font-size:12px;color:#888">{{ 'ADMIN.PRODUCTOS' | translate }}</p>
         <div style="display:flex;align-items:center;justify-content:space-between">
           <span style="font-size:22px;font-weight:600;color:#111">{{ productos.length }}</span>
           <div style="width:36px;height:36px;background:#faeeda;border-radius:50%;display:flex;align-items:center;justify-content:center">
@@ -80,14 +78,10 @@
           </div>
         </div>
       </div>
-
-      <!-- ✅ Reemplazado productosDisponibles (no existía) por el cálculo inline -->
       <div style="background:white;border-radius:10px;border:1px solid #e5e5e5;padding:16px">
-        <p style="margin:0 0 8px;font-size:12px;color:#888">Disponibles</p>
+        <p style="margin:0 0 8px;font-size:12px;color:#888">{{ 'ADMIN.DISPONIBLES' | translate }}</p>
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:22px;font-weight:600;color:#111">
-            {{ productosDisponibles }}
-          </span>
+          <span style="font-size:22px;font-weight:600;color:#111">{{ productosDisponibles }}</span>
           <div style="width:36px;height:36px;background:#faece7;border-radius:50%;display:flex;align-items:center;justify-content:center">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D85A30" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
@@ -98,55 +92,56 @@
     <!-- Tabla de productos -->
     <div style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:24px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <h2 style="margin:0;font-size:16px;font-weight:600;color:#111">Gestión de Platillos</h2>
-
-        <!-- ✅ mostrarFormulario ahora viene del TS -->
-       <button (click)="toggleFormulario()">
-          {{ mostrarFormulario ? '✕ Cerrar' : '+ Nuevo platillo' }}
+        <h2 style="margin:0;font-size:16px;font-weight:600;color:#111">{{ 'ADMIN.GESTION' | translate }}</h2>
+        <button (click)="toggleFormulario()"
+                style="padding:8px 16px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">
+          {{ mostrarFormulario ? ('ADMIN.CERRAR' | translate) : ('ADMIN.NUEVO' | translate) }}
         </button>
       </div>
 
-      <!-- Formulario desplegable -->
+      <!-- Formulario -->
       <div *ngIf="mostrarFormulario" style="background:#f8faf8;border:1px solid #e5e5e5;border-radius:10px;padding:20px;margin-bottom:24px">
-
-        <!-- ✅ editando viene del TS (tipo Producto | null) -->
-        <h3 style="margin:0 0 16px;font-size:14px;font-weight:600;color:#111">{{ editando ? 'Editar platillo' : 'Nuevo platillo' }}</h3>
+        <h3 style="margin:0 0 16px;font-size:14px;font-weight:600;color:#111">
+          {{ editando ? ('ADMIN.EDITAR_PLATILLO' | translate) : ('ADMIN.NUEVO_PLATILLO' | translate) }}
+        </h3>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
           <div>
-            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">Nombre</label>
-            <input [(ngModel)]="form.nombre" placeholder="Nombre del platillo"
-              style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">{{ 'ADMIN.NOMBRE' | translate }}</label>
+            <input [(ngModel)]="form.nombre" [placeholder]="'ADMIN.NOMBRE' | translate"
+                   [style]="'width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid ' + (errores['nombre'] ? '#dc2626' : '#ddd') + ';border-radius:8px;font-size:13px'">
+            <span *ngIf="errores['nombre']" style="font-size:11px;color:#dc2626">{{ errores['nombre'] }}</span>
           </div>
           <div>
-            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">Categoría</label>
-            <input [(ngModel)]="form.categoria" placeholder="hamburguesas, pizza..."
-              style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">{{ 'ADMIN.CATEGORIA' | translate }}</label>
+            <input [(ngModel)]="form.categoria" [placeholder]="'ADMIN.CATEGORIA' | translate"
+                   [style]="'width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid ' + (errores['categoria'] ? '#dc2626' : '#ddd') + ';border-radius:8px;font-size:13px'">
+            <span *ngIf="errores['categoria']" style="font-size:11px;color:#dc2626">{{ errores['categoria'] }}</span>
           </div>
           <div>
-            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">Precio</label>
-            <input [(ngModel)]="form.precio" type="number" placeholder="0.00"
-              style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">{{ 'ADMIN.PRECIO' | translate }}</label>
+            <input [(ngModel)]="form.precio" type="number"
+                   [style]="'width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid ' + (errores['precio'] ? '#dc2626' : '#ddd') + ';border-radius:8px;font-size:13px'">
+            <span *ngIf="errores['precio']" style="font-size:11px;color:#dc2626">{{ errores['precio'] }}</span>
           </div>
           <div>
-            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">Descripción</label>
-            <input [(ngModel)]="form.descripcion" placeholder="Descripción breve"
-              style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">{{ 'ADMIN.DESCRIPCION' | translate }}</label>
+            <input [(ngModel)]="form.descripcion" [placeholder]="'ADMIN.DESCRIPCION' | translate"
+                   [style]="'width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid ' + (errores['descripcion'] ? '#dc2626' : '#ddd') + ';border-radius:8px;font-size:13px'">
+            <span *ngIf="errores['descripcion']" style="font-size:11px;color:#dc2626">{{ errores['descripcion'] }}</span>
           </div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between">
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer">
-            <input [(ngModel)]="form.disponible" type="checkbox"> Disponible
+            <input [(ngModel)]="form.disponible" type="checkbox"> {{ 'ADMIN.DISPONIBLE' | translate }}
           </label>
           <div style="display:flex;gap:8px">
-            <!-- ✅ cancelar() coincide con el método del TS -->
             <button (click)="cancelar(); mostrarFormulario = false"
-              style="padding:8px 16px;border:1px solid #ddd;border-radius:8px;background:white;font-size:13px;cursor:pointer;color:#555">
-              Cancelar
+                    style="padding:8px 16px;border:1px solid #ddd;border-radius:8px;background:white;font-size:13px;cursor:pointer;color:#555">
+              {{ 'ADMIN.CANCELAR' | translate }}
             </button>
-            <!-- ✅ guardar() coincide con el método del TS -->
             <button (click)="guardar()"
-              style="padding:8px 16px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">
-              {{ editando ? 'Actualizar' : 'Guardar' }}
+                    style="padding:8px 16px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">
+              {{ editando ? ('ADMIN.ACTUALIZAR' | translate) : ('ADMIN.GUARDAR' | translate) }}
             </button>
           </div>
         </div>
@@ -155,40 +150,37 @@
       <!-- Tabla -->
       <table style="width:100%;border-collapse:collapse">
         <thead>
-          <tr style="border-bottom:1px solid #e5e5e5">
-            <th style="text-align:left;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">Nombre</th>
-            <th style="text-align:left;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">Categoría</th>
-            <th style="text-align:left;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">Descripción</th>
-            <th style="text-align:right;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">Precio</th>
-            <th style="text-align:center;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">Estado</th>
-            <th style="text-align:right;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">Acciones</th>
-          </tr>
+        <tr style="border-bottom:1px solid #e5e5e5">
+          <th style="text-align:left;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">{{ 'ADMIN.NOMBRE' | translate }}</th>
+          <th style="text-align:left;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">{{ 'ADMIN.CATEGORIA' | translate }}</th>
+          <th style="text-align:left;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">{{ 'ADMIN.DESCRIPCION' | translate }}</th>
+          <th style="text-align:right;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">{{ 'ADMIN.PRECIO' | translate }}</th>
+          <th style="text-align:center;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">{{ 'ADMIN.ESTADO' | translate }}</th>
+          <th style="text-align:right;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">{{ 'ADMIN.ACCIONES' | translate }}</th>
+        </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let p of productos" style="border-bottom:1px solid #f5f5f5">
-            <td style="padding:12px 0;font-size:13px;font-weight:500;color:#111">{{ p.nombre }}</td>
-            <td style="padding:12px 0;font-size:13px;color:#666">{{ p.categoria }}</td>
-            <td style="padding:12px 0;font-size:13px;color:#888;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.descripcion }}</td>
-            <td style="padding:12px 0;font-size:13px;color:#1D9E75;text-align:right;font-weight:500">${{ p.precio }}</td>
-            <td style="padding:12px 0;text-align:center">
+        <tr *ngFor="let p of productos" style="border-bottom:1px solid #f5f5f5">
+          <td style="padding:12px 0;font-size:13px;font-weight:500;color:#111">{{ p.nombre }}</td>
+          <td style="padding:12px 0;font-size:13px;color:#666">{{ p.categoria }}</td>
+          <td style="padding:12px 0;font-size:13px;color:#888;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.descripcion }}</td>
+          <td style="padding:12px 0;font-size:13px;color:#1D9E75;text-align:right;font-weight:500">${{ p.precio }}</td>
+          <td style="padding:12px 0;text-align:center">
               <span [style]="p.disponible ? 'background:#e1f5ee;color:#0F6E56;font-size:11px;padding:3px 10px;border-radius:20px' : 'background:#fef2f2;color:#A32D2D;font-size:11px;padding:3px 10px;border-radius:20px'">
-                {{ p.disponible ? 'Disponible' : 'No disponible' }}
+                {{ p.disponible ? ('ADMIN.DISPONIBLE' | translate) : ('MENU_PAGE.NO_PLATILLOS' | translate) }}
               </span>
-            </td>
-            <td style="padding:12px 0;text-align:right">
-              <!-- ✅ editar(p) en lugar de editarProducto(p) -->
-              <span (click)="editar(p); mostrarFormulario = true" style="font-size:12px;color:#378ADD;cursor:pointer;margin-right:16px">Editar</span>
-              <!-- ✅ eliminar(p) coincide con el método del TS -->
-              <span (click)="eliminar(p)" style="font-size:12px;color:#e74c3c;cursor:pointer">Eliminar</span>
-            </td>
-          </tr>
+          </td>
+          <td style="padding:12px 0;text-align:right">
+            <span (click)="editar(p); mostrarFormulario = true" style="font-size:12px;color:#378ADD;cursor:pointer;margin-right:16px">{{ 'ADMIN.EDITAR' | translate }}</span>
+            <span (click)="eliminar(p)" style="font-size:12px;color:#e74c3c;cursor:pointer">{{ 'ADMIN.ELIMINAR' | translate }}</span>
+          </td>
+        </tr>
         </tbody>
       </table>
 
       <p *ngIf="productos.length === 0" style="text-align:center;color:#aaa;font-size:14px;padding:32px 0">
-        No hay productos aún. ¡Agrega el primero!
+        {{ 'ADMIN.NO_PRODUCTOS' | translate }}
       </p>
     </div>
-
   </div>
 </div>
