@@ -5,7 +5,7 @@ import { ProductoService } from '../../services/producto.service';
 import { Producto } from '../../models/producto.model';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LangSwitchComponent } from '../lang-switch/lang-switch';
 import { ClienteService } from '../../services/cliente.service';
 import { CartService } from '../../services/cart.service';
@@ -27,6 +27,7 @@ export class MenuComponent implements OnInit {
   private clienteSvc = inject(ClienteService);
   private cartSvc = inject(CartService);
   private pedidoSvc = inject(PedidoService);
+  private translate = inject(TranslateService);
 
   productos: Producto[] = [];
   categoriaActiva = 'Todas';
@@ -94,7 +95,11 @@ export class MenuComponent implements OnInit {
 
   agregarAlCarrito(producto: Producto): void {
     this.cartSvc.addProducto(producto);
-    this.mensajeCarrito = `${producto.nombre} agregado al carrito`;
+    this.mensajeCarrito = this.t(
+      'MENU_CART.ADDED',
+      { nombre: producto.nombre },
+      `${producto.nombre} agregado al carrito`
+    );
     this.errorPedido = '';
     this.exitoPedido = '';
     this.mostrarCarrito = true;
@@ -118,7 +123,7 @@ export class MenuComponent implements OnInit {
 
   vaciarCarrito(): void {
     this.cartSvc.clear();
-    this.mensajeCarrito = 'Carrito vaciado';
+    this.mensajeCarrito = this.t('MENU_CART.CART_CLEARED', undefined, 'Carrito vaciado');
     this.exitoPedido = '';
     this.errorPedido = '';
     this.notaPedido = '';
@@ -130,12 +135,12 @@ export class MenuComponent implements OnInit {
     this.exitoPedido = '';
 
     if (!usuario) {
-      this.errorPedido = 'Debes iniciar sesión para realizar un pedido.';
+      this.errorPedido = this.t('MENU_CART.ERROR_LOGIN_REQUIRED', undefined, 'Debes iniciar sesion para realizar un pedido.');
       return;
     }
 
     if (this.carritoItems.length === 0) {
-      this.errorPedido = 'Agrega productos antes de confirmar tu pedido.';
+      this.errorPedido = this.t('MENU_CART.ERROR_EMPTY_CART', undefined, 'Agrega productos antes de confirmar tu pedido.');
       return;
     }
 
@@ -160,12 +165,20 @@ export class MenuComponent implements OnInit {
       this.cartSvc.clear();
       this.notaPedido = '';
       this.mensajeCarrito = '';
-      this.exitoPedido = `Pedido ${response.numero} creado correctamente.`;
+      this.exitoPedido = this.t(
+        'MENU_CART.ORDER_CREATED',
+        { numero: response.numero },
+        `Pedido ${response.numero} creado correctamente.`
+      );
       this.mostrarModalExito = true;
       this.cargarHistorialPedidos(usuario.uid);
     } catch (error) {
       console.error('Error creando pedido:', error);
-      this.errorPedido = 'No se pudo crear el pedido. Verifica que el backend esté activo.';
+      this.errorPedido = this.t(
+        'MENU_CART.ERROR_CREATE_ORDER',
+        undefined,
+        'No se pudo crear el pedido. Verifica que el backend este activo.'
+      );
     } finally {
       this.procesandoPedido = false;
     }
@@ -184,10 +197,22 @@ export class MenuComponent implements OnInit {
         this.cargandoHistorial = false;
       },
       error: () => {
-        this.errorHistorial = 'No se pudo cargar tu historial de pedidos.';
+        this.errorHistorial = this.t(
+          'MENU_CART.ERROR_HISTORY',
+          undefined,
+          'No se pudo cargar tu historial de pedidos.'
+        );
         this.cargandoHistorial = false;
       }
     });
+  }
+
+  private t(key: string, params?: Record<string, unknown>, fallback = ''): string {
+    const translated = this.translate.instant(key, params);
+    if (!translated || translated === key) {
+      return fallback;
+    }
+    return translated;
   }
 
   irASeccion(id: string): void {

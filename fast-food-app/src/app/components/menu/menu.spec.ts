@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Observable, of } from 'rxjs';
 import { Router } from '@angular/router';
 import { vi } from 'vitest';
+import { TranslateService } from '@ngx-translate/core';
 
 import { MenuComponent } from './menu';
 import { ProductoService } from '../../services/producto.service';
@@ -29,6 +30,13 @@ describe('MenuComponent', () => {
   let pedidoServiceSpy: {
     createPedido: ReturnType<typeof vi.fn>;
     getPedidosPorCliente: ReturnType<typeof vi.fn>;
+  };
+  const translateServiceSpy = {
+    instant: vi.fn((key: string, params?: Record<string, unknown>) => {
+      if (key === 'MENU_CART.ADDED') return `${params?.['nombre'] as string} agregado al carrito`;
+      if (key === 'MENU_CART.ORDER_CREATED') return `Pedido ${params?.['numero'] as string} creado correctamente.`;
+      return key;
+    })
   };
 
   beforeEach(async () => {
@@ -60,6 +68,7 @@ describe('MenuComponent', () => {
         { provide: ClienteService, useValue: { getPerfil: () => of({ clienteId: 'x', clasificacion: 'Nuevo', pedidosCompletados: 0, montoTotalCompletado: 0 }) } },
         { provide: CartService, useValue: cartServiceSpy },
         { provide: PedidoService, useValue: pedidoServiceSpy },
+        { provide: TranslateService, useValue: translateServiceSpy },
         { provide: Router, useValue: { navigate: () => Promise.resolve(true) } },
       ],
     })
