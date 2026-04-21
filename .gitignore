@@ -46,3 +46,8 @@ Thumbs.db
 src/environments/environment.ts
 firebase-admin.json
 logs/
+
+# Java backend build artifacts
+fast-food-api-java/target/
+fast-food-api-java/logs/
+

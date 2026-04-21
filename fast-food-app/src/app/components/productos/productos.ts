@@ -41,22 +41,46 @@ export class ProductosComponent implements OnInit {
     return { nombre: '', descripcion: '', precio: 0, categoria: '', disponible: true };
   }
 
+  private normalizarFormulario(): void {
+    this.form.nombre = (this.form.nombre ?? '').trim();
+    this.form.categoria = (this.form.categoria ?? '').trim();
+    this.form.descripcion = (this.form.descripcion ?? '').trim();
+    this.form.precio = Number(this.form.precio);
+  }
+
+  camposRequeridosValidos(): boolean {
+    const nombreValido = !!this.form.nombre?.trim();
+    const categoriaValida = !!this.form.categoria?.trim();
+    const precioNumerico = Number(this.form.precio);
+    const precioValido = Number.isFinite(precioNumerico) && precioNumerico > 0;
+
+    return nombreValido && categoriaValida && precioValido;
+  }
+
+  limpiarError(campo: string): void {
+    if (this.errores[campo]) {
+      delete this.errores[campo];
+    }
+  }
+
 
   validar(): boolean {
     this.errores = {};
+    this.normalizarFormulario();
+
     if (!this.form.nombre.trim())
-      this.errores['nombre'] = 'El nombre es obligatorio';
+      this.errores['nombre'] = this.translate.instant('ADMIN.ERROR_NOMBRE');
     if (!this.form.categoria.trim())
-      this.errores['categoria'] = 'La categoría es obligatoria';
-    if (this.form.precio <= 0)
-      this.errores['precio'] = 'El precio debe ser mayor a 0';
+      this.errores['categoria'] = this.translate.instant('ADMIN.ERROR_CATEGORIA');
+    if (!Number.isFinite(this.form.precio) || this.form.precio <= 0)
+      this.errores['precio'] = this.translate.instant('ADMIN.ERROR_PRECIO');
     if (!this.form.descripcion.trim())
-      this.errores['descripcion'] = 'La descripción es obligatoria';
+      this.errores['descripcion'] = this.translate.instant('ADMIN.ERROR_DESCRIPCION');
     return Object.keys(this.errores).length === 0;
   }
 
   async guardar() {
-    if (!this.validar()) return;  // ← agrega esta línea
+    if (!this.validar()) return;
     if (this.editando?.id) {
       await this.svc.updateProducto(this.editando.id, this.form, this.editando);
     } else {
@@ -70,6 +94,7 @@ export class ProductosComponent implements OnInit {
   editar(p: Producto) {
     this.editando = p;
     this.form = { ...p };
+    this.errores = {};
   }
 
   async eliminar(p: Producto) {
@@ -82,6 +107,7 @@ export class ProductosComponent implements OnInit {
   cancelar() {
     this.editando = null;
     this.form = this.formVacio();
+    this.errores = {};
   }
 
   async logout() {

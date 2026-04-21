@@ -1,17 +1,30 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+import { Router } from '@angular/router';
 
-import { Menu } from './menu';
+import { MenuComponent } from './menu';
+import { ProductoService } from '../../services/producto.service';
+import { AuthService } from '../../services/auth.service';
 
-describe('Menu', () => {
-  let component: Menu;
-  let fixture: ComponentFixture<Menu>;
+describe('MenuComponent', () => {
+  let component: MenuComponent;
+  let fixture: ComponentFixture<MenuComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Menu],
-    }).compileComponents();
+      imports: [MenuComponent],
+      providers: [
+        { provide: ProductoService, useValue: { getProductos: () => of([]) } },
+        { provide: AuthService, useValue: { usuario$: of(null), logout: () => Promise.resolve() } },
+        { provide: Router, useValue: { navigate: () => Promise.resolve(true) } },
+      ],
+    })
+      .overrideComponent(MenuComponent, {
+        set: { template: '' }
+      })
+      .compileComponents();
 
-    fixture = TestBed.createComponent(Menu);
+    fixture = TestBed.createComponent(MenuComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

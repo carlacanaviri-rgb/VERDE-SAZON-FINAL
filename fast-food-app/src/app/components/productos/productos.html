@@ -100,52 +100,56 @@
       </div>
 
       <!-- Formulario -->
-      <div *ngIf="mostrarFormulario" style="background:#f8faf8;border:1px solid #e5e5e5;border-radius:10px;padding:20px;margin-bottom:24px">
+      <form *ngIf="mostrarFormulario" #productoForm="ngForm" (ngSubmit)="guardar()"
+            style="background:#f8faf8;border:1px solid #e5e5e5;border-radius:10px;padding:20px;margin-bottom:24px">
         <h3 style="margin:0 0 16px;font-size:14px;font-weight:600;color:#111">
           {{ editando ? ('ADMIN.EDITAR_PLATILLO' | translate) : ('ADMIN.NUEVO_PLATILLO' | translate) }}
         </h3>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
           <div>
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">{{ 'ADMIN.NOMBRE' | translate }}</label>
-            <input [(ngModel)]="form.nombre" [placeholder]="'ADMIN.NOMBRE' | translate"
+            <input [(ngModel)]="form.nombre" (ngModelChange)="limpiarError('nombre')" name="nombre" required
+                   [placeholder]="'ADMIN.NOMBRE' | translate"
                    [style]="'width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid ' + (errores['nombre'] ? '#dc2626' : '#ddd') + ';border-radius:8px;font-size:13px'">
             <span *ngIf="errores['nombre']" style="font-size:11px;color:#dc2626">{{ errores['nombre'] }}</span>
           </div>
           <div>
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">{{ 'ADMIN.CATEGORIA' | translate }}</label>
-            <input [(ngModel)]="form.categoria" [placeholder]="'ADMIN.CATEGORIA' | translate"
+            <input [(ngModel)]="form.categoria" (ngModelChange)="limpiarError('categoria')" name="categoria" required
+                   [placeholder]="'ADMIN.CATEGORIA' | translate"
                    [style]="'width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid ' + (errores['categoria'] ? '#dc2626' : '#ddd') + ';border-radius:8px;font-size:13px'">
             <span *ngIf="errores['categoria']" style="font-size:11px;color:#dc2626">{{ errores['categoria'] }}</span>
           </div>
           <div>
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">{{ 'ADMIN.PRECIO' | translate }}</label>
-            <input [(ngModel)]="form.precio" type="number"
+            <input [(ngModel)]="form.precio" (ngModelChange)="limpiarError('precio')" name="precio" type="number" required min="0.01"
                    [style]="'width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid ' + (errores['precio'] ? '#dc2626' : '#ddd') + ';border-radius:8px;font-size:13px'">
             <span *ngIf="errores['precio']" style="font-size:11px;color:#dc2626">{{ errores['precio'] }}</span>
           </div>
           <div>
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">{{ 'ADMIN.DESCRIPCION' | translate }}</label>
-            <input [(ngModel)]="form.descripcion" [placeholder]="'ADMIN.DESCRIPCION' | translate"
+            <input [(ngModel)]="form.descripcion" (ngModelChange)="limpiarError('descripcion')" name="descripcion" required
+                   [placeholder]="'ADMIN.DESCRIPCION' | translate"
                    [style]="'width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid ' + (errores['descripcion'] ? '#dc2626' : '#ddd') + ';border-radius:8px;font-size:13px'">
             <span *ngIf="errores['descripcion']" style="font-size:11px;color:#dc2626">{{ errores['descripcion'] }}</span>
           </div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between">
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer">
-            <input [(ngModel)]="form.disponible" type="checkbox"> {{ 'ADMIN.DISPONIBLE' | translate }}
+            <input [(ngModel)]="form.disponible" name="disponible" type="checkbox"> {{ 'ADMIN.DISPONIBLE' | translate }}
           </label>
           <div style="display:flex;gap:8px">
-            <button (click)="cancelar(); mostrarFormulario = false"
+            <button type="button" (click)="cancelar(); mostrarFormulario = false"
                     style="padding:8px 16px;border:1px solid #ddd;border-radius:8px;background:white;font-size:13px;cursor:pointer;color:#555">
               {{ 'ADMIN.CANCELAR' | translate }}
             </button>
-            <button (click)="guardar()"
+            <button type="submit" [disabled]="!productoForm.form.valid || !camposRequeridosValidos()"
                     style="padding:8px 16px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">
               {{ editando ? ('ADMIN.ACTUALIZAR' | translate) : ('ADMIN.GUARDAR' | translate) }}
             </button>
           </div>
         </div>
-      </div>
+      </form>
 
       <!-- Tabla -->
       <table style="width:100%;border-collapse:collapse">
