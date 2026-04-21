@@ -26,7 +26,7 @@ class ClienteClasificacionPolicyTest {
     @Test
     void identificaEstadosEntregadoCompatibles() {
         assertTrue(ClienteClasificacionPolicy.esEstadoEntregado("Entregado"));
-        assertTrue(ClienteClasificacionPolicy.esEstadoEntregado("listo"));
+        assertFalse(ClienteClasificacionPolicy.esEstadoEntregado("listo"));
         assertFalse(ClienteClasificacionPolicy.esEstadoEntregado("pendiente"));
     }
 }

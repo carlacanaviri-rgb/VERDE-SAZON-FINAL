@@ -27,7 +27,7 @@ public final class ClienteClasificacionPolicy {
             return false;
         }
         String normalizado = estado.trim().toLowerCase(Locale.ROOT);
-        return "entregado".equals(normalizado) || "listo".equals(normalizado);
+        return "entregado".equals(normalizado);
     }
 }
 

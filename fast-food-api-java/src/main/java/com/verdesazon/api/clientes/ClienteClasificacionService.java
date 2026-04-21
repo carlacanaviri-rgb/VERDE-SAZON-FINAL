@@ -5,8 +5,11 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
+import com.google.cloud.firestore.SetOptions;
 import com.google.cloud.firestore.WriteResult;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -23,11 +26,75 @@ public class ClienteClasificacionService {
 
     private static final String COLECCION_PEDIDOS = "pedidos";
     private static final String COLECCION_USUARIOS = "usuarios";
+    private static final DateTimeFormatter HORA_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
+            .withZone(ZoneId.systemDefault());
 
     private final Firestore firestore;
 
     public ClienteClasificacionService(Firestore firestore) {
         this.firestore = firestore;
+    }
+
+    public PedidoCreateResponse crearPedido(PedidoCreateRequest request) {
+        validarPedido(request);
+
+        try {
+            DocumentReference pedidoRef = firestore.collection(COLECCION_PEDIDOS).document();
+            String numeroPedido = generarNumeroPedido();
+            String hora = HORA_FORMATTER.format(Instant.now());
+            double totalCalculado = calcularTotalPedido(request);
+
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("numero", numeroPedido);
+            payload.put("estado", "pendiente");
+            payload.put("hora", hora);
+            payload.put("tiempoEstimado", 20);
+            payload.put("clienteId", request.getClienteId().trim());
+            payload.put("clienteNombre", safeTrim(request.getClienteNombre(), "Cliente"));
+            payload.put("clienteEmail", safeTrim(request.getClienteEmail(), ""));
+            payload.put("cliente", Map.of(
+                    "id", request.getClienteId().trim(),
+                    "nombre", safeTrim(request.getClienteNombre(), "Cliente"),
+                    "email", safeTrim(request.getClienteEmail(), "")));
+            payload.put("notaGeneral", safeTrim(request.getNotaGeneral(), ""));
+            payload.put("items", mapearItemsPedido(request.getItems()));
+            payload.put("total", totalCalculado);
+            payload.put("creadoEn", Instant.now().toString());
+
+            pedidoRef.set(payload, SetOptions.merge()).get();
+
+            return new PedidoCreateResponse(pedidoRef.getId(), numeroPedido, "pendiente", hora, totalCalculado);
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo crear el pedido", e);
+        }
+    }
+
+    public List<PedidoHistorialResponse> obtenerPedidosPorCliente(String clienteId) {
+        if (clienteId == null || clienteId.isBlank()) {
+            return List.of();
+        }
+
+        try {
+            QuerySnapshot snapshot = firestore.collection(COLECCION_PEDIDOS)
+                    .whereEqualTo("clienteId", clienteId.trim())
+                    .get()
+                    .get();
+
+            List<PedidoHistorialResponse> pedidos = new ArrayList<>();
+            for (QueryDocumentSnapshot doc : snapshot.getDocuments()) {
+                String numero = safeTrim(asString(doc.get("numero")), doc.getId());
+                String estado = safeTrim(asString(doc.get("estado")), "pendiente");
+                String hora = safeTrim(asString(doc.get("hora")), "");
+                double total = extraerMontoPedido(doc.getData());
+                String creadoEn = safeTrim(asString(doc.get("creadoEn")), "");
+                pedidos.add(new PedidoHistorialResponse(doc.getId(), numero, estado, hora, total, creadoEn));
+            }
+
+            pedidos.sort((a, b) -> parseInstantSafe(b.getCreadoEn()).compareTo(parseInstantSafe(a.getCreadoEn())));
+            return pedidos;
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo obtener el historial de pedidos", e);
+        }
     }
 
     public Map<String, Object> actualizarEstadoPedido(String pedidoId, String estado) {
@@ -131,7 +198,7 @@ public class ClienteClasificacionService {
             patch.put("pedidosCompletados", pedidosCompletados);
             patch.put("montoTotalCompletado", montoTotalCompletado);
             patch.put("clasificacionActualizadaEn", Instant.now().toString());
-            firestore.collection(COLECCION_USUARIOS).document(clienteId).set(patch, com.google.cloud.firestore.SetOptions.merge()).get();
+            firestore.collection(COLECCION_USUARIOS).document(clienteId).set(patch, SetOptions.merge()).get();
 
             return new ClientePerfilResponse(clienteId, clasificacion, pedidosCompletados, montoTotalCompletado);
         } catch (Exception e) {
@@ -246,6 +313,68 @@ public class ClienteClasificacionService {
             }
         }
         return total;
+    }
+
+    private void validarPedido(PedidoCreateRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("El pedido es requerido");
+        }
+        if (request.getClienteId() == null || request.getClienteId().isBlank()) {
+            throw new IllegalArgumentException("El clienteId es requerido");
+        }
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new IllegalArgumentException("El pedido debe incluir al menos un item");
+        }
+
+        for (PedidoCreateItemRequest item : request.getItems()) {
+            if (item == null || item.getNombre() == null || item.getNombre().isBlank()) {
+                throw new IllegalArgumentException("Todos los items deben tener nombre");
+            }
+            if (item.getCantidad() == null || item.getCantidad() <= 0) {
+                throw new IllegalArgumentException("Todos los items deben tener cantidad valida");
+            }
+        }
+    }
+
+    private double calcularTotalPedido(PedidoCreateRequest request) {
+        double totalItems = 0;
+        for (PedidoCreateItemRequest item : request.getItems()) {
+            totalItems += asDouble(item.getPrecio()) * asLong(item.getCantidad());
+        }
+        return totalItems > 0 ? totalItems : asDouble(request.getTotal());
+    }
+
+    private List<Map<String, Object>> mapearItemsPedido(List<PedidoCreateItemRequest> items) {
+        List<Map<String, Object>> payload = new ArrayList<>();
+        for (PedidoCreateItemRequest item : items) {
+            Map<String, Object> itemPayload = new LinkedHashMap<>();
+            itemPayload.put("nombre", item.getNombre().trim());
+            itemPayload.put("cantidad", item.getCantidad());
+            itemPayload.put("nota", safeTrim(item.getNota(), ""));
+            itemPayload.put("precio", asDouble(item.getPrecio()));
+            payload.add(itemPayload);
+        }
+        return payload;
+    }
+
+    private String generarNumeroPedido() {
+        return "VS-" + Instant.now().toEpochMilli();
+    }
+
+    private String safeTrim(String value, String fallback) {
+        if (value == null) {
+            return fallback;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? fallback : trimmed;
+    }
+
+    private Instant parseInstantSafe(String value) {
+        try {
+            return value == null || value.isBlank() ? Instant.EPOCH : Instant.parse(value);
+        } catch (Exception ignored) {
+            return Instant.EPOCH;
+        }
     }
 
     private Object firstNonNull(Object... values) {
