@@ -32,6 +32,7 @@ describe('MenuComponent', () => {
     createPedido: ReturnType<typeof vi.fn>;
     getPedidosPorCliente: ReturnType<typeof vi.fn>;
   };
+  const routerSpy = { navigate: vi.fn().mockResolvedValue(true) };
   const translateServiceSpy = {
     instant: vi.fn((key: string, params?: Record<string, unknown>) => {
       if (key === 'MENU_CART.ADDED') return `${params?.['nombre'] as string} agregado al carrito`;
@@ -41,6 +42,8 @@ describe('MenuComponent', () => {
   };
 
   beforeEach(async () => {
+    routerSpy.navigate.mockClear();
+
     authServiceMock = {
       usuario$: of(null),
       usuarioLogueado: null,
@@ -70,7 +73,7 @@ describe('MenuComponent', () => {
         { provide: CartService, useValue: cartServiceSpy },
         { provide: PedidoService, useValue: pedidoServiceSpy },
         { provide: TranslateService, useValue: translateServiceSpy },
-        { provide: Router, useValue: { navigate: () => Promise.resolve(true) } },
+        { provide: Router, useValue: routerSpy },
       ],
     })
       .overrideComponent(MenuComponent, {
@@ -158,5 +161,26 @@ describe('MenuComponent', () => {
     expect(component.procesandoPedido).toBe(false);
     expect(component.errorPedido).toContain('backend local');
     expect(cartServiceSpy.clear).not.toHaveBeenCalled();
+  });
+
+  it('navega al checkout cuando hay sesion y carrito con productos', () => {
+    authServiceMock.usuarioLogueado = {
+      uid: 'user-1',
+      displayName: 'Ana',
+      email: 'ana@test.com'
+    };
+    component.carritoItems = [{
+      id: '1',
+      nombre: 'Ensalada de pollo',
+      descripcion: 'muy saludable',
+      precio: 59,
+      categoria: 'Ensalada',
+      cantidad: 1
+    }];
+
+    component.irACheckout();
+
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/checkout']);
+    expect(component.mostrarCarrito).toBe(false);
   });
 });

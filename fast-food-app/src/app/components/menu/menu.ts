@@ -131,6 +131,24 @@ export class MenuComponent implements OnInit {
     this.notaPedido = '';
   }
 
+  irACheckout(): void {
+    this.errorPedido = '';
+    const usuario = this.auth.usuarioLogueado;
+
+    if (!usuario) {
+      this.errorPedido = this.t('MENU_CART.ERROR_LOGIN_REQUIRED', undefined, 'Debes iniciar sesion para realizar un pedido.');
+      return;
+    }
+
+    if (this.carritoItems.length === 0) {
+      this.errorPedido = this.t('MENU_CART.ERROR_EMPTY_CART', undefined, 'Agrega productos antes de confirmar tu pedido.');
+      return;
+    }
+
+    this.mostrarCarrito = false;
+    this.router.navigate(['/checkout']);
+  }
+
   async finalizarPedido(): Promise<void> {
     const usuario = this.auth.usuarioLogueado;
     this.errorPedido = '';
