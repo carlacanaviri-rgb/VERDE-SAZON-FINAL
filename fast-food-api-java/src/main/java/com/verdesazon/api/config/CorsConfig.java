@@ -13,6 +13,9 @@ public class CorsConfig {
   public CorsFilter corsFilter() {
     CorsConfiguration config = new CorsConfiguration();
     config.addAllowedOrigin("https://carlacanaviri-rgb.github.io");
+    config.addAllowedOrigin("https://verde-sazon-final.vercel.app");
+    config.addAllowedOrigin("http://localhost:4200");
+    config.addAllowedOrigin("http://127.0.0.1:4200");
     config.addAllowedMethod("*");
     config.addAllowedHeader("*");
     config.setAllowCredentials(true);

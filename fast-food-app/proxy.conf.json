@@ -1,0 +1,12 @@
+{
+  "/api": {
+    "target": "https://verde-sazon-final-production.up.railway.app",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/api": ""
+    }
+  }
+}
+
