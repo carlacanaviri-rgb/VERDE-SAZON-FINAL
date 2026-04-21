@@ -18,6 +18,11 @@ describe('ProductosComponent', () => {
     deleteProducto: ReturnType<typeof vi.fn>;
   };
 
+  const translateServiceSpy = {
+    use: vi.fn(),
+    instant: vi.fn((key: string) => key),
+  };
+
   beforeEach(async () => {
     productoServiceSpy = {
       getProductos: vi.fn(),
@@ -37,9 +42,13 @@ describe('ProductosComponent', () => {
         { provide: ProductoService, useValue: productoServiceSpy as unknown as ProductoService },
         { provide: AuthService, useValue: { logout: vi.fn().mockResolvedValue(undefined) } },
         { provide: Router, useValue: { navigate: vi.fn() } },
-        { provide: TranslateService, useValue: { use: vi.fn() } }
+        { provide: TranslateService, useValue: translateServiceSpy }
       ]
-    }).compileComponents();
+    })
+      .overrideComponent(ProductosComponent, {
+        set: { template: '' }
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(ProductosComponent);
     component = fixture.componentInstance;
