@@ -17,7 +17,7 @@ const db = getFirestore(app);
 
 @Injectable({ providedIn: 'root' })
 export class CoberturaService {
-  getZonasCobertura(): Observable<ZonaCobertura[]> {
+  getZonasCobertura(incluirInactivas = false): Observable<ZonaCobertura[]> {
     return new Observable(observer => {
       const unsub = onSnapshot(collection(db, 'zonas_cobertura'), snapshot => {
         const zonas = snapshot.docs.map(d => ({
@@ -25,7 +25,7 @@ export class CoberturaService {
           ...d.data()
         })) as ZonaCobertura[];
 
-        observer.next(zonas.filter(z => z.activa !== false));
+        observer.next(incluirInactivas ? zonas : zonas.filter(z => z.activa !== false));
       }, error => observer.error(error));
 
       return () => unsub();

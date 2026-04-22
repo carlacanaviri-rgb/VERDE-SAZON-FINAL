@@ -14,12 +14,15 @@ import { CarritoItem } from '../../models/carrito-item.model';
 import { PedidoService } from '../../services/pedido.service';
 import { CrearPedidoRequest, PedidoHistorialItem } from '../../models/pedido.model';
 import { TimeoutError } from 'rxjs';
+import { CoberturaService } from '../../services/cobertura.service';
+import { ZonaCobertura } from '../../models/zona-cobertura.model';
+import { BolivianoCurrencyPipe } from '../../shared/pipes/boliviano-currency.pipe';
 
 
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, LangSwitchComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, LangSwitchComponent, BolivianoCurrencyPipe],
   templateUrl: './menu.html',
 })
 export class MenuComponent implements OnInit {
@@ -29,6 +32,7 @@ export class MenuComponent implements OnInit {
   private clienteSvc = inject(ClienteService);
   private cartSvc = inject(CartService);
   private pedidoSvc = inject(PedidoService);
+  private coberturaSvc = inject(CoberturaService);
   private translate = inject(TranslateService);
 
   productos: Producto[] = [];
@@ -50,6 +54,15 @@ export class MenuComponent implements OnInit {
   historialPedidos: PedidoHistorialItem[] = [];
   cargandoHistorial = false;
   errorHistorial = '';
+  direccionEntrega = '';
+  referenciaEntrega = '';
+  latEntrega = '';
+  lngEntrega = '';
+  zonaCoberturaDetectada = '';
+  zonasCobertura: ZonaCobertura[] = [];
+  sugerenciasCobertura: string[] = [];
+  coberturaValida = false;
+  errorCobertura = '';
 
   get categorias(): string[] {
     const cats = this.productos.map(p => p.categoria);
@@ -81,6 +94,24 @@ export class MenuComponent implements OnInit {
   ngOnInit() {
     this.svc.getProductos().subscribe(data => this.productos = data);
     this.cartSvc.items$.subscribe(items => this.carritoItems = items);
+    this.coberturaSvc.getZonasCobertura().subscribe({
+      next: zonas => {
+        this.zonasCobertura = zonas;
+        this.errorCobertura = '';
+        this.validarCoberturaDireccion();
+      },
+      error: () => {
+        this.zonasCobertura = [];
+        this.coberturaValida = false;
+        this.zonaCoberturaDetectada = '';
+        this.sugerenciasCobertura = [];
+        this.errorCobertura = this.t(
+          'MENU_CART.ERROR_COVERAGE_UNAVAILABLE',
+          undefined,
+          'No se pudo cargar la cobertura en este momento.'
+        );
+      }
+    });
     this.auth.usuario$.subscribe(user => {
       if (user) {
         this.nombreUsuario = user.displayName ?? 'Cliente';
@@ -149,6 +180,24 @@ export class MenuComponent implements OnInit {
     this.router.navigate(['/checkout']);
   }
 
+  validarCoberturaDireccion(): void {
+    const direccion = this.direccionEntrega.trim();
+
+    if (!direccion || this.zonasCobertura.length === 0) {
+      this.coberturaValida = false;
+      this.zonaCoberturaDetectada = '';
+      this.sugerenciasCobertura = [];
+      return;
+    }
+
+    const validacion = this.coberturaSvc.validarDireccion(direccion, this.zonasCobertura);
+    this.coberturaValida = validacion.enCobertura;
+    this.zonaCoberturaDetectada = validacion.zona ?? '';
+    this.sugerenciasCobertura = this.coberturaValida
+      ? []
+      : this.coberturaSvc.sugerirZonasCercanas(direccion, this.zonasCobertura);
+  }
+
   async finalizarPedido(): Promise<void> {
     const usuario = this.auth.usuarioLogueado;
     this.errorPedido = '';
@@ -164,10 +213,19 @@ export class MenuComponent implements OnInit {
       return;
     }
 
+    if (!this.validarCoberturaAntesDeConfirmar()) {
+      return;
+    }
+
     const payload: CrearPedidoRequest = {
       clienteId: usuario.uid,
       clienteNombre: this.nombreUsuario || usuario.displayName || 'Cliente',
       clienteEmail: this.emailUsuario || usuario.email || '',
+      direccionEntrega: this.direccionEntrega.trim(),
+      referenciaEntrega: this.referenciaEntrega.trim(),
+      zonaCobertura: this.zonaCoberturaDetectada,
+      latEntrega: this.parseNumber(this.latEntrega),
+      lngEntrega: this.parseNumber(this.lngEntrega),
       notaGeneral: this.notaPedido.trim(),
       total: this.totalCarrito,
       items: this.carritoItems.map(item => ({
@@ -184,6 +242,12 @@ export class MenuComponent implements OnInit {
       const response = await this.pedidoSvc.createPedido(payload);
       this.cartSvc.clear();
       this.notaPedido = '';
+      this.direccionEntrega = '';
+      this.referenciaEntrega = '';
+      this.latEntrega = '';
+      this.lngEntrega = '';
+      this.zonaCoberturaDetectada = '';
+      this.coberturaValida = false;
       this.mensajeCarrito = '';
       this.exitoPedido = this.t(
         'MENU_CART.ORDER_CREATED',
@@ -198,6 +262,40 @@ export class MenuComponent implements OnInit {
     } finally {
       this.procesandoPedido = false;
     }
+  }
+
+  private validarCoberturaAntesDeConfirmar(): boolean {
+    this.validarCoberturaDireccion();
+
+    if (!this.direccionEntrega.trim()) {
+      this.errorPedido = this.t(
+        'MENU_CART.ERROR_ADDRESS_REQUIRED',
+        undefined,
+        'Ingresa la direccion de entrega para continuar.'
+      );
+      return false;
+    }
+
+    if (this.errorCobertura) {
+      this.errorPedido = this.errorCobertura;
+      return false;
+    }
+
+    if (!this.coberturaValida) {
+      this.errorPedido = this.t(
+        'MENU_CART.ERROR_OUT_OF_COVERAGE',
+        undefined,
+        'La direccion ingresada no esta dentro de la zona de cobertura.'
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  private parseNumber(value: string): number | undefined {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
   }
 
   private resolverMensajeErrorPedido(error: unknown): string {

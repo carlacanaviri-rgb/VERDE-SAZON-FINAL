@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { LangSwitchComponent } from '../lang-switch/lang-switch';
+import { CartService } from '../../services/cart.service';
 
 
 @Component({
@@ -15,6 +16,7 @@ import { LangSwitchComponent } from '../lang-switch/lang-switch';
 })
 export class LoginComponent {
   private auth = inject(AuthService);
+  private cartSvc = inject(CartService);
   private router = inject(Router);
 
   email = '';
@@ -27,6 +29,7 @@ async login() {
   this.cargando = true;
   try {
     const { rol } = await this.auth.login(this.email, this.password);
+    this.cartSvc.clear();
     if (rol === 'admin') this.router.navigate(['/admin']);
     else if (rol === 'cocina') this.router.navigate(['/cocina']);
     else this.router.navigate(['/menu']);

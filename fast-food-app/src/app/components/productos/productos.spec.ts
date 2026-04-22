@@ -8,6 +8,7 @@ import { ProductosComponent } from './productos';
 import { ProductoService } from '../../services/producto.service';
 import { AuthService } from '../../services/auth.service';
 import { ClienteService } from '../../services/cliente.service';
+import { CoberturaService } from '../../services/cobertura.service';
 
 describe('ProductosComponent', () => {
   let component: ProductosComponent;
@@ -43,6 +44,14 @@ describe('ProductosComponent', () => {
         { provide: ProductoService, useValue: productoServiceSpy as unknown as ProductoService },
         { provide: AuthService, useValue: { logout: vi.fn().mockResolvedValue(undefined) } },
         { provide: ClienteService, useValue: { getRankingTop: vi.fn().mockReturnValue(of([])) } },
+        {
+          provide: CoberturaService,
+          useValue: {
+            getZonasCobertura: vi.fn().mockReturnValue(of([])),
+            addZona: vi.fn().mockResolvedValue(undefined),
+            updateZona: vi.fn().mockResolvedValue(undefined)
+          }
+        },
         { provide: Router, useValue: { navigate: vi.fn() } },
         { provide: TranslateService, useValue: translateServiceSpy }
       ]

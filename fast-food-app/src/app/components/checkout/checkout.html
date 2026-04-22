@@ -20,6 +20,10 @@
       {{ errorCheckout }}
     </div>
 
+    <div *ngIf="avisoCheckout" style="margin-bottom:14px;padding:10px 12px;background:#fffbeb;color:#92400e;border:1px solid #fde68a;border-radius:10px;font-size:13px">
+      {{ avisoCheckout }}
+    </div>
+
     <div *ngIf="paso === 'resumen'" style="display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:start">
       <div style="background:white;border:1px solid #e2e8f0;border-radius:16px;padding:18px">
         <h2 style="margin:0 0 12px;font-size:18px;color:#0f172a">{{ 'CHECKOUT.CART_TITLE' | translate }}</h2>
@@ -32,7 +36,7 @@
           <div *ngFor="let item of carritoItems" style="border:1px solid #e2e8f0;border-radius:12px;padding:12px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
             <div>
               <p style="margin:0;font-weight:700;color:#0f172a">{{ item.nombre }}</p>
-              <p style="margin:4px 0 8px;font-size:12px;color:#64748b">{{ item.categoria }} · ${{ item.precio | number:'1.0-0' }}</p>
+              <p style="margin:4px 0 8px;font-size:12px;color:#64748b">{{ item.categoria }} · {{ item.precio | bolivianos }}</p>
               <div style="display:flex;align-items:center;gap:8px">
                 <button type="button" (click)="decrementarCantidad(item)" style="width:28px;height:28px;border:1px solid #cbd5e1;border-radius:999px;background:white;cursor:pointer">-</button>
                 <span style="min-width:20px;text-align:center;font-weight:700">{{ item.cantidad }}</span>
@@ -40,7 +44,7 @@
               </div>
             </div>
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-              <span style="font-weight:700;color:#1D9E75">${{ item.precio * item.cantidad | number:'1.0-0' }}</span>
+              <span style="font-weight:700;color:#1D9E75">{{ item.precio * item.cantidad | bolivianos }}</span>
               <button type="button" (click)="quitarDelCarrito(item)" style="border:none;background:#fee2e2;color:#b91c1c;padding:6px 10px;border-radius:8px;cursor:pointer">
                 {{ 'CHECKOUT.REMOVE' | translate }}
               </button>
@@ -51,12 +55,46 @@
 
       <div style="background:white;border:1px solid #e2e8f0;border-radius:16px;padding:18px;position:sticky;top:16px">
         <h3 style="margin:0 0 12px;font-size:16px;color:#0f172a">{{ 'CHECKOUT.SUMMARY' | translate }}</h3>
+
+        <label for="checkout-direccion" style="display:block;font-size:13px;color:#334155;margin-bottom:6px">{{ 'CHECKOUT.DELIVERY_ADDRESS_LABEL' | translate }}</label>
+        <textarea id="checkout-direccion" [(ngModel)]="direccionEntrega" (ngModelChange)="validarCoberturaDireccion()" rows="2" [placeholder]="'CHECKOUT.DELIVERY_ADDRESS_PLACEHOLDER' | translate"
+                  style="width:100%;box-sizing:border-box;resize:vertical;padding:10px;border:1px solid #cbd5e1;border-radius:10px;font-family:inherit;font-size:13px"></textarea>
+
+        <label for="checkout-referencia" style="display:block;font-size:13px;color:#334155;margin:10px 0 6px">{{ 'CHECKOUT.DELIVERY_REFERENCE_LABEL' | translate }}</label>
+        <input id="checkout-referencia" [(ngModel)]="referenciaEntrega" [placeholder]="'CHECKOUT.DELIVERY_REFERENCE_PLACEHOLDER' | translate"
+               style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:10px;font-family:inherit;font-size:13px" />
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+          <input id="checkout-lat" [(ngModel)]="latEntrega" type="number" step="any" [placeholder]="'CHECKOUT.DELIVERY_LAT_PLACEHOLDER' | translate"
+                 style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:10px;font-family:inherit;font-size:13px" />
+          <input id="checkout-lng" [(ngModel)]="lngEntrega" type="number" step="any" [placeholder]="'CHECKOUT.DELIVERY_LNG_PLACEHOLDER' | translate"
+                 style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:10px;font-family:inherit;font-size:13px" />
+        </div>
+
+        <p *ngIf="coberturaValida" style="margin:10px 0 0;padding:8px 10px;background:#dcfce7;color:#166534;border-radius:8px;font-size:12px">
+          {{ 'CHECKOUT.COVERAGE_OK' | translate:{ zona: zonaCoberturaDetectada } }}
+        </p>
+        <p *ngIf="direccionEntrega && !coberturaValida && !errorCobertura" style="margin:10px 0 0;padding:8px 10px;background:#fef2f2;color:#b91c1c;border-radius:8px;font-size:12px">
+          {{ 'CHECKOUT.COVERAGE_FAIL' | translate }}
+        </p>
+        <div *ngIf="direccionEntrega && !coberturaValida" style="margin-top:8px">
+          <button type="button" (click)="cambiarDireccion()" style="border:1px solid #d1d5db;background:white;color:#334155;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer">
+            {{ 'CHECKOUT.COVERAGE_EDIT_CTA' | translate }}
+          </button>
+        </div>
+        <p *ngIf="errorCobertura" style="margin:10px 0 0;padding:8px 10px;background:#fef2f2;color:#b91c1c;border-radius:8px;font-size:12px">
+          {{ errorCobertura }}
+        </p>
+        <p *ngIf="!coberturaValida && sugerenciasCobertura.length > 0" style="margin:6px 0 0;font-size:12px;color:#64748b">
+          {{ 'CHECKOUT.COVERAGE_SUGGESTIONS' | translate:{ zonas: sugerenciasCobertura.join(', ') } }}
+        </p>
+
         <label for="checkout-nota" style="display:block;font-size:13px;color:#334155;margin-bottom:6px">{{ 'CHECKOUT.NOTES_LABEL' | translate }}</label>
         <textarea id="checkout-nota" [(ngModel)]="notaPedido" rows="3" [placeholder]="'CHECKOUT.NOTES_PLACEHOLDER' | translate"
                   style="width:100%;box-sizing:border-box;resize:vertical;padding:10px;border:1px solid #cbd5e1;border-radius:10px;font-family:inherit;font-size:13px"></textarea>
         <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 10px">
           <span style="font-size:13px;color:#64748b">{{ 'CHECKOUT.ITEMS_TOTAL' | translate:{ count: cantidadCarrito } }}</span>
-          <span style="font-weight:700;color:#0f172a">${{ totalCarrito | number:'1.0-0' }}</span>
+          <span style="font-weight:700;color:#0f172a">{{ totalCarrito | bolivianos }}</span>
         </div>
         <button type="button" (click)="continuarAConfirmacion()" [disabled]="carritoItems.length === 0"
                 style="width:100%;border:none;background:#1D9E75;color:white;border-radius:10px;padding:12px 14px;font-weight:700;cursor:pointer">
@@ -75,13 +113,27 @@
         </div>
         <div style="padding:12px;border-radius:10px;background:#f8fafc">
           <p style="margin:0;font-size:12px;color:#64748b">{{ 'CHECKOUT.ORDER_TOTAL' | translate }}</p>
-          <p style="margin:4px 0 0;font-size:20px;font-weight:800;color:#1D9E75">${{ totalCarrito | number:'1.0-0' }}</p>
+          <p style="margin:4px 0 0;font-size:20px;font-weight:800;color:#1D9E75">{{ totalCarrito | bolivianos }}</p>
           <p style="margin:4px 0 0;font-size:12px;color:#64748b">{{ cantidadCarrito }} {{ 'CHECKOUT.ITEMS' | translate }}</p>
         </div>
         <div *ngIf="notaPedido" style="padding:12px;border-radius:10px;background:#f8fafc">
           <p style="margin:0;font-size:12px;color:#64748b">{{ 'CHECKOUT.NOTES_LABEL' | translate }}</p>
           <p style="margin:4px 0 0;font-size:13px;color:#0f172a">{{ notaPedido }}</p>
         </div>
+        <div style="padding:12px;border-radius:10px;background:#f8fafc">
+          <p style="margin:0;font-size:12px;color:#64748b">{{ 'CHECKOUT.DELIVERY_ADDRESS_LABEL' | translate }}</p>
+          <p style="margin:4px 0 0;font-size:13px;color:#0f172a">{{ direccionEntrega }}</p>
+          <p *ngIf="referenciaEntrega" style="margin:4px 0 0;font-size:12px;color:#334155">{{ referenciaEntrega }}</p>
+          <p *ngIf="latEntregaNumero !== undefined && lngEntregaNumero !== undefined" style="margin:4px 0 0;font-size:12px;color:#334155">Lat: {{ latEntregaNumero }} · Lng: {{ lngEntregaNumero }}</p>
+          <p *ngIf="zonaCoberturaDetectada" style="margin:6px 0 0;font-size:12px;color:#166534">{{ 'CHECKOUT.COVERAGE_OK' | translate:{ zona: zonaCoberturaDetectada } }}</p>
+        </div>
+      </div>
+
+      <div *ngIf="!coberturaValida" style="margin-bottom:12px;padding:10px 12px;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:10px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <span>{{ 'CHECKOUT.COVERAGE_FAIL' | translate }}</span>
+        <button type="button" (click)="cambiarDireccion()" style="border:1px solid #d1d5db;background:white;color:#334155;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer">
+          {{ 'CHECKOUT.COVERAGE_EDIT_CTA' | translate }}
+        </button>
       </div>
 
       <div style="display:flex;justify-content:flex-end;gap:10px">
@@ -89,7 +141,7 @@
                 style="border:1px solid #d1d5db;background:white;color:#334155;border-radius:10px;padding:10px 14px;cursor:pointer">
           {{ 'CHECKOUT.BACK' | translate }}
         </button>
-        <button type="button" (click)="confirmarPedido()" [disabled]="procesandoPedido"
+        <button type="button" (click)="confirmarPedido()" [disabled]="!puedeConfirmarPedido"
                 style="border:none;background:#1D9E75;color:white;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;min-width:180px">
           {{ procesandoPedido ? ('CHECKOUT.PROCESSING' | translate) : ('CHECKOUT.CONFIRM_ORDER' | translate) }}
         </button>
@@ -100,11 +152,46 @@
       <div style="width:56px;height:56px;background:#dcfce7;color:#166534;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px">✓</div>
       <h2 style="margin:0 0 8px;color:#0f172a">{{ 'CHECKOUT.SUCCESS_TITLE' | translate }}</h2>
       <p style="margin:0 0 6px;color:#334155">{{ 'CHECKOUT.SUCCESS_MESSAGE' | translate }}</p>
-      <p style="margin:0 0 16px;font-size:18px;font-weight:700;color:#1D9E75">{{ pedidoCreado?.numero }}</p>
-      <button type="button" (click)="volverAMenu()"
-              style="border:none;background:#1D9E75;color:white;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer">
-        {{ 'CHECKOUT.FINISH' | translate }}
-      </button>
+      <p style="margin:0 0 8px;font-size:18px;font-weight:700;color:#1D9E75">{{ pedidoCreado?.numero }}</p>
+      <p style="margin:0 0 12px;font-size:13px;color:#64748b">{{ 'CHECKOUT.PAY_INSTRUCTIONS' | translate }}</p>
+
+      <div *ngIf="!pagoConfirmado" style="margin:0 auto 12px;max-width:420px;padding:10px 12px;background:#fffbeb;border-radius:10px;border:1px solid #fde68a;color:#92400e;font-size:12px">
+        {{ 'CHECKOUT.PAYMENT_PENDING_NOTICE' | translate }}
+      </div>
+
+      <div *ngIf="!pagoConfirmado && esperandoConfirmacionPago" style="margin:0 auto 12px;max-width:420px;padding:10px 12px;background:#eff6ff;border-radius:10px;border:1px solid #bfdbfe;color:#1d4ed8;font-size:12px">
+        {{ 'CHECKOUT.PAYMENT_WAITING_CONFIRMATION' | translate }}
+      </div>
+
+      <div *ngIf="qrPagoUrl" style="display:flex;justify-content:center;margin-bottom:10px">
+        <img [src]="qrPagoUrl" [alt]="'CHECKOUT.QR_ALT' | translate" style="width:220px;height:220px;border-radius:12px;border:1px solid #e2e8f0;padding:8px;background:white" />
+      </div>
+
+      <div style="margin:0 auto 16px;max-width:420px;padding:10px 12px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0">
+        <p style="margin:0 0 4px;font-size:12px;color:#64748b">{{ 'CHECKOUT.PAY_REFERENCE' | translate }}</p>
+        <p style="margin:0;font-size:12px;font-family:Consolas,monospace;word-break:break-all;color:#0f172a">{{ referenciaPago }}</p>
+      </div>
+
+      <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">
+        <button *ngIf="pagoUrl" type="button" (click)="abrirPagoExterno()"
+                style="border:none;background:#2563eb;color:white;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer">
+          {{ 'CHECKOUT.PAY_NOW' | translate }}
+        </button>
+
+        <button type="button" (click)="confirmarPagoManual()" [disabled]="pagoConfirmado || confirmandoPago"
+                [style]="pagoConfirmado || confirmandoPago
+                  ? 'border:1px solid #d1d5db;background:#f8fafc;color:#94a3b8;border-radius:10px;padding:10px 16px;font-weight:700;cursor:not-allowed'
+                  : 'border:none;background:#0f172a;color:white;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer'">
+          {{ confirmandoPago ? ('CHECKOUT.PROCESSING' | translate) : ('CHECKOUT.CONFIRM_PAYMENT' | translate) }}
+        </button>
+
+        <button type="button" (click)="volverAMenu()" [disabled]="!pagoConfirmado"
+                [style]="pagoConfirmado
+                  ? 'border:none;background:#1D9E75;color:white;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer'
+                  : 'border:1px solid #d1d5db;background:#f8fafc;color:#94a3b8;border-radius:10px;padding:10px 16px;font-weight:700;cursor:not-allowed'">
+          {{ 'CHECKOUT.FINISH' | translate }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

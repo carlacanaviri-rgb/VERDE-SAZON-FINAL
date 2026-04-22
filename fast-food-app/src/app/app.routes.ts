@@ -12,6 +12,7 @@ export const routes: Routes = [
   { path: '', component: LandingComponent },
   { path: 'login', component: LoginComponent },
   { path: 'menu', component: MenuComponent },
+  { path: 'checkout/qr', component: CheckoutComponent, canActivate: [authGuard] },
   { path: 'checkout', component: CheckoutComponent, canActivate: [authGuard] },
   { path: 'productos', component: ProductosComponent, canActivate: [adminGuard] },
   { path: 'admin', component: ProductosComponent, canActivate: [adminGuard] },

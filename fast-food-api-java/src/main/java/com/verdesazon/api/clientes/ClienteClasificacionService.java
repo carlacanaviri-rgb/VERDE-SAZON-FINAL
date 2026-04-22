@@ -7,6 +7,8 @@ import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.SetOptions;
 import com.google.cloud.firestore.WriteResult;
+import com.verdesazon.api.pagos.PaymentCheckoutData;
+import com.verdesazon.api.pagos.PaymentProvider;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -32,9 +34,11 @@ public class ClienteClasificacionService {
             .withZone(ZoneId.systemDefault());
 
     private final Firestore firestore;
+    private final PaymentProvider paymentProvider;
 
-    public ClienteClasificacionService(Firestore firestore) {
+    public ClienteClasificacionService(Firestore firestore, PaymentProvider paymentProvider) {
         this.firestore = firestore;
+        this.paymentProvider = paymentProvider;
     }
 
     public PedidoCreateResponse crearPedido(PedidoCreateRequest request) {
@@ -45,15 +49,31 @@ public class ClienteClasificacionService {
             String numeroPedido = generarNumeroPedido();
             String hora = HORA_FORMATTER.format(Instant.now());
             double totalCalculado = calcularTotalPedido(request);
+            PaymentCheckoutData checkoutPago = paymentProvider.crearCheckout(
+                    pedidoRef.getId(),
+                    numeroPedido,
+                    request,
+                    totalCalculado
+            );
 
             Map<String, Object> payload = new LinkedHashMap<>();
             payload.put("numero", numeroPedido);
-            payload.put("estado", "pendiente");
+            payload.put("estado", "pendiente_pago");
+            payload.put("pagoEstado", "pendiente");
             payload.put("hora", hora);
             payload.put("tiempoEstimado", 20);
             payload.put("clienteId", request.getClienteId().trim());
             payload.put("clienteNombre", safeTrim(request.getClienteNombre(), "Cliente"));
             payload.put("clienteEmail", safeTrim(request.getClienteEmail(), ""));
+            payload.put("direccionEntrega", safeTrim(request.getDireccionEntrega(), ""));
+            payload.put("referenciaEntrega", safeTrim(request.getReferenciaEntrega(), ""));
+            payload.put("zonaCobertura", safeTrim(request.getZonaCobertura(), ""));
+            if (request.getLatEntrega() != null) {
+                payload.put("latEntrega", request.getLatEntrega());
+            }
+            if (request.getLngEntrega() != null) {
+                payload.put("lngEntrega", request.getLngEntrega());
+            }
             payload.put("cliente", Map.of(
                     "id", request.getClienteId().trim(),
                     "nombre", safeTrim(request.getClienteNombre(), "Cliente"),
@@ -61,13 +81,55 @@ public class ClienteClasificacionService {
             payload.put("notaGeneral", safeTrim(request.getNotaGeneral(), ""));
             payload.put("items", mapearItemsPedido(request.getItems()));
             payload.put("total", totalCalculado);
+            payload.put("pagoProveedor", checkoutPago.getProveedor());
+            payload.put("pagoReferencia", checkoutPago.getReferencia());
+            payload.put("pagoUrl", checkoutPago.getPaymentUrl());
+            payload.put("pagoQrData", checkoutPago.getQrData());
             payload.put("creadoEn", Instant.now().toString());
 
             await(pedidoRef.set(payload, SetOptions.merge()));
+            recalcularClasificacionCliente(request.getClienteId().trim());
 
-            return new PedidoCreateResponse(pedidoRef.getId(), numeroPedido, "pendiente", hora, totalCalculado);
+            return new PedidoCreateResponse(
+                    pedidoRef.getId(),
+                    numeroPedido,
+                    "pendiente_pago",
+                    hora,
+                    totalCalculado,
+                    new PagoCheckoutResponse(
+                            checkoutPago.getProveedor(),
+                            checkoutPago.getReferencia(),
+                            checkoutPago.getPaymentUrl(),
+                            checkoutPago.getQrData()
+                    )
+            );
         } catch (Exception e) {
             throw new RuntimeException("No se pudo crear el pedido", e);
+        }
+    }
+
+    public Map<String, Object> confirmarPagoPedido(String pedidoId) {
+        try {
+            DocumentReference pedidoRef = firestore.collection(COLECCION_PEDIDOS).document(pedidoId);
+            DocumentSnapshot pedidoSnapshot = await(pedidoRef.get());
+            if (!pedidoSnapshot.exists()) {
+                throw new IllegalArgumentException("Pedido no encontrado: " + pedidoId);
+            }
+
+            Map<String, Object> patch = new LinkedHashMap<>();
+            patch.put("pagoEstado", "pagado");
+            patch.put("pagadoEn", Instant.now().toString());
+            patch.put("estado", "pendiente");
+            WriteResult writeResult = await(pedidoRef.set(patch, SetOptions.merge()));
+
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("pedidoId", pedidoId);
+            response.put("estado", "pendiente");
+            response.put("pagoEstado", "pagado");
+            response.put("actualizadoEn", writeResult.getUpdateTime().toString());
+            return response;
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo confirmar el pago del pedido", e);
         }
     }
 
@@ -113,14 +175,12 @@ public class ClienteClasificacionService {
             response.put("estado", estado);
             response.put("actualizadoEn", writeResult.getUpdateTime().toString());
 
-            if (ClienteClasificacionPolicy.esEstadoEntregado(estado)) {
-                String clienteId = extraerClienteId(pedidoSnapshot.getData(), pedidoSnapshot.getId());
-                if (clienteId != null && !clienteId.isBlank()) {
-                    ClientePerfilResponse perfil = recalcularClasificacionCliente(clienteId);
-                    response.put("clasificacion", perfil.getClasificacion());
-                    response.put("pedidosCompletados", perfil.getPedidosCompletados());
-                    response.put("montoTotalCompletado", perfil.getMontoTotalCompletado());
-                }
+            String clienteId = extraerClienteId(pedidoSnapshot.getData(), pedidoSnapshot.getId());
+            if (clienteId != null && !clienteId.isBlank()) {
+                ClientePerfilResponse perfil = recalcularClasificacionCliente(clienteId);
+                response.put("clasificacion", perfil.getClasificacion());
+                response.put("pedidosCompletados", perfil.getPedidosCompletados());
+                response.put("montoTotalCompletado", perfil.getMontoTotalCompletado());
             }
 
             return response;
@@ -152,10 +212,10 @@ public class ClienteClasificacionService {
 
     public List<ClienteRankingItemResponse> obtenerRankingTopClientes(int limit) {
         try {
-            List<QueryDocumentSnapshot> entregados = obtenerPedidosEntregados();
+            List<QueryDocumentSnapshot> pedidosContabilizables = obtenerPedidosContabilizables();
             Map<String, ClienteStats> statsPorCliente = new HashMap<>();
 
-            for (QueryDocumentSnapshot pedido : entregados) {
+            for (QueryDocumentSnapshot pedido : pedidosContabilizables) {
                 String clienteId = extraerClienteId(pedido.getData(), pedido.getId());
                 if (clienteId == null || clienteId.isBlank()) {
                     continue;
@@ -181,11 +241,11 @@ public class ClienteClasificacionService {
 
     private ClientePerfilResponse recalcularClasificacionCliente(String clienteId) {
         try {
-            List<QueryDocumentSnapshot> entregados = obtenerPedidosEntregados();
+            List<QueryDocumentSnapshot> pedidosContabilizables = obtenerPedidosContabilizables();
             long pedidosCompletados = 0;
             double montoTotalCompletado = 0;
 
-            for (QueryDocumentSnapshot pedido : entregados) {
+            for (QueryDocumentSnapshot pedido : pedidosContabilizables) {
                 String pedidoClienteId = extraerClienteId(pedido.getData(), pedido.getId());
                 if (!Objects.equals(clienteId, pedidoClienteId)) {
                     continue;
@@ -242,16 +302,16 @@ public class ClienteClasificacionService {
                 stats.montoTotalCompletado);
     }
 
-    private List<QueryDocumentSnapshot> obtenerPedidosEntregados() throws Exception {
+    private List<QueryDocumentSnapshot> obtenerPedidosContabilizables() throws Exception {
         QuerySnapshot snapshot = await(firestore.collection(COLECCION_PEDIDOS).get());
-        List<QueryDocumentSnapshot> entregados = new ArrayList<>();
+        List<QueryDocumentSnapshot> pedidos = new ArrayList<>();
         for (QueryDocumentSnapshot pedido : snapshot.getDocuments()) {
             String estado = asString(pedido.get("estado"));
-            if (ClienteClasificacionPolicy.esEstadoEntregado(estado)) {
-                entregados.add(pedido);
+            if (ClienteClasificacionPolicy.esEstadoContabilizable(estado)) {
+                pedidos.add(pedido);
             }
         }
-        return entregados;
+        return pedidos;
     }
 
     private String extraerClienteId(Map<String, Object> pedido, String fallbackPedidoId) {
@@ -323,6 +383,9 @@ public class ClienteClasificacionService {
         }
         if (request.getClienteId() == null || request.getClienteId().isBlank()) {
             throw new IllegalArgumentException("El clienteId es requerido");
+        }
+        if (request.getDireccionEntrega() == null || request.getDireccionEntrega().isBlank()) {
+            throw new IllegalArgumentException("La direccion de entrega es requerida");
         }
         if (request.getItems() == null || request.getItems().isEmpty()) {
             throw new IllegalArgumentException("El pedido debe incluir al menos un item");

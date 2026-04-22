@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, HostListener, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductoService } from '../../services/producto.service';
@@ -9,12 +9,15 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LangSwitchComponent } from '../lang-switch/lang-switch';
 import { ClienteService } from '../../services/cliente.service';
 import { ClienteRanking } from '../../models/cliente-ranking.model';
+import { BolivianoCurrencyPipe } from '../../shared/pipes/boliviano-currency.pipe';
+import { CoberturaService } from '../../services/cobertura.service';
+import { ZonaCobertura } from '../../models/zona-cobertura.model';
 
 
 @Component({
   selector: 'app-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, LangSwitchComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, LangSwitchComponent, BolivianoCurrencyPipe],
   templateUrl: './productos.html',
 })
 
@@ -25,6 +28,7 @@ export class ProductosComponent implements OnInit {
   readonly router = inject(Router);
   readonly translate = inject(TranslateService);
   readonly clienteSvc = inject(ClienteService);
+  readonly coberturaSvc = inject(CoberturaService);
 
   productos: Producto[] = [];
   editando: Producto | null = null;
@@ -32,10 +36,32 @@ export class ProductosComponent implements OnInit {
   errores: { [key: string]: string } = {};
   form: Producto = this.formVacio();
   topClientes: ClienteRanking[] = [];
+  zonas: ZonaCobertura[] = [];
+  zonaEditando: ZonaCobertura | null = null;
+  mostrarFormularioZona = false;
+  errorZona = '';
+  formZona = this.formZonaVacia();
+  seccionActiva = 'admin-dashboard';
+  readonly seccionesSidebar = [
+    'admin-dashboard',
+    'admin-platillos',
+    'admin-categorias',
+    'admin-cobertura',
+    'admin-pedidos',
+    'admin-usuarios',
+    'admin-reportes'
+  ];
 
   ngOnInit() {
     this.cargarProductos();
     this.cargarRankingClientes();
+    this.cargarZonas();
+    this.actualizarSeccionActivaPorScroll();
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll() {
+    this.actualizarSeccionActivaPorScroll();
   }
 
   cargarProductos() {
@@ -46,8 +72,16 @@ export class ProductosComponent implements OnInit {
     this.clienteSvc.getRankingTop(10).subscribe(data => this.topClientes = data);
   }
 
+  cargarZonas() {
+    this.coberturaSvc.getZonasCobertura(true).subscribe(data => this.zonas = data);
+  }
+
   formVacio(): Producto {
     return { nombre: '', descripcion: '', precio: 0, categoria: '', disponible: true };
+  }
+
+  formZonaVacia() {
+    return { nombre: '', referencias: '', activa: true };
   }
 
   private normalizarFormulario(): void {
@@ -132,6 +166,95 @@ export class ProductosComponent implements OnInit {
     this.mostrarFormulario = !this.mostrarFormulario;
     if (!this.mostrarFormulario) {
       this.cancelar();
+    }
+  }
+
+  async guardarZona() {
+    const nombre = this.formZona.nombre.trim();
+    if (!nombre) {
+      this.errorZona = this.translate.instant('ADMIN.COBERTURA.ERROR_NOMBRE');
+      return;
+    }
+
+    const referencias = this.formZona.referencias
+      .split(',')
+      .map(ref => ref.trim())
+      .filter(Boolean);
+
+    const payload = { nombre, referencias, activa: this.formZona.activa };
+
+    if (this.zonaEditando?.id) {
+      await this.coberturaSvc.updateZona(this.zonaEditando.id, payload);
+    } else {
+      await this.coberturaSvc.addZona(payload);
+    }
+
+    this.cancelarZona();
+    this.mostrarFormularioZona = false;
+  }
+
+  editarZona(zona: ZonaCobertura) {
+    this.zonaEditando = zona;
+    this.formZona = {
+      nombre: zona.nombre,
+      referencias: (zona.referencias ?? []).join(', '),
+      activa: zona.activa !== false
+    };
+    this.errorZona = '';
+    this.mostrarFormularioZona = true;
+  }
+
+  async cambiarEstadoZona(zona: ZonaCobertura, activa: boolean) {
+    if (!zona.id) return;
+    await this.coberturaSvc.updateZona(zona.id, { activa });
+  }
+
+  cancelarZona() {
+    this.zonaEditando = null;
+    this.formZona = this.formZonaVacia();
+    this.errorZona = '';
+  }
+
+  toggleFormularioZona() {
+    this.mostrarFormularioZona = !this.mostrarFormularioZona;
+    if (!this.mostrarFormularioZona) {
+      this.cancelarZona();
+    }
+  }
+
+  irASeccion(id: string): void {
+    this.seccionActiva = id;
+    const section = document.getElementById(id);
+    if (!section) return;
+
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  estiloItemSidebar(id: string): string {
+    const activo = this.seccionActiva === id;
+    return activo
+      ? 'background:#f0f7f0;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:#1D9E75;cursor:pointer'
+      : 'padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer;border-radius:8px';
+  }
+
+  private actualizarSeccionActivaPorScroll(): void {
+    let candidata: { id: string; distancia: number } | null = null;
+
+    for (const id of this.seccionesSidebar) {
+      const section = document.getElementById(id);
+      if (!section) continue;
+
+      const top = section.getBoundingClientRect().top;
+      if (top <= 140) {
+        const distancia = Math.abs(top);
+        if (!candidata || distancia < candidata.distancia) {
+          candidata = { id, distancia };
+        }
+      }
+    }
+
+    if (candidata) {
+      this.seccionActiva = candidata.id;
     }
   }
 

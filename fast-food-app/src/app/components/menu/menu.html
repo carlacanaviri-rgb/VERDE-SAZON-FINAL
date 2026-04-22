@@ -35,7 +35,7 @@
             <p style="margin:0 0 2px;font-weight:600;font-size:14px;color:#111">{{ nombreUsuario }}</p>
             <p style="margin:0 0 4px;font-size:12px;color:#888">{{ emailUsuario }}</p>
             <span style="font-size:11px;background:#e1f5ee;color:#0F6E56;padding:3px 8px;border-radius:20px">{{ clasificacionUsuario }}</span>
-            <p style="margin:8px 0 0;font-size:11px;color:#666">{{ pedidosCompletados }} pedidos completados · ${{ montoTotalCompletado | number:'1.0-0' }}</p>
+            <p style="margin:8px 0 0;font-size:11px;color:#666">{{ 'MENU_CART.COMPLETED_SUMMARY' | translate:{ count: pedidosCompletados, total: (montoTotalCompletado | bolivianos) } }}</p>
           </div>
           <div style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer;background:#f0f7f0">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -70,7 +70,7 @@
     <div style="padding:24px 24px 18px;border-bottom:1px solid #eef2f7;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
       <div>
         <h2 style="margin:0;font-size:22px;font-weight:700;color:#111">{{ 'MENU_CART.TITLE' | translate }}</h2>
-        <p style="margin:6px 0 0;font-size:13px;color:#64748b">{{ 'MENU_CART.ITEMS_TOTAL' | translate:{ count: cantidadCarrito, total: (totalCarrito | number:'1.0-0') } }}</p>
+        <p style="margin:6px 0 0;font-size:13px;color:#64748b">{{ 'MENU_CART.ITEMS_TOTAL' | translate:{ count: cantidadCarrito, total: (totalCarrito | bolivianos) } }}</p>
       </div>
       <button type="button" (click)="toggleCarrito()" style="width:36px;height:36px;border:none;border-radius:10px;background:#f1f5f9;color:#334155;font-size:18px;cursor:pointer">×</button>
     </div>
@@ -91,7 +91,7 @@
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px">
             <div>
               <p style="margin:0;font-size:15px;font-weight:700;color:#0f172a">{{ item.nombre }}</p>
-              <p style="margin:4px 0 0;font-size:12px;color:#64748b">{{ item.categoria }} · ${{ item.precio | number:'1.0-0' }} {{ 'MENU_CART.EACH' | translate }}</p>
+              <p style="margin:4px 0 0;font-size:12px;color:#64748b">{{ item.categoria }} · {{ item.precio | bolivianos }} {{ 'MENU_CART.EACH' | translate }}</p>
             </div>
             <button type="button" (click)="quitarDelCarrito(item)" style="padding:6px 10px;border:none;background:#fef2f2;color:#b91c1c;border-radius:10px;cursor:pointer">{{ 'MENU_CART.REMOVE' | translate }}</button>
           </div>
@@ -101,7 +101,7 @@
               <span style="min-width:24px;text-align:center;font-weight:700;color:#111">{{ item.cantidad }}</span>
               <button type="button" (click)="incrementarCantidad(item)" style="width:32px;height:32px;border:1px solid #d1d5db;border-radius:999px;background:white;cursor:pointer">+</button>
             </div>
-            <span style="font-size:15px;font-weight:700;color:#1D9E75">${{ item.precio * item.cantidad | number:'1.0-0' }}</span>
+            <span style="font-size:15px;font-weight:700;color:#1D9E75">{{ item.precio * item.cantidad | bolivianos }}</span>
           </div>
         </div>
 
@@ -109,6 +109,34 @@
           <label for="notaPedido" style="display:block;margin-bottom:8px;font-size:13px;font-weight:600;color:#334155">{{ 'MENU_CART.NOTES_LABEL' | translate }}</label>
           <textarea id="notaPedido" [(ngModel)]="notaPedido" rows="3" [placeholder]="'MENU_CART.NOTES_PLACEHOLDER' | translate"
                     style="width:100%;box-sizing:border-box;resize:vertical;padding:12px;border:1px solid #cbd5e1;border-radius:12px;font-size:13px;font-family:inherit"></textarea>
+
+          <label for="menu-direccion" style="display:block;margin:12px 0 8px;font-size:13px;font-weight:600;color:#334155">{{ 'MENU_CART.DELIVERY_ADDRESS_LABEL' | translate }}</label>
+          <textarea id="menu-direccion" [(ngModel)]="direccionEntrega" (ngModelChange)="validarCoberturaDireccion()" rows="2" [placeholder]="'MENU_CART.DELIVERY_ADDRESS_PLACEHOLDER' | translate"
+                    style="width:100%;box-sizing:border-box;resize:vertical;padding:12px;border:1px solid #cbd5e1;border-radius:12px;font-size:13px;font-family:inherit"></textarea>
+
+          <label for="menu-referencia" style="display:block;margin:10px 0 8px;font-size:13px;font-weight:600;color:#334155">{{ 'MENU_CART.DELIVERY_REFERENCE_LABEL' | translate }}</label>
+          <input id="menu-referencia" [(ngModel)]="referenciaEntrega" [placeholder]="'MENU_CART.DELIVERY_REFERENCE_PLACEHOLDER' | translate"
+                 style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd5e1;border-radius:12px;font-size:13px;font-family:inherit" />
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+            <input id="menu-lat" [(ngModel)]="latEntrega" type="number" step="any" [placeholder]="'MENU_CART.DELIVERY_LAT_PLACEHOLDER' | translate"
+                   style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd5e1;border-radius:12px;font-size:13px;font-family:inherit" />
+            <input id="menu-lng" [(ngModel)]="lngEntrega" type="number" step="any" [placeholder]="'MENU_CART.DELIVERY_LNG_PLACEHOLDER' | translate"
+                   style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd5e1;border-radius:12px;font-size:13px;font-family:inherit" />
+          </div>
+
+          <p *ngIf="coberturaValida" style="margin:10px 0 0;padding:8px 10px;background:#dcfce7;color:#166534;border-radius:8px;font-size:12px">
+            {{ 'MENU_CART.COVERAGE_OK' | translate:{ zona: zonaCoberturaDetectada } }}
+          </p>
+          <p *ngIf="direccionEntrega && !coberturaValida && !errorCobertura" style="margin:10px 0 0;padding:8px 10px;background:#fef2f2;color:#b91c1c;border-radius:8px;font-size:12px">
+            {{ 'MENU_CART.COVERAGE_FAIL' | translate }}
+          </p>
+          <p *ngIf="errorCobertura" style="margin:10px 0 0;padding:8px 10px;background:#fef2f2;color:#b91c1c;border-radius:8px;font-size:12px">
+            {{ errorCobertura }}
+          </p>
+          <p *ngIf="!coberturaValida && sugerenciasCobertura.length > 0" style="margin:6px 0 0;font-size:12px;color:#64748b">
+            {{ 'MENU_CART.COVERAGE_SUGGESTIONS' | translate:{ zonas: sugerenciasCobertura.join(', ') } }}
+          </p>
         </div>
 
         <div style="margin-top:8px;padding:16px;border:1px solid #e5e7eb;border-radius:16px;background:#fff">
@@ -122,7 +150,7 @@
                 <p style="margin:0;font-size:12px;font-weight:700;color:#0f172a">{{ pedido.numero }}</p>
                 <p style="margin:2px 0 0;font-size:11px;color:#64748b">{{ pedido.estado }} · {{ pedido.hora }}</p>
               </div>
-              <span style="font-size:12px;font-weight:700;color:#1D9E75">${{ pedido.total | number:'1.0-0' }}</span>
+              <span style="font-size:12px;font-weight:700;color:#1D9E75">{{ pedido.total | bolivianos }}</span>
             </div>
           </div>
         </div>
@@ -132,7 +160,7 @@
     <div style="padding:20px 24px;border-top:1px solid #eef2f7;background:#ffffff">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <span style="font-size:14px;color:#475569">{{ 'MENU_CART.SUBTOTAL' | translate }}</span>
-        <span style="font-size:20px;font-weight:800;color:#0f172a">${{ totalCarrito | number:'1.0-0' }}</span>
+        <span style="font-size:20px;font-weight:800;color:#0f172a">{{ totalCarrito | bolivianos }}</span>
       </div>
       <div style="display:grid;grid-template-columns:1fr auto;gap:10px">
         <button type="button" (click)="vaciarCarrito()" [disabled]="cantidadCarrito === 0 || procesandoPedido"
@@ -225,7 +253,7 @@
               {{ p.descripcion }}
             </p>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <span style="font-size:20px;font-weight:700;color:#1D9E75">${{ p.precio }}</span>
+              <span style="font-size:20px;font-weight:700;color:#1D9E75">{{ p.precio | bolivianos }}</span>
               <span style="font-size:12px;background:#f0f7f0;color:#0F6E56;padding:4px 10px;border-radius:6px">{{ p.categoria }}</span>
             </div>
             <button type="button" (click)="agregarAlCarrito(p)" style="width:100%;padding:10px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">

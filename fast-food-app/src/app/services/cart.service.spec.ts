@@ -31,5 +31,24 @@ describe('CartService', () => {
     expect(service.totalItems).toBe(2);
     expect(service.totalMonto).toBe(40);
   });
+
+  it('separa carrito por usuario al cambiar de sesion', () => {
+    service.setStorageOwner('user-a');
+    service.addProducto({
+      id: '1',
+      nombre: 'Ensalada',
+      descripcion: 'Fresca',
+      precio: 20,
+      categoria: 'Ensaladas',
+      disponible: true
+    });
+    expect(service.totalItems).toBe(1);
+
+    service.setStorageOwner('user-b');
+    expect(service.totalItems).toBe(0);
+
+    service.setStorageOwner('user-a');
+    expect(service.totalItems).toBe(1);
+  });
 });
 

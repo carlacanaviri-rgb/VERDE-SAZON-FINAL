@@ -4,9 +4,11 @@ import { Producto } from '../models/producto.model';
 import { CarritoItem } from '../models/carrito-item.model';
 
 const STORAGE_KEY = 'verde-sazon-carrito';
+const GUEST_OWNER = 'guest';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
+  private storageOwner = GUEST_OWNER;
   private readonly itemsSubject = new BehaviorSubject<CarritoItem[]>(this.readFromStorage());
 
   readonly items$ = this.itemsSubject.asObservable();
@@ -71,6 +73,16 @@ export class CartService {
     this.updateState([]);
   }
 
+  setStorageOwner(ownerId: string | null): void {
+    const nextOwner = ownerId?.trim() || GUEST_OWNER;
+    if (nextOwner === this.storageOwner) {
+      return;
+    }
+
+    this.storageOwner = nextOwner;
+    this.itemsSubject.next(this.readFromStorage());
+  }
+
   private updateState(items: CarritoItem[]): void {
     this.itemsSubject.next(items);
     this.writeToStorage(items);
@@ -89,8 +101,19 @@ export class CartService {
     }
 
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const storageKey = this.storageKey;
+      const raw = localStorage.getItem(storageKey);
       if (!raw) {
+        // Backward compatibility for a pre-owner cart key.
+        if (storageKey !== STORAGE_KEY) {
+          const legacy = localStorage.getItem(STORAGE_KEY);
+          if (legacy) {
+            localStorage.setItem(storageKey, legacy);
+            localStorage.removeItem(STORAGE_KEY);
+            const parsedLegacy = JSON.parse(legacy);
+            return Array.isArray(parsedLegacy) ? parsedLegacy : [];
+          }
+        }
         return [];
       }
       const parsed = JSON.parse(raw);
@@ -104,7 +127,11 @@ export class CartService {
     if (typeof localStorage === 'undefined') {
       return;
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    localStorage.setItem(this.storageKey, JSON.stringify(items));
+  }
+
+  private get storageKey(): string {
+    return `${STORAGE_KEY}:${this.storageOwner}`;
   }
 }
 
