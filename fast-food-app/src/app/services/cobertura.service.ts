@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { getApp, initializeApp, getApps } from 'firebase/app';
 import {
   addDoc,
   collection,
@@ -10,10 +9,10 @@ import {
   updateDoc
 } from 'firebase/firestore';
 import { Observable } from 'rxjs';
-import { environmentDevelopment } from '../../environments/environment.development';
 import { ZonaCobertura } from '../models/zona-cobertura.model';
+import { getFirebaseApp } from './firebase-app';
 
-const app = getApps().length === 0 ? initializeApp(environmentDevelopment.firebaseConfig) : getApp();
+const app = getFirebaseApp();
 const db = getFirestore(app);
 
 @Injectable({ providedIn: 'root' })
