@@ -7,6 +7,11 @@ public class PedidoCreateRequest {
     private String clienteId;
     private String clienteNombre;
     private String clienteEmail;
+    private String direccionEntrega;
+    private String referenciaEntrega;
+    private String zonaCobertura;
+    private Double latEntrega;
+    private Double lngEntrega;
     private String notaGeneral;
     private Double total;
     private List<PedidoCreateItemRequest> items;
@@ -41,6 +46,46 @@ public class PedidoCreateRequest {
 
     public void setNotaGeneral(String notaGeneral) {
         this.notaGeneral = notaGeneral;
+    }
+
+    public String getDireccionEntrega() {
+        return direccionEntrega;
+    }
+
+    public void setDireccionEntrega(String direccionEntrega) {
+        this.direccionEntrega = direccionEntrega;
+    }
+
+    public String getReferenciaEntrega() {
+        return referenciaEntrega;
+    }
+
+    public void setReferenciaEntrega(String referenciaEntrega) {
+        this.referenciaEntrega = referenciaEntrega;
+    }
+
+    public String getZonaCobertura() {
+        return zonaCobertura;
+    }
+
+    public void setZonaCobertura(String zonaCobertura) {
+        this.zonaCobertura = zonaCobertura;
+    }
+
+    public Double getLatEntrega() {
+        return latEntrega;
+    }
+
+    public void setLatEntrega(Double latEntrega) {
+        this.latEntrega = latEntrega;
+    }
+
+    public Double getLngEntrega() {
+        return lngEntrega;
+    }
+
+    public void setLngEntrega(Double lngEntrega) {
+        this.lngEntrega = lngEntrega;
     }
 
     public Double getTotal() {

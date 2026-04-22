@@ -29,5 +29,16 @@ public final class ClienteClasificacionPolicy {
         String normalizado = estado.trim().toLowerCase(Locale.ROOT);
         return "entregado".equals(normalizado);
     }
+
+    public static boolean esEstadoContabilizable(String estado) {
+        if (estado == null || estado.isBlank()) {
+            return false;
+        }
+        String normalizado = estado.trim().toLowerCase(Locale.ROOT);
+        return "pendiente".equals(normalizado)
+                || "preparando".equals(normalizado)
+                || "listo".equals(normalizado)
+                || "entregado".equals(normalizado);
+    }
 }
 

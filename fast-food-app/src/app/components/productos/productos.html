@@ -10,27 +10,31 @@
     </div>
 
     <nav style="flex:1;display:flex;flex-direction:column;gap:4px">
-      <div style="background:#f0f7f0;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:#1D9E75;cursor:pointer">
+      <div (click)="irASeccion('admin-dashboard')" [style]="estiloItemSidebar('admin-dashboard')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
         {{ 'ADMIN.SIDEBAR.DASHBOARD' | translate }}
       </div>
-      <div style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer;border-radius:8px">
+      <div (click)="irASeccion('admin-platillos')" [style]="estiloItemSidebar('admin-platillos')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
         {{ 'ADMIN.SIDEBAR.PLATILLOS' | translate }}
       </div>
-      <div style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer;border-radius:8px">
+      <div (click)="irASeccion('admin-categorias')" [style]="estiloItemSidebar('admin-categorias')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h9"/></svg>
         {{ 'ADMIN.SIDEBAR.CATEGORIAS' | translate }}
       </div>
-      <div style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer;border-radius:8px">
+      <div (click)="irASeccion('admin-cobertura')" [style]="estiloItemSidebar('admin-cobertura')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        {{ 'ADMIN.SIDEBAR.COBERTURA' | translate }}
+      </div>
+      <div (click)="irASeccion('admin-pedidos')" [style]="estiloItemSidebar('admin-pedidos')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
         {{ 'ADMIN.SIDEBAR.PEDIDOS' | translate }}
       </div>
-      <div style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer;border-radius:8px">
+      <div (click)="irASeccion('admin-usuarios')" [style]="estiloItemSidebar('admin-usuarios')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
         {{ 'ADMIN.SIDEBAR.USUARIOS' | translate }}
       </div>
-      <div style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer;border-radius:8px">
+      <div (click)="irASeccion('admin-reportes')" [style]="estiloItemSidebar('admin-reportes')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         {{ 'ADMIN.SIDEBAR.REPORTES' | translate }}
       </div>
@@ -44,7 +48,7 @@
   </div>
 
   <!-- Main content -->
-  <div style="margin-left:220px;flex:1;padding:32px">
+  <div id="admin-dashboard" style="margin-left:220px;flex:1;padding:32px">
 
     <h1 style="margin:0 0 4px;font-size:24px;font-weight:600;color:#111">{{ 'ADMIN.TITULO' | translate }}</h1>
     <p style="margin:0 0 24px;font-size:14px;color:#888">{{ 'ADMIN.SUBTITULO' | translate }}</p>
@@ -54,7 +58,7 @@
       <div style="background:white;border-radius:10px;border:1px solid #e5e5e5;padding:16px">
         <p style="margin:0 0 8px;font-size:12px;color:#888">{{ 'ADMIN.VENTAS' | translate }}</p>
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:22px;font-weight:600;color:#111">$1,234</span>
+          <span style="font-size:22px;font-weight:600;color:#111">{{ 1234 | bolivianos }}</span>
           <div style="width:36px;height:36px;background:#e1f5ee;border-radius:50%;display:flex;align-items:center;justify-content:center">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
           </div>
@@ -114,15 +118,91 @@
             </span>
           </td>
           <td style="padding:12px 0;font-size:13px;color:#111;text-align:right">{{ c.pedidosCompletados }}</td>
-          <td style="padding:12px 0;font-size:13px;color:#1D9E75;text-align:right;font-weight:500">${{ c.montoTotalCompletado | number:'1.0-0' }}</td>
+          <td style="padding:12px 0;font-size:13px;color:#1D9E75;text-align:right;font-weight:500">{{ c.montoTotalCompletado | bolivianos }}</td>
         </tr>
         </tbody>
       </table>
       <p *ngIf="topClientes.length === 0" style="text-align:center;color:#aaa;font-size:14px;padding:24px 0">No hay clientes con pedidos entregados aun.</p>
     </div>
 
+    <div id="admin-cobertura" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:24px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <h2 style="margin:0;font-size:16px;font-weight:600;color:#111">{{ 'ADMIN.COBERTURA.TITULO' | translate }}</h2>
+        <button (click)="toggleFormularioZona()"
+                style="padding:8px 16px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">
+          {{ mostrarFormularioZona ? ('ADMIN.COBERTURA.CERRAR' | translate) : ('ADMIN.COBERTURA.NUEVA' | translate) }}
+        </button>
+      </div>
+
+      <form *ngIf="mostrarFormularioZona" (ngSubmit)="guardarZona()"
+            style="background:#f8faf8;border:1px solid #e5e5e5;border-radius:10px;padding:20px;margin-bottom:24px">
+        <h3 style="margin:0 0 16px;font-size:14px;font-weight:600;color:#111">
+          {{ zonaEditando ? ('ADMIN.COBERTURA.EDITAR' | translate) : ('ADMIN.COBERTURA.NUEVA_ZONA' | translate) }}
+        </h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">{{ 'ADMIN.COBERTURA.NOMBRE' | translate }}</label>
+            <input [(ngModel)]="formZona.nombre" name="zonaNombre" required
+                   [placeholder]="'ADMIN.COBERTURA.NOMBRE_PLACEHOLDER' | translate"
+                   style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">{{ 'ADMIN.COBERTURA.REFERENCIAS' | translate }}</label>
+            <input [(ngModel)]="formZona.referencias" name="zonaReferencias"
+                   [placeholder]="'ADMIN.COBERTURA.REFERENCIAS_PLACEHOLDER' | translate"
+                   style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer">
+            <input [(ngModel)]="formZona.activa" name="zonaActiva" type="checkbox"> {{ 'ADMIN.COBERTURA.ACTIVA' | translate }}
+          </label>
+          <div style="display:flex;gap:8px">
+            <button type="button" (click)="cancelarZona(); mostrarFormularioZona = false"
+                    style="padding:8px 16px;border:1px solid #ddd;border-radius:8px;background:white;font-size:13px;cursor:pointer;color:#555">
+              {{ 'ADMIN.COBERTURA.CANCELAR' | translate }}
+            </button>
+            <button type="submit"
+                    style="padding:8px 16px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">
+              {{ zonaEditando ? ('ADMIN.COBERTURA.ACTUALIZAR' | translate) : ('ADMIN.COBERTURA.GUARDAR' | translate) }}
+            </button>
+          </div>
+        </div>
+        <p *ngIf="errorZona" style="margin:10px 0 0;font-size:12px;color:#dc2626">{{ errorZona }}</p>
+      </form>
+
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+        <tr style="border-bottom:1px solid #e5e5e5">
+          <th style="text-align:left;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">{{ 'ADMIN.COBERTURA.NOMBRE' | translate }}</th>
+          <th style="text-align:left;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">{{ 'ADMIN.COBERTURA.REFERENCIAS' | translate }}</th>
+          <th style="text-align:center;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">{{ 'ADMIN.COBERTURA.ESTADO' | translate }}</th>
+          <th style="text-align:right;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">{{ 'ADMIN.COBERTURA.ACCIONES' | translate }}</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let z of zonas" style="border-bottom:1px solid #f5f5f5">
+          <td style="padding:12px 0;font-size:13px;font-weight:500;color:#111">{{ z.nombre }}</td>
+          <td style="padding:12px 0;font-size:13px;color:#666">{{ (z.referencias || []).join(', ') || '-' }}</td>
+          <td style="padding:12px 0;text-align:center">
+            <span [style]="z.activa !== false ? 'background:#e1f5ee;color:#0F6E56;font-size:11px;padding:3px 10px;border-radius:20px' : 'background:#fef2f2;color:#A32D2D;font-size:11px;padding:3px 10px;border-radius:20px'">
+              {{ z.activa !== false ? ('ADMIN.COBERTURA.HABILITADA' | translate) : ('ADMIN.COBERTURA.DESHABILITADA' | translate) }}
+            </span>
+          </td>
+          <td style="padding:12px 0;text-align:right">
+            <span (click)="editarZona(z)" style="font-size:12px;color:#378ADD;cursor:pointer;margin-right:16px">{{ 'ADMIN.COBERTURA.EDITAR_BTN' | translate }}</span>
+            <span *ngIf="z.activa !== false" (click)="cambiarEstadoZona(z, false)" style="font-size:12px;color:#e67e22;cursor:pointer;margin-right:16px">{{ 'ADMIN.COBERTURA.DESHABILITAR' | translate }}</span>
+            <span *ngIf="z.activa === false" (click)="cambiarEstadoZona(z, true)" style="font-size:12px;color:#1D9E75;cursor:pointer">{{ 'ADMIN.COBERTURA.HABILITAR' | translate }}</span>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+
+      <p *ngIf="zonas.length === 0" style="text-align:center;color:#aaa;font-size:14px;padding:24px 0">{{ 'ADMIN.COBERTURA.VACIO' | translate }}</p>
+    </div>
+
     <!-- Tabla de productos -->
-    <div style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:24px">
+    <div id="admin-platillos" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:24px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <h2 style="margin:0;font-size:16px;font-weight:600;color:#111">{{ 'ADMIN.GESTION' | translate }}</h2>
         <button (click)="toggleFormulario()"
@@ -200,7 +280,7 @@
           <td style="padding:12px 0;font-size:13px;font-weight:500;color:#111">{{ p.nombre }}</td>
           <td style="padding:12px 0;font-size:13px;color:#666">{{ p.categoria }}</td>
           <td style="padding:12px 0;font-size:13px;color:#888;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.descripcion }}</td>
-          <td style="padding:12px 0;font-size:13px;color:#1D9E75;text-align:right;font-weight:500">${{ p.precio }}</td>
+          <td style="padding:12px 0;font-size:13px;color:#1D9E75;text-align:right;font-weight:500">{{ p.precio | bolivianos }}</td>
           <td style="padding:12px 0;text-align:center">
               <span [style]="p.disponible ? 'background:#e1f5ee;color:#0F6E56;font-size:11px;padding:3px 10px;border-radius:20px' : 'background:#fef2f2;color:#A32D2D;font-size:11px;padding:3px 10px;border-radius:20px'">
                 {{ p.disponible ? ('ADMIN.DISPONIBLE' | translate) : ('MENU_PAGE.NO_PLATILLOS' | translate) }}
@@ -217,6 +297,26 @@
       <p *ngIf="productos.length === 0" style="text-align:center;color:#aaa;font-size:14px;padding:32px 0">
         {{ 'ADMIN.NO_PRODUCTOS' | translate }}
       </p>
+    </div>
+
+    <div id="admin-categorias" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:24px;margin-top:20px">
+      <h2 style="margin:0 0 8px;font-size:16px;font-weight:600;color:#111">{{ 'ADMIN.SIDEBAR.CATEGORIAS' | translate }}</h2>
+      <p style="margin:0;font-size:13px;color:#777">{{ 'ADMIN.SECCIONES.PROXIMAMENTE' | translate }}</p>
+    </div>
+
+    <div id="admin-pedidos" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:24px;margin-top:20px">
+      <h2 style="margin:0 0 8px;font-size:16px;font-weight:600;color:#111">{{ 'ADMIN.SIDEBAR.PEDIDOS' | translate }}</h2>
+      <p style="margin:0;font-size:13px;color:#777">{{ 'ADMIN.SECCIONES.PROXIMAMENTE' | translate }}</p>
+    </div>
+
+    <div id="admin-usuarios" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:24px;margin-top:20px">
+      <h2 style="margin:0 0 8px;font-size:16px;font-weight:600;color:#111">{{ 'ADMIN.SIDEBAR.USUARIOS' | translate }}</h2>
+      <p style="margin:0;font-size:13px;color:#777">{{ 'ADMIN.SECCIONES.PROXIMAMENTE' | translate }}</p>
+    </div>
+
+    <div id="admin-reportes" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:24px;margin-top:20px">
+      <h2 style="margin:0 0 8px;font-size:16px;font-weight:600;color:#111">{{ 'ADMIN.SIDEBAR.REPORTES' | translate }}</h2>
+      <p style="margin:0;font-size:13px;color:#777">{{ 'ADMIN.SECCIONES.PROXIMAMENTE' | translate }}</p>
     </div>
   </div>
 </div>

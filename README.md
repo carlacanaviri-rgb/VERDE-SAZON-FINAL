@@ -38,16 +38,23 @@
 
 ### 🚀 Inicio Rápido - Desarrollo
 
+**Opción A: Todo en un comando (recomendado)**
+```bash
+bash scripts/start-fullstack.sh
+# Backend:  http://localhost:3000
+# Frontend: http://localhost:4200
+```
+
+**Opción B: En terminales separadas**
 ```bash
 # Terminal 1 - Backend
 cd fast-food-api-java
-mvn spring-boot:run
+bash scripts/start-backend.sh
 # URL: http://localhost:3000
 
 # Terminal 2 - Frontend
 cd fast-food-app
-npm install
-ng serve
+bash scripts/start-frontend.sh
 # URL: http://localhost:4200
 ```
 
@@ -55,9 +62,9 @@ ng serve
 
 ```bash
 cd fast-food-app
-npm install
-ng serve
+bash scripts/start-frontend.sh
 # URL: http://localhost:4200
+# Limpia puerto 4200 automáticamente
 # Usa: environment.development.ts
 ```
 
@@ -76,8 +83,12 @@ ng build --configuration production
 ```bash
 cd fast-food-api-java
 mvn clean install
-mvn spring-boot:run
+bash scripts/start-backend.sh
 # URL: http://localhost:3000
+# Limpia puerto 3000 automáticamente
+
+# Alternativa directa (sin liberar puerto automáticamente)
+# mvn spring-boot:run
 ```
 
 ---
@@ -529,12 +540,14 @@ AuthGuard
 
 **Comandos Rápidos**:
 ```bash
-# Frontend
-cd fast-food-app && ng serve                              # Dev
-cd fast-food-app && ng build --configuration production   # Prod
+# Fullstack (ambos servicios)
+bash scripts/start-fullstack.sh
 
-# Backend
-cd fast-food-api-java && mvn spring-boot:run             # Dev
+# Frontend solo
+cd fast-food-app && bash scripts/start-frontend.sh
+
+# Backend solo
+cd fast-food-api-java && bash scripts/start-backend.sh
 ```
 
 **Credenciales**:

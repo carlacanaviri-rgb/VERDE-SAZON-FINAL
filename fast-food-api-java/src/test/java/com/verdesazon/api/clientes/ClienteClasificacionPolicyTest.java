@@ -29,5 +29,14 @@ class ClienteClasificacionPolicyTest {
         assertFalse(ClienteClasificacionPolicy.esEstadoEntregado("listo"));
         assertFalse(ClienteClasificacionPolicy.esEstadoEntregado("pendiente"));
     }
+
+    @Test
+    void identificaEstadosContabilizablesParaRanking() {
+        assertTrue(ClienteClasificacionPolicy.esEstadoContabilizable("pendiente"));
+        assertTrue(ClienteClasificacionPolicy.esEstadoContabilizable("preparando"));
+        assertTrue(ClienteClasificacionPolicy.esEstadoContabilizable("listo"));
+        assertTrue(ClienteClasificacionPolicy.esEstadoContabilizable("entregado"));
+        assertFalse(ClienteClasificacionPolicy.esEstadoContabilizable("cancelado"));
+    }
 }
 

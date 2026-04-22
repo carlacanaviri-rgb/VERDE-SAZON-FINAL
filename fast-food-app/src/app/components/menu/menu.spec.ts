@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { Observable, of } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -11,6 +13,7 @@ import { AuthService } from '../../services/auth.service';
 import { ClienteService } from '../../services/cliente.service';
 import { CartService } from '../../services/cart.service';
 import { PedidoService } from '../../services/pedido.service';
+import { CoberturaService } from '../../services/cobertura.service';
 
 describe('MenuComponent', () => {
   let component: MenuComponent;
@@ -32,15 +35,25 @@ describe('MenuComponent', () => {
     createPedido: ReturnType<typeof vi.fn>;
     getPedidosPorCliente: ReturnType<typeof vi.fn>;
   };
+  let coberturaServiceSpy: {
+    getZonasCobertura: ReturnType<typeof vi.fn>;
+    validarDireccion: ReturnType<typeof vi.fn>;
+    sugerirZonasCercanas: ReturnType<typeof vi.fn>;
+  };
+  const routerSpy = { navigate: vi.fn().mockResolvedValue(true) };
   const translateServiceSpy = {
     instant: vi.fn((key: string, params?: Record<string, unknown>) => {
       if (key === 'MENU_CART.ADDED') return `${params?.['nombre'] as string} agregado al carrito`;
       if (key === 'MENU_CART.ORDER_CREATED') return `Pedido ${params?.['numero'] as string} creado correctamente.`;
+      if (key === 'MENU_CART.ITEMS_TOTAL') return `${params?.['count'] as number} producto(s) · Total ${params?.['total'] as string}`;
+      if (key === 'MENU_CART.COMPLETED_SUMMARY') return `${params?.['count'] as number} pedidos completados · ${params?.['total'] as string}`;
       return key;
     })
   };
 
   beforeEach(async () => {
+    routerSpy.navigate.mockClear();
+
     authServiceMock = {
       usuario$: of(null),
       usuarioLogueado: null,
@@ -61,6 +74,12 @@ describe('MenuComponent', () => {
       getPedidosPorCliente: vi.fn().mockReturnValue(of([]))
     };
 
+    coberturaServiceSpy = {
+      getZonasCobertura: vi.fn().mockReturnValue(of([{ id: 'z1', nombre: 'Centro', referencias: ['calle 10'], activa: true }])),
+      validarDireccion: vi.fn().mockReturnValue({ enCobertura: true, zona: 'Centro' }),
+      sugerirZonasCercanas: vi.fn().mockReturnValue([])
+    };
+
     await TestBed.configureTestingModule({
       imports: [MenuComponent],
       providers: [
@@ -69,8 +88,9 @@ describe('MenuComponent', () => {
         { provide: ClienteService, useValue: { getPerfil: () => of({ clienteId: 'x', clasificacion: 'Nuevo', pedidosCompletados: 0, montoTotalCompletado: 0 }) } },
         { provide: CartService, useValue: cartServiceSpy },
         { provide: PedidoService, useValue: pedidoServiceSpy },
+        { provide: CoberturaService, useValue: coberturaServiceSpy },
         { provide: TranslateService, useValue: translateServiceSpy },
-        { provide: Router, useValue: { navigate: () => Promise.resolve(true) } },
+        { provide: Router, useValue: routerSpy },
       ],
     })
       .overrideComponent(MenuComponent, {
@@ -121,6 +141,10 @@ describe('MenuComponent', () => {
       cantidad: 2
     }];
     component.notaPedido = 'Sin cebolla';
+    component.direccionEntrega = 'Calle 10 #20-30';
+    component.referenciaEntrega = 'Porton verde';
+    component.latEntrega = '4.6097';
+    component.lngEntrega = '-74.0817';
 
     await component.finalizarPedido();
 
@@ -128,6 +152,9 @@ describe('MenuComponent', () => {
       clienteId: 'user-1',
       clienteNombre: 'Ana',
       clienteEmail: 'ana@test.com',
+      direccionEntrega: 'Calle 10 #20-30',
+      referenciaEntrega: 'Porton verde',
+      zonaCobertura: 'Centro',
       notaGeneral: 'Sin cebolla',
       total: 118
     }));
@@ -152,11 +179,64 @@ describe('MenuComponent', () => {
       categoria: 'Ensalada',
       cantidad: 1
     }];
+    component.direccionEntrega = 'Calle 10 #20-30';
 
     await component.finalizarPedido();
 
     expect(component.procesandoPedido).toBe(false);
     expect(component.errorPedido).toContain('backend local');
     expect(cartServiceSpy.clear).not.toHaveBeenCalled();
+  });
+
+  it('bloquea confirmar si la direccion no esta en cobertura', async () => {
+    authServiceMock.usuarioLogueado = {
+      uid: 'user-1',
+      displayName: 'Ana',
+      email: 'ana@test.com'
+    };
+    coberturaServiceSpy.validarDireccion.mockReturnValueOnce({ enCobertura: false });
+    component.carritoItems = [{
+      id: '1',
+      nombre: 'Ensalada de pollo',
+      descripcion: 'muy saludable',
+      precio: 59,
+      categoria: 'Ensalada',
+      cantidad: 1
+    }];
+    component.direccionEntrega = 'Direccion fuera de zona';
+
+    await component.finalizarPedido();
+
+    expect(pedidoServiceSpy.createPedido).not.toHaveBeenCalled();
+    expect(component.errorPedido).toContain('zona de cobertura');
+  });
+
+  it('navega al checkout cuando hay sesion y carrito con productos', () => {
+    authServiceMock.usuarioLogueado = {
+      uid: 'user-1',
+      displayName: 'Ana',
+      email: 'ana@test.com'
+    };
+    component.carritoItems = [{
+      id: '1',
+      nombre: 'Ensalada de pollo',
+      descripcion: 'muy saludable',
+      precio: 59,
+      categoria: 'Ensalada',
+      cantidad: 1
+    }];
+
+    component.irACheckout();
+
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/checkout']);
+    expect(component.mostrarCarrito).toBe(false);
+  });
+
+  it('usa pipe bolivianos en la plantilla y evita simbolo dolar', () => {
+    const templatePath = resolve(process.cwd(), 'src/app/components/menu/menu.html');
+    const template = readFileSync(templatePath, 'utf-8');
+
+    expect(template).toContain('| bolivianos');
+    expect(template).not.toContain('$');
   });
 });

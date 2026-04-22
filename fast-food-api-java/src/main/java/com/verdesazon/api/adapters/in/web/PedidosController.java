@@ -44,5 +44,10 @@ public class PedidosController {
         }
         return clienteClasificacionService.actualizarEstadoPedido(pedidoId, request.getEstado().trim());
     }
+
+    @PatchMapping("/{pedidoId}/pago-confirmado")
+    public Map<String, Object> confirmarPago(@PathVariable String pedidoId) {
+        return clienteClasificacionService.confirmarPagoPedido(pedidoId);
+    }
 }
 

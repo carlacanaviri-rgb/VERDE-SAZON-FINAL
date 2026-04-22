@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { BehaviorSubject } from 'rxjs';
 import { getFirebaseApp } from './firebase-app';
+import { CartService } from './cart.service';
 
 const app = getFirebaseApp();
 const auth = getAuth(app);
@@ -10,6 +11,8 @@ const db = getFirestore(app);
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+
+  private readonly cartSvc = inject(CartService);
 
   private usuarioActual = new BehaviorSubject<User | null>(null);
   private rolActual = new BehaviorSubject<string | null>(null);
@@ -20,6 +23,7 @@ export class AuthService {
   constructor() {
     onAuthStateChanged(auth, async user => {
       this.usuarioActual.next(user);
+      this.cartSvc.setStorageOwner(user?.uid ?? null);
       if (user) {
         const rol = await this.obtenerRol(user.uid);
         this.rolActual.next(rol);
@@ -31,16 +35,13 @@ export class AuthService {
 
   private async obtenerRol(uid: string): Promise<string> {
     try {
-    console.log('Buscando UID:', uid);
-    const snap = await getDoc(doc(db, 'usuarios', uid));
-    console.log('Documento existe:', snap.exists());
-    console.log('Datos:', snap.data());
-    if (snap.exists()) return snap.data()['rol'];
-    return 'cliente';
-  } catch (e) {
-    console.error('Error obteniendo rol:', e);
-    return 'cliente';
-  }
+      const snap = await getDoc(doc(db, 'usuarios', uid));
+      if (snap.exists()) return snap.data()['rol'];
+      return 'cliente';
+    } catch (e) {
+      console.error('Error obteniendo rol:', e);
+      return 'cliente';
+    }
   }
 
   async login(email: string, password: string) {
