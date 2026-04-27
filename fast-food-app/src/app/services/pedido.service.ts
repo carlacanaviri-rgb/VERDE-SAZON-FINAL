@@ -3,7 +3,12 @@ import { inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { getFirestore, collection, doc, onSnapshot } from 'firebase/firestore';
 import { Observable, firstValueFrom, timeout } from 'rxjs';
-import { CrearPedidoRequest, CrearPedidoResponse, Pedido, PedidoHistorialItem } from '../models/pedido.model';
+import {
+  CrearPedidoRequest,
+  CrearPedidoResponse,
+  Pedido,
+  PedidoHistorialItem,
+} from '../models/pedido.model';
 import { environment } from '../../environments/environment';
 import { getFirebaseApp } from './firebase-app';
 
@@ -35,21 +40,35 @@ export class PedidoService {
   private http = inject(HttpClient);
 
   getPedidos(): Observable<Pedido[]> {
-    return new Observable(observer => {
+    return new Observable((observer) => {
       const db = getFirestore(getFirebaseApp());
       const ref = collection(db, 'pedidos');
-      return onSnapshot(ref, snapshot => {
-        console.log('Pedidos encontrados:', snapshot.docs.length);
-        const pedidos = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Pedido));
-        console.log('Pedidos:', pedidos);
-        observer.next(pedidos);
-      }, error => {
-        console.error('Error leyendo pedidos:', error);
-      });
+      return onSnapshot(
+        ref,
+        (snapshot) => {
+          console.log('Pedidos encontrados:', snapshot.docs.length);
+          const pedidos = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Pedido);
+          console.log('Pedidos:', pedidos);
+          observer.next(pedidos);
+        },
+        (error) => {
+          console.error('Error leyendo pedidos:', error);
+        },
+      );
     });
   }
 
-  async cambiarEstado(id: string, estado: 'pendiente_pago' | 'pendiente' | 'preparando' | 'listo' | 'entregado') {
+  async cambiarEstado(
+    id: string,
+    estado:
+      | 'pendiente_pago'
+      | 'pendiente'
+      | 'preparando'
+      | 'listo'
+      | 'recogido'
+      | 'en_camino'
+      | 'entregado',
+  ) {
     await this.http.patch(`${API}/pedidos/${id}/estado`, { estado }).toPromise();
   }
 
@@ -58,13 +77,13 @@ export class PedidoService {
   }
 
   escucharPedido(id: string): Observable<PedidoEstadoRealtime | null> {
-    return new Observable(observer => {
+    return new Observable((observer) => {
       const db = getFirestore(getFirebaseApp());
       const pedidoRef = doc(db, 'pedidos', id);
 
       return onSnapshot(
         pedidoRef,
-        snapshot => {
+        (snapshot) => {
           if (!snapshot.exists()) {
             observer.next(null);
             return;
@@ -72,18 +91,18 @@ export class PedidoService {
 
           observer.next(snapshot.data() as PedidoEstadoRealtime);
         },
-        error => {
+        (error) => {
           observer.error(error);
-        }
+        },
       );
     });
   }
 
   async createPedido(payload: CrearPedidoRequest): Promise<CrearPedidoResponse> {
     return firstValueFrom(
-      this.http.post<CrearPedidoResponse>(`${API}/pedidos`, payload).pipe(
-        timeout(PEDIDO_TIMEOUT_MS)
-      )
+      this.http
+        .post<CrearPedidoResponse>(`${API}/pedidos`, payload)
+        .pipe(timeout(PEDIDO_TIMEOUT_MS)),
     );
   }
 
@@ -112,23 +131,23 @@ export class PedidoService {
 
       unsubscribe = onSnapshot(
         pedidoRef,
-        snapshot => {
+        (snapshot) => {
           if (snapshot.exists()) {
             cleanup();
             resolve();
           }
         },
-        error => {
+        (error) => {
           cleanup();
           reject(new FirestoreSyncError(error?.message || 'Error al leer el pedido en Firebase.'));
-        }
+        },
       );
     });
   }
 
   getPedidosPorCliente(clienteId: string): Observable<PedidoHistorialItem[]> {
-    return this.http.get<PedidoHistorialItem[]>(`${API}/pedidos/cliente/${clienteId}`).pipe(
-      timeout(PEDIDO_TIMEOUT_MS)
-    );
+    return this.http
+      .get<PedidoHistorialItem[]>(`${API}/pedidos/cliente/${clienteId}`)
+      .pipe(timeout(PEDIDO_TIMEOUT_MS));
   }
 }

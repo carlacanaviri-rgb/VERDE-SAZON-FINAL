@@ -1,0 +1,125 @@
+<div class="delivery-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🚚</span>
+      <span class="logo-text">Panel Delivery</span>
+    </div>
+
+    <div class="resumen-card">
+      <h3 class="resumen-title">Resumen del día</h3>
+
+      <div class="resumen-row">
+        <span class="resumen-label">Entregas activas</span>
+        <span class="badge-count badge-count--green">{{ activos.length }}</span>
+      </div>
+      <div class="resumen-row">
+        <span class="resumen-label">Completadas</span>
+        <span class="badge-count badge-count--gray">{{ completados.length }}</span>
+      </div>
+      <div class="resumen-row resumen-row--total">
+        <span class="resumen-label"><strong>Total ganado</strong></span>
+        <span class="resumen-total">{{ totalGanado | bolivianos }}</span>
+      </div>
+    </div>
+
+    <div class="sidebar-spacer"></div>
+
+    <button class="logout-btn" (click)="logout()">
+      <span>⎋</span>
+      <span>Cerrar sesión</span>
+    </button>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div class="page-header">
+      <h1 class="page-title">Panel de Delivery</h1>
+      <p class="page-subtitle">Gestiona tus entregas en tiempo real</p>
+    </div>
+
+    <!-- ENTREGAS ACTIVAS -->
+    <section class="section">
+      <h2 class="section-title">Entregas activas ({{ activos.length }})</h2>
+
+      <div *ngIf="activos.length === 0" class="empty-state">
+        <span class="empty-icon">📭</span>
+        <p>No hay entregas activas en este momento.</p>
+      </div>
+
+      <div *ngFor="let pedido of activos" class="pedido-card">
+        <!-- Card Header -->
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="pedido-numero">Pedido #{{ pedido.numero }}</span>
+            <span class="badge" [ngClass]="getBadgeClass(pedido.estado)">
+              {{ getBadgeLabel(pedido.estado) }}
+            </span>
+          </div>
+          <span class="pedido-total">{{ pedido.total | bolivianos }}</span>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body">
+          <div class="info-col">
+            <div class="info-label">
+              <span class="info-icon">📍</span>
+              <span>Cliente</span>
+            </div>
+            <p class="info-name">{{ pedido.clienteNombre || 'Cliente' }}</p>
+            <p class="info-address">{{ pedido.direccionEntrega || pedido.zonaCobertura || '—' }}</p>
+            <p *ngIf="pedido.referenciaEntrega" class="info-ref">Ref: {{ pedido.referenciaEntrega }}</p>
+          </div>
+
+          <div class="info-col">
+            <div class="info-label">
+              <span class="info-icon">📦</span>
+              <span>Detalles del pedido</span>
+            </div>
+            <p class="info-items">{{ getItemsResumen(pedido) }}</p>
+            <p class="info-subtotal">Total: {{ pedido.total | bolivianos }}</p>
+            <p *ngIf="pedido.notaGeneral" class="info-nota">Nota: {{ pedido.notaGeneral }}</p>
+          </div>
+        </div>
+
+        <!-- Card Actions -->
+        <div class="card-actions-row">
+          <button class="action-btn-secondary" (click)="contactarCliente(pedido)">
+            <span>📞</span>
+            <span>{{ pedido.clienteEmail || 'Sin contacto' }}</span>
+          </button>
+          <button class="action-btn-secondary" (click)="abrirMapa(pedido)">
+            <span>➤</span>
+            <span>Ver ruta</span>
+          </button>
+        </div>
+
+        <button
+          class="action-btn-primary"
+          [disabled]="procesando[pedido.id!]"
+          (click)="avanzarEstado(pedido)">
+          <span>✓</span>
+          <span>{{ procesando[pedido.id!] ? 'Procesando...' : getBotonLabel(pedido.estado) }}</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ENTREGAS COMPLETADAS -->
+    <section *ngIf="completados.length > 0" class="section">
+      <h2 class="section-title">Entregas completadas ({{ completados.length }})</h2>
+
+      <div *ngFor="let pedido of completados" class="pedido-card pedido-card--completado">
+        <div class="completado-row">
+          <div class="completado-info">
+            <span class="pedido-numero">Pedido #{{ pedido.numero }}</span>
+            <span class="completado-cliente">{{ pedido.clienteNombre || 'Cliente' }}</span>
+            <span class="completado-detalle">{{ getItemsResumen(pedido) }} · {{ pedido.total | bolivianos }}</span>
+          </div>
+          <span class="completado-check">✅</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>

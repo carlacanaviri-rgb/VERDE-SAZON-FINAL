@@ -8,10 +8,24 @@ export interface ItemPedido {
 export interface Pedido {
   id?: string;
   numero: string;
-  estado: 'pendiente_pago' | 'pendiente' | 'preparando' | 'listo' | 'entregado';
+  estado:
+    | 'pendiente_pago'
+    | 'pendiente'
+    | 'preparando'
+    | 'listo'
+    | 'recogido'
+    | 'en_camino'
+    | 'entregado';
   hora: string;
   tiempoEstimado?: number;
   items: ItemPedido[];
+  total?: number;
+  clienteNombre?: string;
+  clienteEmail?: string;
+  direccionEntrega?: string;
+  referenciaEntrega?: string;
+  zonaCobertura?: string;
+  notaGeneral?: string;
 }
 
 export interface CrearPedidoRequest {
@@ -50,4 +64,3 @@ export interface PedidoHistorialItem {
   total: number;
   creadoEn: string;
 }
-

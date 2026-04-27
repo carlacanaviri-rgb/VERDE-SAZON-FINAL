@@ -2,11 +2,11 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './components/login/login';
 import { ProductosComponent } from './components/productos/productos';
 import { MenuComponent } from './components/menu/menu';
-import { adminGuard, authGuard, cocinaGuard } from './guards/auth-guard';
+import { adminGuard, authGuard, cocinaGuard, deliveryGuard } from './guards/auth-guard';
 import { LandingComponent } from './components/landing/landing';
 import { CocinaComponent } from './components/cocina/cocina';
 import { CheckoutComponent } from './components/checkout/checkout';
-
+import { DeliveryComponent } from './components/delivery/delivery';
 
 export const routes: Routes = [
   { path: '', component: LandingComponent },
@@ -17,4 +17,5 @@ export const routes: Routes = [
   { path: 'productos', component: ProductosComponent, canActivate: [adminGuard] },
   { path: 'admin', component: ProductosComponent, canActivate: [adminGuard] },
   { path: 'cocina', component: CocinaComponent, canActivate: [cocinaGuard] },
+  { path: 'delivery', component: DeliveryComponent, canActivate: [deliveryGuard] },
 ];
