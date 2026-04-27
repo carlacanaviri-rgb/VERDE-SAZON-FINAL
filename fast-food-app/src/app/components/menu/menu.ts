@@ -18,7 +18,6 @@ import { CoberturaService } from '../../services/cobertura.service';
 import { ZonaCobertura } from '../../models/zona-cobertura.model';
 import { BolivianoCurrencyPipe } from '../../shared/pipes/boliviano-currency.pipe';
 
-
 @Component({
   selector: 'app-menu',
   standalone: true,
@@ -65,18 +64,18 @@ export class MenuComponent implements OnInit {
   errorCobertura = '';
 
   get categorias(): string[] {
-    const cats = this.productos.map(p => p.categoria);
+    const cats = this.productos.map((p) => p.categoria);
     return ['Todas', ...new Set(cats)];
   }
 
   get productosFiltrados(): Producto[] {
-    const disponibles = this.productos.filter(p => p.disponible);
+    const disponibles = this.productos.filter((p) => p.disponible);
     if (this.categoriaActiva === 'Todas') return disponibles;
-    return disponibles.filter(p => p.categoria === this.categoriaActiva);
+    return disponibles.filter((p) => p.categoria === this.categoriaActiva);
   }
 
   get totalDisponibles(): number {
-    return this.productos.filter(p => p.disponible).length;
+    return this.productos.filter((p) => p.disponible).length;
   }
 
   get cantidadCarrito(): number {
@@ -84,7 +83,7 @@ export class MenuComponent implements OnInit {
   }
 
   get totalCarrito(): number {
-    return this.carritoItems.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+    return this.carritoItems.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
   }
 
   get puedeComprar(): boolean {
@@ -92,10 +91,10 @@ export class MenuComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.svc.getProductos().subscribe(data => this.productos = data);
-    this.cartSvc.items$.subscribe(items => this.carritoItems = items);
+    this.svc.getProductos().subscribe((data) => (this.productos = data));
+    this.cartSvc.items$.subscribe((items) => (this.carritoItems = items));
     this.coberturaSvc.getZonasCobertura().subscribe({
-      next: zonas => {
+      next: (zonas) => {
         this.zonasCobertura = zonas;
         this.errorCobertura = '';
         this.validarCoberturaDireccion();
@@ -108,15 +107,15 @@ export class MenuComponent implements OnInit {
         this.errorCobertura = this.t(
           'MENU_CART.ERROR_COVERAGE_UNAVAILABLE',
           undefined,
-          'No se pudo cargar la cobertura en este momento.'
+          'No se pudo cargar la cobertura en este momento.',
         );
-      }
+      },
     });
-    this.auth.usuario$.subscribe(user => {
+    this.auth.usuario$.subscribe((user) => {
       if (user) {
         this.nombreUsuario = user.displayName ?? 'Cliente';
         this.emailUsuario = user.email ?? '';
-        this.clienteSvc.getPerfil(user.uid).subscribe(perfil => {
+        this.clienteSvc.getPerfil(user.uid).subscribe((perfil) => {
           this.clasificacionUsuario = perfil.clasificacion;
           this.pedidosCompletados = perfil.pedidosCompletados;
           this.montoTotalCompletado = perfil.montoTotalCompletado;
@@ -131,7 +130,7 @@ export class MenuComponent implements OnInit {
     this.mensajeCarrito = this.t(
       'MENU_CART.ADDED',
       { nombre: producto.nombre },
-      `${producto.nombre} agregado al carrito`
+      `${producto.nombre} agregado al carrito`,
     );
     this.errorPedido = '';
     this.exitoPedido = '';
@@ -154,6 +153,14 @@ export class MenuComponent implements OnInit {
     this.cartSvc.remove(item.id);
   }
 
+  toggleIngrediente(item: CarritoItem, ingrediente: string): void {
+    this.cartSvc.toggleIngrediente(item.id, ingrediente);
+  }
+
+  ingredienteQuitado(item: CarritoItem, ingrediente: string): boolean {
+    return (item.ingredientesQuitados ?? []).includes(ingrediente);
+  }
+
   vaciarCarrito(): void {
     this.cartSvc.clear();
     this.mensajeCarrito = this.t('MENU_CART.CART_CLEARED', undefined, 'Carrito vaciado');
@@ -167,12 +174,20 @@ export class MenuComponent implements OnInit {
     const usuario = this.auth.usuarioLogueado;
 
     if (!usuario) {
-      this.errorPedido = this.t('MENU_CART.ERROR_LOGIN_REQUIRED', undefined, 'Debes iniciar sesion para realizar un pedido.');
+      this.errorPedido = this.t(
+        'MENU_CART.ERROR_LOGIN_REQUIRED',
+        undefined,
+        'Debes iniciar sesion para realizar un pedido.',
+      );
       return;
     }
 
     if (this.carritoItems.length === 0) {
-      this.errorPedido = this.t('MENU_CART.ERROR_EMPTY_CART', undefined, 'Agrega productos antes de confirmar tu pedido.');
+      this.errorPedido = this.t(
+        'MENU_CART.ERROR_EMPTY_CART',
+        undefined,
+        'Agrega productos antes de confirmar tu pedido.',
+      );
       return;
     }
 
@@ -204,12 +219,20 @@ export class MenuComponent implements OnInit {
     this.exitoPedido = '';
 
     if (!usuario) {
-      this.errorPedido = this.t('MENU_CART.ERROR_LOGIN_REQUIRED', undefined, 'Debes iniciar sesion para realizar un pedido.');
+      this.errorPedido = this.t(
+        'MENU_CART.ERROR_LOGIN_REQUIRED',
+        undefined,
+        'Debes iniciar sesion para realizar un pedido.',
+      );
       return;
     }
 
     if (this.carritoItems.length === 0) {
-      this.errorPedido = this.t('MENU_CART.ERROR_EMPTY_CART', undefined, 'Agrega productos antes de confirmar tu pedido.');
+      this.errorPedido = this.t(
+        'MENU_CART.ERROR_EMPTY_CART',
+        undefined,
+        'Agrega productos antes de confirmar tu pedido.',
+      );
       return;
     }
 
@@ -228,12 +251,14 @@ export class MenuComponent implements OnInit {
       lngEntrega: this.parseNumber(this.lngEntrega),
       notaGeneral: this.notaPedido.trim(),
       total: this.totalCarrito,
-      items: this.carritoItems.map(item => ({
+      items: this.carritoItems.map((item) => ({
         nombre: item.nombre,
         cantidad: item.cantidad,
-        nota: '',
-        precio: item.precio
-      }))
+        nota: item.ingredientesQuitados?.length
+          ? `Sin: ${item.ingredientesQuitados.join(', ')}`
+          : '',
+        precio: item.precio,
+      })),
     };
 
     this.procesandoPedido = true;
@@ -252,7 +277,7 @@ export class MenuComponent implements OnInit {
       this.exitoPedido = this.t(
         'MENU_CART.ORDER_CREATED',
         { numero: response.numero },
-        `Pedido ${response.numero} creado correctamente.`
+        `Pedido ${response.numero} creado correctamente.`,
       );
       this.mostrarModalExito = true;
       this.cargarHistorialPedidos(usuario.uid);
@@ -271,7 +296,7 @@ export class MenuComponent implements OnInit {
       this.errorPedido = this.t(
         'MENU_CART.ERROR_ADDRESS_REQUIRED',
         undefined,
-        'Ingresa la direccion de entrega para continuar.'
+        'Ingresa la direccion de entrega para continuar.',
       );
       return false;
     }
@@ -285,7 +310,7 @@ export class MenuComponent implements OnInit {
       this.errorPedido = this.t(
         'MENU_CART.ERROR_OUT_OF_COVERAGE',
         undefined,
-        'La direccion ingresada no esta dentro de la zona de cobertura.'
+        'La direccion ingresada no esta dentro de la zona de cobertura.',
       );
       return false;
     }
@@ -303,7 +328,7 @@ export class MenuComponent implements OnInit {
       return this.t(
         'MENU_CART.ERROR_CREATE_ORDER',
         undefined,
-        'La creacion del pedido tardó demasiado. Verifica que el backend y Firebase esten disponibles e intenta nuevamente.'
+        'La creacion del pedido tardó demasiado. Verifica que el backend y Firebase esten disponibles e intenta nuevamente.',
       );
     }
 
@@ -311,14 +336,14 @@ export class MenuComponent implements OnInit {
       return this.t(
         'MENU_CART.ERROR_CREATE_ORDER',
         undefined,
-        'No se pudo conectar con el backend local. Verifica que la API en el puerto 3000 este activa.'
+        'No se pudo conectar con el backend local. Verifica que la API en el puerto 3000 este activa.',
       );
     }
 
     return this.t(
       'MENU_CART.ERROR_CREATE_ORDER',
       undefined,
-      'No se pudo crear el pedido. Verifica que el backend este activo.'
+      'No se pudo crear el pedido. Verifica que el backend este activo.',
     );
   }
 
@@ -330,7 +355,7 @@ export class MenuComponent implements OnInit {
     this.cargandoHistorial = true;
     this.errorHistorial = '';
     this.pedidoSvc.getPedidosPorCliente(clienteId).subscribe({
-      next: pedidos => {
+      next: (pedidos) => {
         this.historialPedidos = pedidos.slice(0, 5);
         this.cargandoHistorial = false;
       },
@@ -338,10 +363,10 @@ export class MenuComponent implements OnInit {
         this.errorHistorial = this.t(
           'MENU_CART.ERROR_HISTORY',
           undefined,
-          'No se pudo cargar tu historial de pedidos.'
+          'No se pudo cargar tu historial de pedidos.',
         );
         this.cargandoHistorial = false;
-      }
+      },
     });
   }
 
@@ -367,32 +392,47 @@ export class MenuComponent implements OnInit {
 
   getEmojiCategoria(categoria: string): string {
     const emojis: { [key: string]: string } = {
-      hamburguesa: '🍔', hamburguesas: '🍔',
+      hamburguesa: '🍔',
+      hamburguesas: '🍔',
       pizza: '🍕',
-      ensalada: '🥗', ensaladas: '🥗',
-      bebida: '🥤', bebidas: '🥤',
-      postre: '🍰', postres: '🍰',
-      bowl: '🥙', bowls: '🥙',
-      wrap: '🌯', wraps: '🌯',
-      smoothie: '🥤', smoothies: '🥤',
-      snack: '🍟', snacks: '🍟',
+      ensalada: '🥗',
+      ensaladas: '🥗',
+      bebida: '🥤',
+      bebidas: '🥤',
+      postre: '🍰',
+      postres: '🍰',
+      bowl: '🥙',
+      bowls: '🥙',
+      wrap: '🌯',
+      wraps: '🌯',
+      smoothie: '🥤',
+      smoothies: '🥤',
+      snack: '🍟',
+      snacks: '🍟',
     };
     return emojis[categoria.toLowerCase()] ?? '🍽️';
   }
 
   getColorCategoria(categoria: string): string {
     const colores: { [key: string]: string } = {
-      hamburguesa: '#fff3e0', hamburguesas: '#fff3e0',
+      hamburguesa: '#fff3e0',
+      hamburguesas: '#fff3e0',
       pizza: '#fce4ec',
-      ensalada: '#e8f5e9', ensaladas: '#e8f5e9',
-      bebida: '#e3f2fd', bebidas: '#e3f2fd',
-      postre: '#f3e5f5', postres: '#f3e5f5',
-      bowl: '#e1f5ee', bowls: '#e1f5ee',
-      wrap: '#fff8e1', wraps: '#fff8e1',
-      smoothie: '#fce4ec', smoothies: '#fce4ec',
-      snack: '#fff3e0', snacks: '#fff3e0',
+      ensalada: '#e8f5e9',
+      ensaladas: '#e8f5e9',
+      bebida: '#e3f2fd',
+      bebidas: '#e3f2fd',
+      postre: '#f3e5f5',
+      postres: '#f3e5f5',
+      bowl: '#e1f5ee',
+      bowls: '#e1f5ee',
+      wrap: '#fff8e1',
+      wraps: '#fff8e1',
+      smoothie: '#fce4ec',
+      smoothies: '#fce4ec',
+      snack: '#fff3e0',
+      snacks: '#fff3e0',
     };
     return colores[categoria.toLowerCase()] ?? '#f0f7f0';
   }
-
 }

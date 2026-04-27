@@ -5,4 +5,6 @@ export interface Producto {
   precio: number;
   categoria: string;
   disponible: boolean;
+  imagen?: string;
+  ingredientes?: string[];
 }

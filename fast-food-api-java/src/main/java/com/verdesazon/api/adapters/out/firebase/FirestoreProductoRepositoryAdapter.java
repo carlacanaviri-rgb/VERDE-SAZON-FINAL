@@ -114,8 +114,14 @@ public class FirestoreProductoRepositoryAdapter implements ProductoRepositoryPor
         return firestore.collection("productos");
     }
 
+    @SuppressWarnings("unchecked")
     private Producto fromDocument(DocumentSnapshot doc) {
-        String creadoEn = doc.contains("creadoEn") ? doc.getString("creadoEn") : null;
+        String creadoEn   = doc.contains("creadoEn") ? doc.getString("creadoEn") : null;
+        String imagen     = doc.contains("imagen")   ? doc.getString("imagen")   : null;
+        List<String> ingredientes = doc.contains("ingredientes")
+                ? (List<String>) doc.get("ingredientes")
+                : List.of();
+
         return new Producto(
                 doc.getId(),
                 doc.getString("nombre"),
@@ -123,7 +129,8 @@ public class FirestoreProductoRepositoryAdapter implements ProductoRepositoryPor
                 doc.getDouble("precio"),
                 doc.getString("categoria"),
                 doc.getBoolean("disponible"),
-                creadoEn);
+                creadoEn,
+                imagen,
+                ingredientes);
     }
 }
-

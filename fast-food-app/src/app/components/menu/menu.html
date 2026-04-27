@@ -95,6 +95,27 @@
             </div>
             <button type="button" (click)="quitarDelCarrito(item)" style="padding:6px 10px;border:none;background:#fef2f2;color:#b91c1c;border-radius:10px;cursor:pointer">{{ 'MENU_CART.REMOVE' | translate }}</button>
           </div>
+          <!-- Ingredientes -->
+          <div *ngIf="item.ingredientes?.length" style="margin-bottom:12px">
+            <p style="margin:0 0 7px;font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em">Ingredientes · toca para quitar</p>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <button
+                *ngFor="let ing of item.ingredientes"
+                type="button"
+                (click)="toggleIngrediente(item, ing)"
+                [style]="ingredienteQuitado(item, ing)
+                  ? 'display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;border:1.5px dashed #d1d5db;background:#f8fafc;color:#94a3b8;font-size:12px;cursor:pointer;text-decoration:line-through;transition:all 0.15s'
+                  : 'display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;border:1.5px solid #a7f3d0;background:#ecfdf5;color:#065f46;font-size:12px;cursor:pointer;transition:all 0.15s'">
+                <span *ngIf="!ingredienteQuitado(item, ing)" style="font-size:10px">✓</span>
+                <span *ngIf="ingredienteQuitado(item, ing)" style="font-size:10px">✕</span>
+                {{ ing }}
+              </button>
+            </div>
+            <p *ngIf="item.ingredientesQuitados?.length" style="margin:7px 0 0;font-size:11px;color:#b91c1c">
+              Sin: {{ item.ingredientesQuitados.join(', ') }}
+            </p>
+          </div>
+
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
             <div style="display:flex;align-items:center;gap:10px">
               <button type="button" (click)="decrementarCantidad(item)" style="width:32px;height:32px;border:1px solid #d1d5db;border-radius:999px;background:white;cursor:pointer">−</button>

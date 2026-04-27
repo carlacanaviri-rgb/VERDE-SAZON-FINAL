@@ -5,5 +5,6 @@ export interface CarritoItem {
   precio: number;
   categoria: string;
   cantidad: number;
+  ingredientes: string[];
+  ingredientesQuitados: string[];
 }
-

@@ -28,12 +28,12 @@ export class CartService {
   addProducto(producto: Producto): void {
     const itemId = this.buildItemId(producto);
     const existentes = [...this.items];
-    const index = existentes.findIndex(item => item.id === itemId);
+    const index = existentes.findIndex((item) => item.id === itemId);
 
     if (index >= 0) {
       existentes[index] = {
         ...existentes[index],
-        cantidad: existentes[index].cantidad + 1
+        cantidad: existentes[index].cantidad + 1,
       };
     } else {
       existentes.push({
@@ -42,31 +42,46 @@ export class CartService {
         descripcion: producto.descripcion,
         precio: producto.precio,
         categoria: producto.categoria,
-        cantidad: 1
+        cantidad: 1,
+        ingredientes: producto.ingredientes ?? [],
+        ingredientesQuitados: [],
       });
     }
 
     this.updateState(existentes);
   }
 
+  toggleIngrediente(itemId: string, ingrediente: string): void {
+    const actualizados = this.items.map((item) => {
+      if (item.id !== itemId) return item;
+      const quitados = item.ingredientesQuitados ?? [];
+      const estaQuitado = quitados.includes(ingrediente);
+      return {
+        ...item,
+        ingredientesQuitados: estaQuitado
+          ? quitados.filter((i) => i !== ingrediente)
+          : [...quitados, ingrediente],
+      };
+    });
+    this.updateState(actualizados);
+  }
+
   incrementar(itemId: string): void {
-    const actualizados = this.items.map(item => item.id === itemId
-      ? { ...item, cantidad: item.cantidad + 1 }
-      : item);
+    const actualizados = this.items.map((item) =>
+      item.id === itemId ? { ...item, cantidad: item.cantidad + 1 } : item,
+    );
     this.updateState(actualizados);
   }
 
   decrementar(itemId: string): void {
     const actualizados = this.items
-      .map(item => item.id === itemId
-        ? { ...item, cantidad: item.cantidad - 1 }
-        : item)
-      .filter(item => item.cantidad > 0);
+      .map((item) => (item.id === itemId ? { ...item, cantidad: item.cantidad - 1 } : item))
+      .filter((item) => item.cantidad > 0);
     this.updateState(actualizados);
   }
 
   remove(itemId: string): void {
-    this.updateState(this.items.filter(item => item.id !== itemId));
+    this.updateState(this.items.filter((item) => item.id !== itemId));
   }
 
   clear(): void {
@@ -78,7 +93,6 @@ export class CartService {
     if (nextOwner === this.storageOwner) {
       return;
     }
-
     this.storageOwner = nextOwner;
     this.itemsSubject.next(this.readFromStorage());
   }
@@ -99,12 +113,10 @@ export class CartService {
     if (typeof localStorage === 'undefined') {
       return [];
     }
-
     try {
       const storageKey = this.storageKey;
       const raw = localStorage.getItem(storageKey);
       if (!raw) {
-        // Backward compatibility for a pre-owner cart key.
         if (storageKey !== STORAGE_KEY) {
           const legacy = localStorage.getItem(STORAGE_KEY);
           if (legacy) {
@@ -134,4 +146,3 @@ export class CartService {
     return `${STORAGE_KEY}:${this.storageOwner}`;
   }
 }
-
