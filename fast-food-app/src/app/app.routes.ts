@@ -8,9 +8,12 @@ import { CocinaComponent } from './components/cocina/cocina';
 import { CheckoutComponent } from './components/checkout/checkout';
 import { DeliveryComponent } from './components/delivery/delivery';
 
+import { RegisterComponent } from './components/register/register';
+
 export const routes: Routes = [
   { path: '', component: LandingComponent },
   { path: 'login', component: LoginComponent },
+  { path: 'registro', component: RegisterComponent },
   { path: 'menu', component: MenuComponent },
   { path: 'checkout/qr', component: CheckoutComponent, canActivate: [authGuard] },
   { path: 'checkout', component: CheckoutComponent, canActivate: [authGuard] },

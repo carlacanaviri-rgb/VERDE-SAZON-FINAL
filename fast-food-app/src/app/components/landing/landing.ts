@@ -11,5 +11,10 @@ import { LangSwitchComponent } from '../lang-switch/lang-switch';
 })
 export class LandingComponent {
   constructor(private router: Router) {}
-  irLogin() { this.router.navigate(['/login']); }
+  irLogin() {
+    this.router.navigate(['/login']);
+  }
+  irRegistro() {
+    this.router.navigate(['/registro']);
+  }
 }

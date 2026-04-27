@@ -1,6 +1,13 @@
 import { inject, Injectable } from '@angular/core';
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  User,
+} from 'firebase/auth';
+import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import { BehaviorSubject } from 'rxjs';
 import { getFirebaseApp } from './firebase-app';
 import { CartService } from './cart.service';
@@ -11,7 +18,6 @@ const db = getFirestore(app);
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-
   private readonly cartSvc = inject(CartService);
 
   private usuarioActual = new BehaviorSubject<User | null>(null);
@@ -21,7 +27,7 @@ export class AuthService {
   rol$ = this.rolActual.asObservable();
 
   constructor() {
-    onAuthStateChanged(auth, async user => {
+    onAuthStateChanged(auth, async (user) => {
       this.usuarioActual.next(user);
       this.cartSvc.setStorageOwner(user?.uid ?? null);
       if (user) {
@@ -49,6 +55,22 @@ export class AuthService {
     const rol = await this.obtenerRol(result.user.uid);
     this.rolActual.next(rol);
     return { user: result.user, rol };
+  }
+
+  async register(nombre: string, email: string, password: string) {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = result.user.uid;
+    await setDoc(doc(db, 'usuarios', uid), {
+      email,
+      nombre,
+      rol: 'cliente',
+      clasificacionCliente: 'Nuevo',
+      pedidosCompletados: 0,
+      montTotalCompletado: 0,
+      clasificacionActualizadaEn: new Date().toISOString(),
+    });
+    this.rolActual.next('cliente');
+    return { user: result.user, rol: 'cliente' };
   }
 
   logout() {
