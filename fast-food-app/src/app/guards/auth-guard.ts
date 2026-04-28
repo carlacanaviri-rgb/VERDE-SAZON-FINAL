@@ -1,7 +1,15 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { take, switchMap } from 'rxjs';
+import { take, switchMap, filter, map } from 'rxjs';
+
+/** Espera hasta que el rol esté cargado (no null) y retorna el primer valor */
+function waitForRol(auth: AuthService) {
+  return auth.rol$.pipe(
+    filter((r) => r !== null),
+    take(1),
+  );
+}
 
 export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
@@ -9,12 +17,12 @@ export const authGuard: CanActivateFn = () => {
 
   return auth.usuario$.pipe(
     take(1),
-    switchMap(async (user) => {
+    switchMap((user) => {
       if (!user) {
         router.navigate(['/login']);
-        return false;
+        return [false];
       }
-      return true;
+      return [true];
     }),
   );
 };
@@ -25,21 +33,20 @@ export const adminGuard: CanActivateFn = () => {
 
   return auth.usuario$.pipe(
     take(1),
-    switchMap(async (user) => {
+    switchMap((user) => {
       if (!user) {
         router.navigate(['/login']);
-        return false;
+        return [false];
       }
-      const rol =
-        auth.rolUsuario ??
-        (await new Promise<string>((resolve) => {
-          auth.rol$.pipe(take(1)).subscribe((r) => resolve(r ?? 'cliente'));
-        }));
-      if (rol !== 'admin') {
-        router.navigate(['/menu']);
-        return false;
-      }
-      return true;
+      return waitForRol(auth).pipe(
+        map((rol) => {
+          if (rol !== 'admin') {
+            router.navigate(['/menu']);
+            return false;
+          }
+          return true;
+        }),
+      );
     }),
   );
 };
@@ -50,21 +57,20 @@ export const cocinaGuard: CanActivateFn = () => {
 
   return auth.usuario$.pipe(
     take(1),
-    switchMap(async (user) => {
+    switchMap((user) => {
       if (!user) {
         router.navigate(['/login']);
-        return false;
+        return [false];
       }
-      const rol =
-        auth.rolUsuario ??
-        (await new Promise<string>((resolve) => {
-          auth.rol$.pipe(take(1)).subscribe((r) => resolve(r ?? 'cliente'));
-        }));
-      if (rol !== 'cocina') {
-        router.navigate(['/login']);
-        return false;
-      }
-      return true;
+      return waitForRol(auth).pipe(
+        map((rol) => {
+          if (rol !== 'cocina') {
+            router.navigate(['/login']);
+            return false;
+          }
+          return true;
+        }),
+      );
     }),
   );
 };
@@ -75,21 +81,20 @@ export const deliveryGuard: CanActivateFn = () => {
 
   return auth.usuario$.pipe(
     take(1),
-    switchMap(async (user) => {
+    switchMap((user) => {
       if (!user) {
         router.navigate(['/login']);
-        return false;
+        return [false];
       }
-      const rol =
-        auth.rolUsuario ??
-        (await new Promise<string>((resolve) => {
-          auth.rol$.pipe(take(1)).subscribe((r) => resolve(r ?? 'cliente'));
-        }));
-      if (rol !== 'delivery' && rol !== 'admin') {
-        router.navigate(['/menu']);
-        return false;
-      }
-      return true;
+      return waitForRol(auth).pipe(
+        map((rol) => {
+          if (rol !== 'delivery' && rol !== 'admin') {
+            router.navigate(['/menu']);
+            return false;
+          }
+          return true;
+        }),
+      );
     }),
   );
 };
