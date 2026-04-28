@@ -96,7 +96,7 @@
             <button type="button" (click)="quitarDelCarrito(item)" style="padding:6px 10px;border:none;background:#fef2f2;color:#b91c1c;border-radius:10px;cursor:pointer">{{ 'MENU_CART.REMOVE' | translate }}</button>
           </div>
           <!-- Ingredientes -->
-          <div *ngIf="item.ingredientes?.length" style="margin-bottom:12px">
+          <div *ngIf="item.ingredientes.length" style="margin-bottom:12px">
             <p style="margin:0 0 7px;font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em">Ingredientes · toca para quitar</p>
             <div style="display:flex;flex-wrap:wrap;gap:6px">
               <button
@@ -111,7 +111,7 @@
                 {{ ing }}
               </button>
             </div>
-            <p *ngIf="item.ingredientesQuitados?.length" style="margin:7px 0 0;font-size:11px;color:#b91c1c">
+            <p *ngIf="item.ingredientesQuitados.length" style="margin:7px 0 0;font-size:11px;color:#b91c1c">
               Sin: {{ item.ingredientesQuitados.join(', ') }}
             </p>
           </div>
