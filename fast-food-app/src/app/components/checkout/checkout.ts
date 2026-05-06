@@ -290,19 +290,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
     try {
       await this.pedidoSvc.confirmarPago(this.pedidoCreado.id);
+
       this.pagoConfirmado = true;
       this.esperandoConfirmacionPago = false;
-      this.pedidoCreado = {
-        ...this.pedidoCreado,
-        estado: 'pendiente'
-      };
-      this.avisoCheckout = this.t(
-        'CHECKOUT.PAYMENT_CONFIRMED_KITCHEN',
-        undefined,
-        'Pago confirmado. Tu pedido ya fue enviado a cocina y quedo en pendiente.'
-      );
+
       this.detenerSeguimientoPago();
-      this.guardarSesionQr();
+      this.limpiarSesionQr();
+
+      await this.router.navigate(['/menu']);
     } catch {
       this.errorCheckout = this.t(
         'CHECKOUT.ERROR_CONFIRM_PAYMENT',

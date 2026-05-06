@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -33,6 +33,7 @@ export class MenuComponent implements OnInit {
   private pedidoSvc = inject(PedidoService);
   private coberturaSvc = inject(CoberturaService);
   private translate = inject(TranslateService);
+  private cdr = inject(ChangeDetectorRef);
 
   productos: Producto[] = [];
   categoriaActiva = 'Todas';
@@ -91,13 +92,25 @@ export class MenuComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.svc.getProductos().subscribe((data) => (this.productos = data));
-    this.cartSvc.items$.subscribe((items) => (this.carritoItems = items));
+    this.categoriaActiva = 'Todas';
+
+    this.svc.getProductos().subscribe((data) => {
+      this.productos = data;
+      this.categoriaActiva = 'Todas';
+      this.cdr.detectChanges();
+    });
+
+    this.cartSvc.items$.subscribe((items) => {
+      this.carritoItems = items;
+      this.cdr.detectChanges();
+    });
+
     this.coberturaSvc.getZonasCobertura().subscribe({
       next: (zonas) => {
         this.zonasCobertura = zonas;
         this.errorCobertura = '';
         this.validarCoberturaDireccion();
+        this.cdr.detectChanges();
       },
       error: () => {
         this.zonasCobertura = [];
@@ -109,19 +122,26 @@ export class MenuComponent implements OnInit {
           undefined,
           'No se pudo cargar la cobertura en este momento.',
         );
+        this.cdr.detectChanges();
       },
     });
+
     this.auth.usuario$.subscribe((user) => {
       if (user) {
         this.nombreUsuario = user.displayName ?? 'Cliente';
         this.emailUsuario = user.email ?? '';
+
         this.clienteSvc.getPerfil(user.uid).subscribe((perfil) => {
           this.clasificacionUsuario = perfil.clasificacion;
           this.pedidosCompletados = perfil.pedidosCompletados;
           this.montoTotalCompletado = perfil.montoTotalCompletado;
+          this.cdr.detectChanges();
         });
+
         this.cargarHistorialPedidos(user.uid);
       }
+
+      this.cdr.detectChanges();
     });
   }
 

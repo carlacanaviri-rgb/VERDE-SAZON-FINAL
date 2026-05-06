@@ -173,24 +173,19 @@
       </div>
 
       <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">
-        <button *ngIf="pagoUrl" type="button" (click)="abrirPagoExterno()"
+        <button *ngIf="pagoUrl" type="button" (click)="volverAMenu()"
                 style="border:none;background:#2563eb;color:white;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer">
           {{ 'CHECKOUT.PAY_NOW' | translate }}
         </button>
 
-        <button type="button" (click)="confirmarPagoManual()" [disabled]="pagoConfirmado || confirmandoPago"
+        <button type="button" (click)="volverAMenu()" [disabled]="pagoConfirmado || confirmandoPago"
                 [style]="pagoConfirmado || confirmandoPago
                   ? 'border:1px solid #d1d5db;background:#f8fafc;color:#94a3b8;border-radius:10px;padding:10px 16px;font-weight:700;cursor:not-allowed'
                   : 'border:none;background:#0f172a;color:white;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer'">
           {{ confirmandoPago ? ('CHECKOUT.PROCESSING' | translate) : ('CHECKOUT.CONFIRM_PAYMENT' | translate) }}
         </button>
 
-        <button type="button" (click)="volverAMenu()" [disabled]="!pagoConfirmado"
-                [style]="pagoConfirmado
-                  ? 'border:none;background:#1D9E75;color:white;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer'
-                  : 'border:1px solid #d1d5db;background:#f8fafc;color:#94a3b8;border-radius:10px;padding:10px 16px;font-weight:700;cursor:not-allowed'">
-          {{ 'CHECKOUT.FINISH' | translate }}
-        </button>
+
       </div>
     </div>
   </div>
