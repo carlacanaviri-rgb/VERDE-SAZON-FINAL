@@ -19,15 +19,12 @@ import {
   PRODUCTO_CATEGORIAS_FALLBACK,
 } from '../../shared/catalogs/producto-categorias';
 
-
 @Component({
   selector: 'app-productos',
   standalone: true,
   imports: [CommonModule, FormsModule, TranslateModule, LangSwitchComponent, BolivianoCurrencyPipe],
   templateUrl: './productos.html',
 })
-
-
 export class ProductosComponent implements OnInit {
   readonly svc = inject(ProductoService);
   readonly authSvc = inject(AuthService);
@@ -41,6 +38,10 @@ export class ProductosComponent implements OnInit {
   mostrarFormulario = false;
   errores: { [key: string]: string } = {};
   form: Producto = this.formVacio();
+
+  // Campo auxiliar para manejar ingredientes como texto separado por comas
+  ingredientesTexto = '';
+
   categoriasDisponibles: string[] = [...PRODUCTO_CATEGORIAS_FALLBACK];
   topClientes: ClienteRanking[] = [];
   zonas: ZonaCobertura[] = [];
@@ -56,7 +57,7 @@ export class ProductosComponent implements OnInit {
     'admin-cobertura',
     'admin-pedidos',
     'admin-usuarios',
-    'admin-reportes'
+    'admin-reportes',
   ];
 
   ngOnInit() {
@@ -73,10 +74,10 @@ export class ProductosComponent implements OnInit {
   }
 
   cargarProductos() {
-    this.svc.getProductos().subscribe(data => {
-      this.productos = data.map(producto => ({
+    this.svc.getProductos().subscribe((data) => {
+      this.productos = data.map((producto) => ({
         ...producto,
-        categoria: normalizarCategoriaProducto(producto.categoria)
+        categoria: normalizarCategoriaProducto(producto.categoria),
       }));
     });
   }
@@ -91,20 +92,28 @@ export class ProductosComponent implements OnInit {
       },
       error: () => {
         this.categoriasDisponibles = [...PRODUCTO_CATEGORIAS_FALLBACK];
-      }
+      },
     });
   }
 
   cargarRankingClientes() {
-    this.clienteSvc.getRankingTop(10).subscribe(data => this.topClientes = data);
+    this.clienteSvc.getRankingTop(10).subscribe((data) => (this.topClientes = data));
   }
 
   cargarZonas() {
-    this.coberturaSvc.getZonasCobertura(true).subscribe(data => this.zonas = data);
+    this.coberturaSvc.getZonasCobertura(true).subscribe((data) => (this.zonas = data));
   }
 
   formVacio(): Producto {
-    return { nombre: '', descripcion: '', precio: 0, categoria: '', disponible: true };
+    return {
+      nombre: '',
+      descripcion: '',
+      precio: 0,
+      categoria: '',
+      disponible: true,
+      imagen: '',
+      ingredientes: [],
+    };
   }
 
   formZonaVacia() {
@@ -116,11 +125,31 @@ export class ProductosComponent implements OnInit {
     this.form.categoria = normalizarCategoriaProducto(this.form.categoria);
     this.form.descripcion = (this.form.descripcion ?? '').trim();
     this.form.precio = Number(this.form.precio);
+    this.form.imagen = (this.form.imagen ?? '').trim();
+    // Convertir texto de ingredientes a array
+    this.form.ingredientes = this.parsearIngredientes(this.ingredientesTexto);
+  }
+
+  /** Convierte "papa, quinua, arroz" → ["papa", "quinua", "arroz"] */
+  parsearIngredientes(texto: string): string[] {
+    if (!texto || !texto.trim()) return [];
+    return texto
+      .split(',')
+      .map((i) => i.trim())
+      .filter(Boolean);
+  }
+
+  /** Vista previa del array de ingredientes parseado (para mostrar en tiempo real) */
+  get ingredientesPreview(): string[] {
+    return this.parsearIngredientes(this.ingredientesTexto);
   }
 
   camposRequeridosValidos(): boolean {
     const nombreValido = !!this.form.nombre?.trim();
-    const categoriaValida = esCategoriaProductoValida(this.form.categoria, this.categoriasDisponibles);
+    const categoriaValida = esCategoriaProductoValida(
+      this.form.categoria,
+      this.categoriasDisponibles,
+    );
     const precioNumerico = Number(this.form.precio);
     const precioValido = Number.isFinite(precioNumerico) && precioNumerico > 0;
 
@@ -132,7 +161,6 @@ export class ProductosComponent implements OnInit {
       delete this.errores[campo];
     }
   }
-
 
   validar(): boolean {
     this.errores = {};
@@ -167,6 +195,7 @@ export class ProductosComponent implements OnInit {
   editar(p: Producto) {
     this.editando = p;
     this.form = { ...p, categoria: normalizarCategoriaProducto(p.categoria) };
+    this.ingredientesTexto = (p.ingredientes ?? []).join(', ');
     this.errores = {};
   }
 
@@ -180,6 +209,7 @@ export class ProductosComponent implements OnInit {
   cancelar() {
     this.editando = null;
     this.form = this.formVacio();
+    this.ingredientesTexto = '';
     this.errores = {};
   }
 
@@ -189,7 +219,7 @@ export class ProductosComponent implements OnInit {
   }
 
   get productosDisponibles(): number {
-    return this.productos.filter(p => p.disponible).length;
+    return this.productos.filter((p) => p.disponible).length;
   }
 
   toggleFormulario() {
@@ -197,6 +227,32 @@ export class ProductosComponent implements OnInit {
     if (!this.mostrarFormulario) {
       this.cancelar();
     }
+  }
+
+  /** Retorna cuántos productos hay por categoría */
+  productosDeCategoria(categoria: string): number {
+    return this.productos.filter(
+      (p) => normalizarCategoriaProducto(p.categoria) === normalizarCategoriaProducto(categoria),
+    ).length;
+  }
+
+  /** Colores rotativos para los chips de categoría */
+  colorChipCategoria(index: number): { bg: string; color: string } {
+    const paleta = [
+      { bg: '#e1f5ee', color: '#0F6E56' },
+      { bg: '#e6f1fb', color: '#075985' },
+      { bg: '#faeeda', color: '#92400e' },
+      { bg: '#fde8ff', color: '#701a75' },
+      { bg: '#fff0e0', color: '#9a3412' },
+      { bg: '#ecfdf5', color: '#065f46' },
+      { bg: '#f0f9ff', color: '#0c4a6e' },
+      { bg: '#fef3c7', color: '#78350f' },
+      { bg: '#ede9fe', color: '#4c1d95' },
+      { bg: '#fee2e2', color: '#7f1d1d' },
+      { bg: '#d1fae5', color: '#064e3b' },
+      { bg: '#dbeafe', color: '#1e3a5f' },
+    ];
+    return paleta[index % paleta.length];
   }
 
   async guardarZona() {
@@ -208,7 +264,7 @@ export class ProductosComponent implements OnInit {
 
     const referencias = this.formZona.referencias
       .split(',')
-      .map(ref => ref.trim())
+      .map((ref) => ref.trim())
       .filter(Boolean);
 
     const payload = { nombre, referencias, activa: this.formZona.activa };
@@ -228,7 +284,7 @@ export class ProductosComponent implements OnInit {
     this.formZona = {
       nombre: zona.nombre,
       referencias: (zona.referencias ?? []).join(', '),
-      activa: zona.activa !== false
+      activa: zona.activa !== false,
     };
     this.errorZona = '';
     this.mostrarFormularioZona = true;
@@ -287,6 +343,5 @@ export class ProductosComponent implements OnInit {
       this.seccionActiva = candidata.id;
     }
   }
-
-
 }
+

@@ -93,6 +93,7 @@
       </div>
     </div>
 
+    <!-- Top clientes -->
     <div style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:24px;margin-bottom:20px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <h2 style="margin:0;font-size:16px;font-weight:600;color:#111">Top 10 clientes con mas pedidos completados</h2>
@@ -125,6 +126,7 @@
       <p *ngIf="topClientes.length === 0" style="text-align:center;color:#aaa;font-size:14px;padding:24px 0">No hay clientes con pedidos entregados aun.</p>
     </div>
 
+    <!-- Cobertura -->
     <div id="admin-cobertura" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:24px;margin-bottom:20px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <h2 style="margin:0;font-size:16px;font-weight:600;color:#111">{{ 'ADMIN.COBERTURA.TITULO' | translate }}</h2>
@@ -197,11 +199,10 @@
         </tr>
         </tbody>
       </table>
-
       <p *ngIf="zonas.length === 0" style="text-align:center;color:#aaa;font-size:14px;padding:24px 0">{{ 'ADMIN.COBERTURA.VACIO' | translate }}</p>
     </div>
 
-    <!-- Tabla de productos -->
+    <!-- ===================== TABLA DE PRODUCTOS ===================== -->
     <div id="admin-platillos" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:24px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <h2 style="margin:0;font-size:16px;font-weight:600;color:#111">{{ 'ADMIN.GESTION' | translate }}</h2>
@@ -211,12 +212,14 @@
         </button>
       </div>
 
-      <!-- Formulario -->
+      <!-- ===== FORMULARIO PRODUCTO ===== -->
       <form *ngIf="mostrarFormulario" #productoForm="ngForm" (ngSubmit)="guardar()"
             style="background:#f8faf8;border:1px solid #e5e5e5;border-radius:10px;padding:20px;margin-bottom:24px">
         <h3 style="margin:0 0 16px;font-size:14px;font-weight:600;color:#111">
           {{ editando ? ('ADMIN.EDITAR_PLATILLO' | translate) : ('ADMIN.NUEVO_PLATILLO' | translate) }}
         </h3>
+
+        <!-- Fila 1: Nombre + Categoría -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
           <div>
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">{{ 'ADMIN.NOMBRE' | translate }}</label>
@@ -234,6 +237,10 @@
             </select>
             <span *ngIf="errores['categoria']" style="font-size:11px;color:#dc2626">{{ errores['categoria'] }}</span>
           </div>
+        </div>
+
+        <!-- Fila 2: Precio + Descripción -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
           <div>
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">{{ 'ADMIN.PRECIO' | translate }}</label>
             <input [(ngModel)]="form.precio" (ngModelChange)="limpiarError('precio')" name="precio" type="number" required min="0.01"
@@ -248,6 +255,52 @@
             <span *ngIf="errores['descripcion']" style="font-size:11px;color:#dc2626">{{ errores['descripcion'] }}</span>
           </div>
         </div>
+
+        <!-- Fila 3: Ingredientes (campo nuevo) -->
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">
+            Ingredientes
+            <span style="font-weight:400;color:#aaa;margin-left:4px">(separados por comas)</span>
+          </label>
+          <input [(ngModel)]="ingredientesTexto" name="ingredientes"
+                 placeholder="papa, quinua, arroz, lenteja, espinaca..."
+                 style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+          <!-- Vista previa de los chips de ingredientes -->
+          <div *ngIf="ingredientesPreview.length > 0"
+               style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+            <span *ngFor="let ing of ingredientesPreview"
+                  style="background:#e1f5ee;color:#0F6E56;font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid #b2e5d4">
+              {{ ing }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Fila 4: URL de imagen (campo nuevo) -->
+        <div style="margin-bottom:16px">
+          <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">
+            URL de imagen
+            <span style="font-weight:400;color:#aaa;margin-left:4px">(opcional)</span>
+          </label>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <input [(ngModel)]="form.imagen" name="imagen"
+                   placeholder="https://ejemplo.com/imagen.jpg"
+                   style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+            <!-- Miniatura previa si hay URL -->
+            <div *ngIf="form.imagen && form.imagen.trim()"
+                 style="width:48px;height:48px;border-radius:8px;border:1px solid #ddd;overflow:hidden;flex-shrink:0;background:#f5f5f5;display:flex;align-items:center;justify-content:center">
+              <img [src]="form.imagen"
+                   style="width:100%;height:100%;object-fit:cover"
+                   (error)="form.imagen = ''"
+                   alt="preview">
+            </div>
+            <div *ngIf="!form.imagen || !form.imagen.trim()"
+                 style="width:48px;height:48px;border-radius:8px;border:1px dashed #ddd;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#fafafa">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Disponible + botones -->
         <div style="display:flex;align-items:center;justify-content:space-between">
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer">
             <input [(ngModel)]="form.disponible" name="disponible" type="checkbox"> {{ 'ADMIN.DISPONIBLE' | translate }}
@@ -265,10 +318,11 @@
         </div>
       </form>
 
-      <!-- Tabla -->
+      <!-- ===== TABLA DE PRODUCTOS ===== -->
       <table style="width:100%;border-collapse:collapse">
         <thead>
         <tr style="border-bottom:1px solid #e5e5e5">
+          <th style="text-align:left;font-size:12px;color:#888;font-weight:500;padding-bottom:10px;width:40px"></th>
           <th style="text-align:left;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">{{ 'ADMIN.NOMBRE' | translate }}</th>
           <th style="text-align:left;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">{{ 'ADMIN.CATEGORIA' | translate }}</th>
           <th style="text-align:left;font-size:12px;color:#888;font-weight:500;padding-bottom:10px">{{ 'ADMIN.DESCRIPCION' | translate }}</th>
@@ -279,14 +333,28 @@
         </thead>
         <tbody>
         <tr *ngFor="let p of productos" style="border-bottom:1px solid #f5f5f5">
-          <td style="padding:12px 0;font-size:13px;font-weight:500;color:#111">{{ p.nombre }}</td>
+          <!-- Miniatura -->
+          <td style="padding:10px 8px 10px 0">
+            <div style="width:36px;height:36px;border-radius:8px;overflow:hidden;background:#f0f0f0;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <img *ngIf="p.imagen" [src]="p.imagen" style="width:100%;height:100%;object-fit:cover" alt="">
+              <svg *ngIf="!p.imagen" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+          </td>
+          <td style="padding:12px 0;font-size:13px;color:#111">
+            <div style="font-weight:500">{{ p.nombre }}</div>
+            <!-- Ingredientes resumidos -->
+            <div *ngIf="p.ingredientes && p.ingredientes.length > 0"
+                 style="font-size:11px;color:#999;margin-top:2px">
+              {{ p.ingredientes.slice(0,3).join(', ') }}{{ p.ingredientes.length > 3 ? ' +' + (p.ingredientes.length - 3) + ' más' : '' }}
+            </div>
+          </td>
           <td style="padding:12px 0;font-size:13px;color:#666">{{ p.categoria }}</td>
-          <td style="padding:12px 0;font-size:13px;color:#888;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.descripcion }}</td>
+          <td style="padding:12px 0;font-size:13px;color:#888;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.descripcion }}</td>
           <td style="padding:12px 0;font-size:13px;color:#1D9E75;text-align:right;font-weight:500">{{ p.precio | bolivianos }}</td>
           <td style="padding:12px 0;text-align:center">
-              <span [style]="p.disponible ? 'background:#e1f5ee;color:#0F6E56;font-size:11px;padding:3px 10px;border-radius:20px' : 'background:#fef2f2;color:#A32D2D;font-size:11px;padding:3px 10px;border-radius:20px'">
-                {{ p.disponible ? ('ADMIN.DISPONIBLE' | translate) : ('MENU_PAGE.NO_PLATILLOS' | translate) }}
-              </span>
+            <span [style]="p.disponible ? 'background:#e1f5ee;color:#0F6E56;font-size:11px;padding:3px 10px;border-radius:20px' : 'background:#fef2f2;color:#A32D2D;font-size:11px;padding:3px 10px;border-radius:20px'">
+              {{ p.disponible ? ('ADMIN.DISPONIBLE' | translate) : ('MENU_PAGE.NO_PLATILLOS' | translate) }}
+            </span>
           </td>
           <td style="padding:12px 0;text-align:right">
             <span (click)="editar(p); mostrarFormulario = true" style="font-size:12px;color:#378ADD;cursor:pointer;margin-right:16px">{{ 'ADMIN.EDITAR' | translate }}</span>
@@ -301,9 +369,42 @@
       </p>
     </div>
 
+    <!-- ===================== SECCIÓN CATEGORÍAS ===================== -->
     <div id="admin-categorias" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:24px;margin-top:20px">
-      <h2 style="margin:0 0 8px;font-size:16px;font-weight:600;color:#111">{{ 'ADMIN.SIDEBAR.CATEGORIAS' | translate }}</h2>
-      <p style="margin:0;font-size:13px;color:#777">{{ 'ADMIN.SECCIONES.PROXIMAMENTE' | translate }}</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <h2 style="margin:0 0 4px;font-size:16px;font-weight:600;color:#111">{{ 'ADMIN.SIDEBAR.CATEGORIAS' | translate }}</h2>
+          <p style="margin:0;font-size:13px;color:#888">{{ categoriasDisponibles.length }} categorías · {{ productos.length }} platillos en total</p>
+        </div>
+      </div>
+
+      <!-- Grid de tarjetas por categoría -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
+        <div *ngFor="let cat of categoriasDisponibles; let i = index"
+             style="border-radius:10px;border:1px solid #e5e5e5;padding:16px;display:flex;flex-direction:column;gap:8px">
+          <!-- Chip de categoría -->
+          <span [style]="'display:inline-flex;align-items:center;width:fit-content;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;background:' + colorChipCategoria(i).bg + ';color:' + colorChipCategoria(i).color">
+            {{ cat }}
+          </span>
+          <!-- Contador -->
+          <div style="display:flex;align-items:baseline;gap:6px">
+            <span style="font-size:26px;font-weight:700;color:#111;line-height:1">{{ productosDeCategoria(cat) }}</span>
+            <span style="font-size:12px;color:#999">{{ productosDeCategoria(cat) === 1 ? 'platillo' : 'platillos' }}</span>
+          </div>
+          <!-- Barra de progreso relativa al total -->
+          <div style="background:#f0f0f0;border-radius:4px;height:4px;overflow:hidden">
+            <div [style]="'height:100%;border-radius:4px;background:' + colorChipCategoria(i).color + ';width:' + (productos.length > 0 ? (productosDeCategoria(cat) / productos.length * 100) : 0) + '%'"></div>
+          </div>
+          <span style="font-size:11px;color:#bbb">
+            {{ productos.length > 0 ? ((productosDeCategoria(cat) / productos.length * 100) | number:'1.0-0') : 0 }}% del menú
+          </span>
+        </div>
+      </div>
+
+      <p *ngIf="categoriasDisponibles.length === 0"
+         style="text-align:center;color:#aaa;font-size:14px;padding:24px 0">
+        No hay categorías disponibles.
+      </p>
     </div>
 
     <div id="admin-pedidos" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:24px;margin-top:20px">
