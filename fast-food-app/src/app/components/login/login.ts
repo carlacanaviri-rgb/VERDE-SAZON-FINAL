@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, NgZone, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -17,6 +17,7 @@ export class LoginComponent {
   private auth = inject(AuthService);
   private cartSvc = inject(CartService);
   private router = inject(Router);
+  private zone = inject(NgZone);
 
   email = '';
   password = '';
@@ -33,10 +34,14 @@ export class LoginComponent {
       else if (rol === 'cocina') this.router.navigate(['/cocina']);
       else if (rol === 'delivery') this.router.navigate(['/delivery']);
       else this.router.navigate(['/menu']);
-    } catch (e: any) {
-      this.error = 'LOGIN.ERROR';
+    } catch {
+      this.zone.run(() => {
+        this.error = 'LOGIN.ERROR';
+      });
     } finally {
-      this.cargando = false;
+      this.zone.run(() => {
+        this.cargando = false;
+      });
     }
   }
 
