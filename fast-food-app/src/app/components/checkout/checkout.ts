@@ -294,6 +294,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.pagoConfirmado = true;
       this.esperandoConfirmacionPago = false;
 
+      this.pedidoCreado = {
+        ...this.pedidoCreado,
+        estado: 'pendiente'
+      };
+
       this.detenerSeguimientoPago();
       this.limpiarSesionQr();
 

@@ -17,6 +17,7 @@ import { TimeoutError } from 'rxjs';
 import { CoberturaService } from '../../services/cobertura.service';
 import { ZonaCobertura } from '../../models/zona-cobertura.model';
 import { BolivianoCurrencyPipe } from '../../shared/pipes/boliviano-currency.pipe';
+import { normalizarCategoriaProducto } from '../../shared/catalogs/producto-categorias';
 
 @Component({
   selector: 'app-menu',
@@ -95,7 +96,10 @@ export class MenuComponent implements OnInit {
     this.categoriaActiva = 'Todas';
 
     this.svc.getProductos().subscribe((data) => {
-      this.productos = data;
+      this.productos = data.map((producto) => ({
+        ...producto,
+        categoria: normalizarCategoriaProducto(producto.categoria),
+      }));
       this.categoriaActiva = 'Todas';
       this.cdr.detectChanges();
     });
@@ -411,48 +415,40 @@ export class MenuComponent implements OnInit {
   }
 
   getEmojiCategoria(categoria: string): string {
+    const categoriaNormalizada = normalizarCategoriaProducto(categoria).toLowerCase();
     const emojis: { [key: string]: string } = {
-      hamburguesa: '🍔',
       hamburguesas: '🍔',
       pizza: '🍕',
       ensalada: '🥗',
-      ensaladas: '🥗',
-      bebida: '🥤',
       bebidas: '🥤',
-      postre: '🍰',
       postres: '🍰',
-      bowl: '🥙',
       bowls: '🥙',
-      wrap: '🌯',
       wraps: '🌯',
-      smoothie: '🥤',
       smoothies: '🥤',
-      snack: '🍟',
       snacks: '🍟',
+      'plato fuerte': '🍛',
+      sopas: '🍲',
+      'version vegetariana': '🥬',
     };
-    return emojis[categoria.toLowerCase()] ?? '🍽️';
+    return emojis[categoriaNormalizada] ?? '🍽️';
   }
 
   getColorCategoria(categoria: string): string {
+    const categoriaNormalizada = normalizarCategoriaProducto(categoria).toLowerCase();
     const colores: { [key: string]: string } = {
-      hamburguesa: '#fff3e0',
       hamburguesas: '#fff3e0',
       pizza: '#fce4ec',
       ensalada: '#e8f5e9',
-      ensaladas: '#e8f5e9',
-      bebida: '#e3f2fd',
       bebidas: '#e3f2fd',
-      postre: '#f3e5f5',
       postres: '#f3e5f5',
-      bowl: '#e1f5ee',
       bowls: '#e1f5ee',
-      wrap: '#fff8e1',
       wraps: '#fff8e1',
-      smoothie: '#fce4ec',
       smoothies: '#fce4ec',
-      snack: '#fff3e0',
       snacks: '#fff3e0',
+      'plato fuerte': '#fff4e5',
+      sopas: '#fff8e1',
+      'version vegetariana': '#f0fdf4',
     };
-    return colores[categoria.toLowerCase()] ?? '#f0f7f0';
+    return colores[categoriaNormalizada] ?? '#f0f7f0';
   }
 }

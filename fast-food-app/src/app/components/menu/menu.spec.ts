@@ -138,7 +138,9 @@ describe('MenuComponent', () => {
       descripcion: 'muy saludable',
       precio: 59,
       categoria: 'Ensalada',
-      cantidad: 2
+      cantidad: 2,
+      ingredientes: [],
+      ingredientesQuitados: []
     }];
     component.notaPedido = 'Sin cebolla';
     component.direccionEntrega = 'Calle 10 #20-30';
@@ -177,7 +179,9 @@ describe('MenuComponent', () => {
       descripcion: 'muy saludable',
       precio: 59,
       categoria: 'Ensalada',
-      cantidad: 1
+      cantidad: 1,
+      ingredientes: [],
+      ingredientesQuitados: []
     }];
     component.direccionEntrega = 'Calle 10 #20-30';
 
@@ -201,7 +205,9 @@ describe('MenuComponent', () => {
       descripcion: 'muy saludable',
       precio: 59,
       categoria: 'Ensalada',
-      cantidad: 1
+      cantidad: 1,
+      ingredientes: [],
+      ingredientesQuitados: []
     }];
     component.direccionEntrega = 'Direccion fuera de zona';
 
@@ -223,7 +229,9 @@ describe('MenuComponent', () => {
       descripcion: 'muy saludable',
       precio: 59,
       categoria: 'Ensalada',
-      cantidad: 1
+      cantidad: 1,
+      ingredientes: [],
+      ingredientesQuitados: []
     }];
 
     component.irACheckout();

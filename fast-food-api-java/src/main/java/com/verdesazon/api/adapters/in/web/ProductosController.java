@@ -4,6 +4,7 @@ import com.verdesazon.api.application.command.CreateProductoCommand;
 import com.verdesazon.api.application.command.UpdateProductoCommand;
 import com.verdesazon.api.application.port.in.ProductosUseCase;
 import com.verdesazon.api.domain.model.Producto;
+import com.verdesazon.api.productos.ProductoCategoriaCatalog;
 import com.verdesazon.api.productos.dto.CreateProductoDto;
 import com.verdesazon.api.productos.dto.DeleteProductoRequest;
 import com.verdesazon.api.productos.dto.UpdateProductoDto;
@@ -32,6 +33,11 @@ public class ProductosController {
     @GetMapping
     public List<Producto> getAll() {
         return useCase.getAll();
+    }
+
+    @GetMapping("/categorias")
+    public List<String> getCategorias() {
+        return ProductoCategoriaCatalog.allowedValues();
     }
 
     @GetMapping("/{id}")
@@ -63,7 +69,7 @@ public class ProductosController {
                 dto.getNombre(),
                 dto.getDescripcion(),
                 dto.getPrecio(),
-                dto.getCategoria(),
+                ProductoCategoriaCatalog.normalizeRequired(dto.getCategoria()),
                 dto.getDisponible());
     }
 
@@ -75,7 +81,7 @@ public class ProductosController {
                 dto.getNombre(),
                 dto.getDescripcion(),
                 dto.getPrecio(),
-                dto.getCategoria(),
+                dto.getCategoria() == null ? null : ProductoCategoriaCatalog.normalizeRequired(dto.getCategoria()),
                 dto.getDisponible());
     }
 }

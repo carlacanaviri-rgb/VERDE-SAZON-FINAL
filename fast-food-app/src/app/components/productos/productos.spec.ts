@@ -14,6 +14,7 @@ describe('ProductosComponent', () => {
   let component: ProductosComponent;
   let fixture: ComponentFixture<ProductosComponent>;
   let productoServiceSpy: {
+    getCategorias: ReturnType<typeof vi.fn>;
     getProductos: ReturnType<typeof vi.fn>;
     addProducto: ReturnType<typeof vi.fn>;
     updateProducto: ReturnType<typeof vi.fn>;
@@ -27,12 +28,14 @@ describe('ProductosComponent', () => {
 
   beforeEach(async () => {
     productoServiceSpy = {
+      getCategorias: vi.fn(),
       getProductos: vi.fn(),
       addProducto: vi.fn(),
       updateProducto: vi.fn(),
       deleteProducto: vi.fn()
     };
 
+    productoServiceSpy.getCategorias.mockReturnValue(of(['Ensalada', 'Version Vegetariana', 'Sopas']));
     productoServiceSpy.getProductos.mockReturnValue(of([]));
     productoServiceSpy.addProducto.mockReturnValue(Promise.resolve());
     productoServiceSpy.updateProducto.mockReturnValue(Promise.resolve());
@@ -100,9 +103,24 @@ describe('ProductosComponent', () => {
 
     expect(productoServiceSpy.addProducto).toHaveBeenCalledWith(expect.objectContaining({
       nombre: 'Pique',
-      categoria: 'vegetariano',
+      categoria: 'Version Vegetariana',
       descripcion: 'Version Vegetariana',
       precio: 60
     }));
+  });
+
+  it('should reject free-text category values outside the catalog', async () => {
+    component.form = {
+      nombre: 'Nuevo platillo',
+      categoria: 'texto libre',
+      descripcion: 'Descripcion valida',
+      precio: 42,
+      disponible: true
+    };
+
+    await component.guardar();
+
+    expect(productoServiceSpy.addProducto).not.toHaveBeenCalled();
+    expect(component.errores['categoria']).toBe('ADMIN.ERROR_CATEGORIA_INVALIDA');
   });
 });
