@@ -32,7 +32,7 @@ public class ProductosService {
                 dto == null ? null : dto.getNombre(),
                 dto == null ? null : dto.getDescripcion(),
                 dto == null ? null : dto.getPrecio(),
-                dto == null ? null : dto.getCategoria(),
+                dto == null ? null : ProductoCategoriaCatalog.normalizeRequired(dto.getCategoria()),
                 dto == null ? null : dto.getDisponible()));
     }
 
@@ -41,7 +41,7 @@ public class ProductosService {
                 dto == null ? null : dto.getNombre(),
                 dto == null ? null : dto.getDescripcion(),
                 dto == null ? null : dto.getPrecio(),
-                dto == null ? null : dto.getCategoria(),
+                dto == null || dto.getCategoria() == null ? null : ProductoCategoriaCatalog.normalizeRequired(dto.getCategoria()),
                 dto == null ? null : dto.getDisponible()));
     }
 

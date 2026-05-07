@@ -10,6 +10,10 @@ const API = environment.apiUrl;
 export class ProductoService {
   private http = inject(HttpClient);
 
+  getCategorias(): Observable<string[]> {
+    return this.http.get<string[]>(`${API}/productos/categorias`);
+  }
+
   getProductos(): Observable<Producto[]> {
     return this.http.get<Producto[]>(`${API}/productos`);
   }

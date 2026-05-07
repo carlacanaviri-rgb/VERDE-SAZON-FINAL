@@ -115,7 +115,9 @@ describe('CheckoutComponent', () => {
       descripcion: 'fresca',
       precio: 59,
       categoria: 'Ensalada',
-      cantidad: 1
+      cantidad: 1,
+      ingredientes: [],
+      ingredientesQuitados: []
     }];
     component.notaPedido = 'sin cebolla';
     component.direccionEntrega = 'Calle 10 #20-30';

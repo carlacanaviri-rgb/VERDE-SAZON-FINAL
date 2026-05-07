@@ -227,9 +227,11 @@
           </div>
           <div>
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">{{ 'ADMIN.CATEGORIA' | translate }}</label>
-            <input [(ngModel)]="form.categoria" (ngModelChange)="limpiarError('categoria')" name="categoria" required
-                   [placeholder]="'ADMIN.CATEGORIA' | translate"
-                   [style]="'width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid ' + (errores['categoria'] ? '#dc2626' : '#ddd') + ';border-radius:8px;font-size:13px'">
+            <select [(ngModel)]="form.categoria" (ngModelChange)="limpiarError('categoria')" name="categoria" required
+                    [style]="'width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid ' + (errores['categoria'] ? '#dc2626' : '#ddd') + ';border-radius:8px;font-size:13px;background:white'">
+              <option value="" disabled>{{ 'ADMIN.CATEGORIA_PLACEHOLDER' | translate }}</option>
+              <option *ngFor="let categoria of categoriasDisponibles" [ngValue]="categoria">{{ categoria }}</option>
+            </select>
             <span *ngIf="errores['categoria']" style="font-size:11px;color:#dc2626">{{ errores['categoria'] }}</span>
           </div>
           <div>

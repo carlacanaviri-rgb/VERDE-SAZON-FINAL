@@ -12,6 +12,12 @@ import { ClienteRanking } from '../../models/cliente-ranking.model';
 import { BolivianoCurrencyPipe } from '../../shared/pipes/boliviano-currency.pipe';
 import { CoberturaService } from '../../services/cobertura.service';
 import { ZonaCobertura } from '../../models/zona-cobertura.model';
+import {
+  esCategoriaProductoValida,
+  normalizarCategoriaProducto,
+  normalizarListaCategorias,
+  PRODUCTO_CATEGORIAS_FALLBACK,
+} from '../../shared/catalogs/producto-categorias';
 
 
 @Component({
@@ -35,6 +41,7 @@ export class ProductosComponent implements OnInit {
   mostrarFormulario = false;
   errores: { [key: string]: string } = {};
   form: Producto = this.formVacio();
+  categoriasDisponibles: string[] = [...PRODUCTO_CATEGORIAS_FALLBACK];
   topClientes: ClienteRanking[] = [];
   zonas: ZonaCobertura[] = [];
   zonaEditando: ZonaCobertura | null = null;
@@ -53,6 +60,7 @@ export class ProductosComponent implements OnInit {
   ];
 
   ngOnInit() {
+    this.cargarCategorias();
     this.cargarProductos();
     this.cargarRankingClientes();
     this.cargarZonas();
@@ -65,7 +73,26 @@ export class ProductosComponent implements OnInit {
   }
 
   cargarProductos() {
-    this.svc.getProductos().subscribe(data => this.productos = data);
+    this.svc.getProductos().subscribe(data => {
+      this.productos = data.map(producto => ({
+        ...producto,
+        categoria: normalizarCategoriaProducto(producto.categoria)
+      }));
+    });
+  }
+
+  cargarCategorias() {
+    this.svc.getCategorias().subscribe({
+      next: (categorias) => {
+        const normalizadas = normalizarListaCategorias(categorias);
+        this.categoriasDisponibles = normalizadas.length
+          ? normalizadas
+          : [...PRODUCTO_CATEGORIAS_FALLBACK];
+      },
+      error: () => {
+        this.categoriasDisponibles = [...PRODUCTO_CATEGORIAS_FALLBACK];
+      }
+    });
   }
 
   cargarRankingClientes() {
@@ -86,14 +113,14 @@ export class ProductosComponent implements OnInit {
 
   private normalizarFormulario(): void {
     this.form.nombre = (this.form.nombre ?? '').trim();
-    this.form.categoria = (this.form.categoria ?? '').trim();
+    this.form.categoria = normalizarCategoriaProducto(this.form.categoria);
     this.form.descripcion = (this.form.descripcion ?? '').trim();
     this.form.precio = Number(this.form.precio);
   }
 
   camposRequeridosValidos(): boolean {
     const nombreValido = !!this.form.nombre?.trim();
-    const categoriaValida = !!this.form.categoria?.trim();
+    const categoriaValida = esCategoriaProductoValida(this.form.categoria, this.categoriasDisponibles);
     const precioNumerico = Number(this.form.precio);
     const precioValido = Number.isFinite(precioNumerico) && precioNumerico > 0;
 
@@ -113,8 +140,11 @@ export class ProductosComponent implements OnInit {
 
     if (!this.form.nombre.trim())
       this.errores['nombre'] = this.translate.instant('ADMIN.ERROR_NOMBRE');
-    if (!this.form.categoria.trim())
+    if (!this.form.categoria.trim()) {
       this.errores['categoria'] = this.translate.instant('ADMIN.ERROR_CATEGORIA');
+    } else if (!esCategoriaProductoValida(this.form.categoria, this.categoriasDisponibles)) {
+      this.errores['categoria'] = this.translate.instant('ADMIN.ERROR_CATEGORIA_INVALIDA');
+    }
     if (!Number.isFinite(this.form.precio) || this.form.precio <= 0)
       this.errores['precio'] = this.translate.instant('ADMIN.ERROR_PRECIO');
     if (!this.form.descripcion.trim())
@@ -136,7 +166,7 @@ export class ProductosComponent implements OnInit {
 
   editar(p: Producto) {
     this.editando = p;
-    this.form = { ...p };
+    this.form = { ...p, categoria: normalizarCategoriaProducto(p.categoria) };
     this.errores = {};
   }
 
