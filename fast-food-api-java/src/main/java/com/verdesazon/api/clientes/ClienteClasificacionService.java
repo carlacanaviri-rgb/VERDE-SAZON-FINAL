@@ -423,7 +423,23 @@ public class ClienteClasificacionService {
     }
 
     private String generarNumeroPedido() {
-        return "VS-" + Instant.now().toEpochMilli();
+        try {
+            DocumentReference counterRef = firestore.collection("counters").document("pedidos");
+            long[] nuevoNumero = {1};
+            firestore.runTransaction(transaction -> {
+                DocumentSnapshot snap = transaction.get(counterRef).get();
+                long actual = snap.exists() && snap.getLong("ultimo") != null
+                        ? snap.getLong("ultimo")
+                        : 0L;
+                nuevoNumero[0] = actual + 1;
+                transaction.set(counterRef, Map.of("ultimo", nuevoNumero[0]), SetOptions.merge());
+                return null;
+            }).get(FIRESTORE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            return "VSN-" + nuevoNumero[0];
+        } catch (Exception e) {
+            // fallback seguro si falla la transaccion
+            return "VSN-" + Instant.now().toEpochMilli();
+        }
     }
 
     private String safeTrim(String value, String fallback) {
@@ -504,4 +520,3 @@ public class ClienteClasificacionService {
         private double montoTotalCompletado;
     }
 }
-

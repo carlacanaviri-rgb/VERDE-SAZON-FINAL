@@ -57,7 +57,10 @@
               {{ getBadgeLabel(pedido.estado) }}
             </span>
           </div>
-          <span class="pedido-total">{{ pedido.total | bolivianos }}</span>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+            <span class="pedido-total">{{ pedido.total | bolivianos }}</span>
+            <span style="font-size:11px;color:#94a3b8">🕐 {{ pedido.hora }}</span>
+          </div>
         </div>
 
         <!-- Card Body -->
@@ -114,7 +117,7 @@
           <div class="completado-info">
             <span class="pedido-numero">Pedido #{{ pedido.numero }}</span>
             <span class="completado-cliente">{{ pedido.clienteNombre || 'Cliente' }}</span>
-            <span class="completado-detalle">{{ getItemsResumen(pedido) }} · {{ pedido.total | bolivianos }}</span>
+            <span class="completado-detalle">{{ getItemsResumen(pedido) }} · {{ pedido.total | bolivianos }} · 🕐 {{ pedido.hora }}</span>
           </div>
           <span class="completado-check">✅</span>
         </div>

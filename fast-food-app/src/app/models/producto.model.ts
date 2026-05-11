@@ -7,4 +7,6 @@ export interface Producto {
   disponible: boolean;
   imagen?: string;
   ingredientes?: string[];
+  calorias?: number;
+  etiquetas?: string[];
 }

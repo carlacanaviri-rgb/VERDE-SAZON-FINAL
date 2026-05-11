@@ -60,7 +60,11 @@
           <h2 style="margin:0;font-size:16px;font-weight:700;color:#111">{{ 'COCINA.RECIBIDOS' | translate }} ({{ pendientes.length }})</h2>
         </div>
         <div *ngFor="let p of pendientes" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:20px;margin-bottom:12px">
-          <p style="margin:0 0 4px;font-size:15px;font-weight:700;color:#111">#{{ p.numero }}</p>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+            <p style="margin:0;font-size:15px;font-weight:700;color:#111">#{{ p.numero }}</p>
+            <span *ngIf="p.estado === 'pendiente_pago'" style="font-size:10px;font-weight:600;background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:20px">Pago pendiente</span>
+          </div>
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:#1D9E75">{{ p.clienteNombre || p.clienteEmail || 'Cliente' }}</p>
           <p style="margin:0 0 16px;font-size:12px;color:#888">{{ p.hora }}</p>
           <div *ngFor="let item of p.items" style="margin-bottom:4px">
             <span style="font-size:13px;color:#111">{{ item.cantidad }}x {{ item.nombre }}</span>
@@ -85,7 +89,8 @@
         <div *ngFor="let p of preparando" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:20px;margin-bottom:12px">
           <div style="display:flex;justify-content:space-between;align-items:flex-start">
             <div>
-              <p style="margin:0 0 4px;font-size:15px;font-weight:700;color:#111">#{{ p.numero }}</p>
+              <p style="margin:0 0 2px;font-size:15px;font-weight:700;color:#111">#{{ p.numero }}</p>
+              <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:#1D9E75">{{ p.clienteNombre || p.clienteEmail || 'Cliente' }}</p>
               <p style="margin:0 0 16px;font-size:12px;color:#888">{{ p.hora }}</p>
             </div>
             <span *ngIf="p.tiempoEstimado" style="background:#e0f2fe;color:#0284c7;font-size:11px;padding:4px 8px;border-radius:20px">{{ p.tiempoEstimado }} min</span>
@@ -111,7 +116,11 @@
           <h2 style="margin:0;font-size:16px;font-weight:700;color:#111">{{ 'COCINA.LISTO_DESPACHO' | translate }} ({{ listos.length }})</h2>
         </div>
         <div *ngFor="let p of listos" style="background:white;border-radius:12px;border:1px solid #e5e5e5;padding:20px;margin-bottom:12px">
-          <p style="margin:0 0 4px;font-size:15px;font-weight:700;color:#111">#{{ p.numero }}</p>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+            <p style="margin:0;font-size:15px;font-weight:700;color:#111">#{{ p.numero }}</p>
+            <span *ngIf="p.estado === 'pendiente_pago'" style="font-size:10px;font-weight:600;background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:20px">Pago pendiente</span>
+          </div>
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:#1D9E75">{{ p.clienteNombre || p.clienteEmail || 'Cliente' }}</p>
           <p style="margin:0 0 16px;font-size:12px;color:#888">{{ p.hora }}</p>
           <div *ngFor="let item of p.items" style="margin-bottom:4px">
             <span style="font-size:13px;color:#111">{{ item.cantidad }}x {{ item.nombre }}</span>

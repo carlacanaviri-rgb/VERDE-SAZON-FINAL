@@ -24,12 +24,20 @@ export class DeliveryComponent implements OnInit {
 
   readonly ESTADOS_ACTIVOS = ['listo', 'recogido', 'en_camino'];
 
+  private sortByArrival(list: Pedido[]): Pedido[] {
+    return [...list].sort((a, b) => {
+      const ta = (a as any).creadoEn ?? a.hora ?? '';
+      const tb = (b as any).creadoEn ?? b.hora ?? '';
+      return ta < tb ? -1 : ta > tb ? 1 : 0;
+    });
+  }
+
   get activos(): Pedido[] {
-    return this.pedidos.filter((p) => this.ESTADOS_ACTIVOS.includes(p.estado));
+    return this.sortByArrival(this.pedidos.filter((p) => this.ESTADOS_ACTIVOS.includes(p.estado)));
   }
 
   get completados(): Pedido[] {
-    return this.pedidos.filter((p) => p.estado === 'entregado');
+    return this.sortByArrival(this.pedidos.filter((p) => p.estado === 'entregado'));
   }
 
   get totalGanado(): number {
