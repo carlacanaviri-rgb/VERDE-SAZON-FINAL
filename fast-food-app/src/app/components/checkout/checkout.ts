@@ -90,8 +90,19 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       || `${this.pedidoCreado.numero}|BOB|${this.pedidoCreado.total}|${this.nombreUsuario || this.emailUsuario || 'cliente'}`;
   }
 
+  // URLs inválidas o de entornos de prueba — nunca abrir en el navegador
+  private readonly URL_INVALIDAS = ['checkout.verdesazon.local', 'localhost', '127.0.0.1', '.local'];
+
   get pagoUrl(): string {
-    return this.pedidoCreado?.pago?.paymentUrl ?? '';
+    const url = this.pedidoCreado?.pago?.paymentUrl ?? '';
+    if (!url) return '';
+    // Si la URL contiene un dominio ficticio/local, la descartamos
+    const invalida = this.URL_INVALIDAS.some(patron => url.includes(patron));
+    return invalida ? '' : url;
+  }
+
+  get esMock(): boolean {
+    return this.pedidoCreado?.pago?.proveedor === 'mock' || !this.pagoUrl;
   }
 
   get qrPagoContenido(): string {
@@ -319,6 +330,31 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       return;
     }
     window.open(this.pagoUrl, '_blank', 'noopener');
+  }
+
+  rastreandoPedido = false;
+
+  async rastrearPedido(): Promise<void> {
+    if (!this.pedidoCreado?.id || this.rastreandoPedido) return;
+    this.rastreandoPedido = true;
+    this.errorCheckout = '';
+
+    try {
+      // Si el pago aún no está confirmado, confirmarlo antes de navegar
+      if (!this.pagoConfirmado) {
+        await this.pedidoSvc.confirmarPago(this.pedidoCreado.id);
+        this.pagoConfirmado = true;
+        this.esperandoConfirmacionPago = false;
+        this.pedidoCreado = { ...this.pedidoCreado, estado: 'pendiente' };
+        this.detenerSeguimientoPago();
+      }
+
+      this.limpiarSesionQr();
+      await this.router.navigate(['/seguimiento', this.pedidoCreado.id]);
+    } catch {
+      this.errorCheckout = 'No se pudo confirmar el pago. Intenta de nuevo.';
+      this.rastreandoPedido = false;
+    }
   }
 
   private iniciarSeguimientoPago(pedidoId: string): void {
@@ -586,4 +622,3 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     return translated;
   }
 }
-

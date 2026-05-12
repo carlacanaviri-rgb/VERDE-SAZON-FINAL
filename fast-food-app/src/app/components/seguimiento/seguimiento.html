@@ -1,0 +1,195 @@
+<div style="min-height:100vh;background:#f8faf8;font-family:'Segoe UI',sans-serif">
+
+  <!-- NAVBAR -->
+  <nav style="background:white;border-bottom:1px solid #e5e5e5;padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:32px;height:32px;background:#1D9E75;border-radius:50%;display:flex;align-items:center;justify-content:center">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <span style="font-weight:700;font-size:16px;color:#111">Verde Sazón</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:24px">
+      <span style="font-size:13px;color:#555;cursor:pointer" (click)="volverAMenu()">Inicio</span>
+      <span style="font-size:13px;color:#555;cursor:pointer">Categorías</span>
+      <span style="font-size:13px;color:#555;cursor:pointer" (click)="volverAMenu()">Menú</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" style="cursor:pointer"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" style="cursor:pointer"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" style="cursor:pointer"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+  </nav>
+
+  <!-- LOADING -->
+  <div *ngIf="cargando" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 0;gap:16px">
+    <div style="width:40px;height:40px;border:3px solid #e5e5e5;border-top-color:#1D9E75;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+    <p style="color:#888;font-size:14px">Cargando seguimiento...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="!cargando && error" style="max-width:500px;margin:60px auto;text-align:center;padding:32px;background:white;border-radius:16px;border:1px solid #fecaca">
+    <div style="font-size:36px;margin-bottom:12px">⚠️</div>
+    <h2 style="margin:0 0 8px;color:#b91c1c">Error al rastrear</h2>
+    <p style="margin:0 0 20px;color:#666">{{ error }}</p>
+    <button (click)="volverAMenu()" style="background:#1D9E75;color:white;border:none;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">Volver al menú</button>
+  </div>
+
+  <!-- CONTENIDO -->
+  <div *ngIf="!cargando && !error && pedido" style="max-width:1100px;margin:0 auto;padding:32px 24px">
+
+    <!-- Título -->
+    <div style="margin-bottom:28px">
+      <h1 style="margin:0 0 4px;font-size:26px;font-weight:700;color:#111">Seguimiento de pedido</h1>
+      <p style="margin:0;font-size:13px;color:#888">ID: {{ pedidoId }}</p>
+    </div>
+
+    <!-- Layout 2 columnas -->
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
+
+      <!-- COLUMNA IZQUIERDA -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+
+        <!-- Progreso -->
+        <div style="background:white;border:1px solid #e5e5e5;border-radius:16px;padding:24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <span style="font-size:13px;color:#555;font-weight:500">Progreso</span>
+            <span style="font-size:13px;font-weight:700;color:#1D9E75">{{ progreso }}%</span>
+          </div>
+          <div style="background:#e5e5e5;border-radius:999px;height:8px;overflow:hidden;margin-bottom:24px">
+            <div [style]="'background:#1D9E75;height:100%;border-radius:999px;width:'+progreso+'%;transition:width 0.6s ease'"></div>
+          </div>
+
+          <!-- Pasos -->
+          <div style="display:flex;flex-direction:column;gap:0">
+            <div *ngFor="let paso of PASOS; let last = last"
+                 style="display:flex;align-items:flex-start;gap:16px;position:relative">
+
+              <!-- Línea vertical de conexión -->
+              <div style="display:flex;flex-direction:column;align-items:center">
+                <!-- Círculo del paso -->
+                <div [style]="estadoPaso(paso) === 'completado'
+                    ? 'width:38px;height:38px;border-radius:50%;background:#1D9E75;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1'
+                    : estadoPaso(paso) === 'activo'
+                    ? 'width:38px;height:38px;border-radius:50%;background:#1D9E75;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1;box-shadow:0 0 0 4px #dcfce7'
+                    : 'width:38px;height:38px;border-radius:50%;background:#e5e5e5;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1'">
+                  <span *ngIf="estadoPaso(paso) === 'completado' || estadoPaso(paso) === 'activo'"
+                        style="color:white;font-size:15px">{{ paso.icon }}</span>
+                  <svg *ngIf="estadoPaso(paso) === 'pendiente'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                </div>
+                <!-- Línea vertical -->
+                <div *ngIf="!last"
+                     [style]="'width:2px;height:32px;margin:2px 0;'+(estadoPaso(paso)==='completado'?'background:#1D9E75':'background:#e5e5e5')"></div>
+              </div>
+
+              <!-- Texto del paso -->
+              <div style="padding:6px 0 24px;flex:1">
+                <p [style]="'margin:0 0 2px;font-size:14px;font-weight:600;'+(estadoPaso(paso)==='pendiente'?'color:#aaa':'color:#111')">
+                  {{ paso.label }}
+                </p>
+                <p [style]="'margin:0;font-size:12px;'+(estadoPaso(paso)==='activo'?'color:#1D9E75;font-weight:500':estadoPaso(paso)==='completado'?'color:#666':'color:#bbb')">
+                  {{ subLabelPaso(paso) }}
+                </p>
+              </div>
+
+              <!-- Hora (si está activo o completado) -->
+              <div *ngIf="estadoPaso(paso) !== 'pendiente'" style="padding-top:8px">
+                <span style="font-size:12px;color:#888">{{ pedido?.hora }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ubicación del repartidor — solo en_camino o entregado -->
+        <div style="background:white;border:1px solid #e5e5e5;border-radius:16px;padding:24px">
+          <h3 style="margin:0 0 16px;font-size:15px;font-weight:600;color:#111">Ubicación del repartidor</h3>
+
+          <!-- Cuando NO está en camino: placeholder gris -->
+          <div *ngIf="!estaEnCamino && !estaEntregado"
+               style="background:#f5f5f5;border-radius:12px;height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <p style="margin:0;font-size:13px;color:#aaa">Disponible cuando el pedido esté en camino</p>
+          </div>
+
+          <!-- Cuando está en camino o entregado: botón para abrir Maps -->
+          <div *ngIf="estaEnCamino || estaEntregado"
+               style="background:#f0faf5;border:1px solid #b2e5d4;border-radius:12px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:12px">
+            <div style="width:48px;height:48px;background:#1D9E75;border-radius:50%;display:flex;align-items:center;justify-content:center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div style="text-align:center">
+              <p style="margin:0 0 4px;font-size:14px;font-weight:600;color:#111">Tu pedido está en camino</p>
+              <p style="margin:0;font-size:13px;color:#666">{{ pedido.direccionEntrega || 'Dirección de entrega' }}</p>
+            </div>
+            <button (click)="abrirMapaRepartidor()"
+                    style="display:flex;align-items:center;gap:8px;background:#1D9E75;color:white;border:none;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Ver en Google Maps
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- COLUMNA DERECHA -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- Tiempo estimado -->
+        <div style="background:white;border:1px solid #e5e5e5;border-radius:16px;padding:24px;text-align:center">
+          <h3 style="margin:0 0 16px;font-size:15px;font-weight:600;color:#111;text-align:left">Tiempo estimado</h3>
+          <div style="background:#f0faf5;border-radius:12px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:8px">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span style="font-size:28px;font-weight:800;color:#1D9E75">{{ tiempoRestante }} min</span>
+            <span style="font-size:12px;color:#888">Tiempo restante aproximado</span>
+          </div>
+        </div>
+
+        <!-- Información de entrega -->
+        <div style="background:white;border:1px solid #e5e5e5;border-radius:16px;padding:24px">
+          <h3 style="margin:0 0 16px;font-size:15px;font-weight:600;color:#111">Información de entrega</h3>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div>
+              <p style="margin:0 0 4px;font-size:12px;color:#888">Dirección</p>
+              <p style="margin:0;font-size:14px;color:#111;font-weight:500">{{ pedido.direccionEntrega || '—' }}</p>
+              <p *ngIf="pedido.referenciaEntrega" style="margin:2px 0 0;font-size:12px;color:#666">{{ pedido.referenciaEntrega }}</p>
+            </div>
+            <div *ngIf="pedido.clienteNombre">
+              <p style="margin:0 0 4px;font-size:12px;color:#888">Cliente</p>
+              <p style="margin:0;font-size:14px;color:#111;font-weight:500">{{ pedido.clienteNombre }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contacto -->
+        <div style="background:white;border:1px solid #e5e5e5;border-radius:16px;padding:24px">
+          <h3 style="margin:0 0 16px;font-size:15px;font-weight:600;color:#111">Contacto</h3>
+
+          <!-- Llamar al repartidor — solo activo cuando entregado -->
+          <button (click)="llamarRepartidor()" [disabled]="!estaEntregado"
+                  [style]="'width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border-radius:10px;font-size:13px;font-weight:500;cursor:'+(estaEntregado?'pointer':'not-allowed')+';border:1px solid '+(estaEntregado?'#1D9E75':'#e5e5e5')+';background:'+(estaEntregado?'#f0faf5':'#fafafa')+';color:'+(estaEntregado?'#1D9E75':'#bbb')+';margin-bottom:10px;transition:all 0.2s'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" [attr.stroke]="estaEntregado?'#1D9E75':'#ccc'" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.6A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.07 6.07l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92v2z"/></svg>
+            Llamar al repartidor
+            <span *ngIf="!estaEntregado" style="font-size:11px;color:#ccc">(disponible al entregar)</span>
+          </button>
+
+          <!-- Contactar soporte — siempre disponible -->
+          <button (click)="contactarSoporte()"
+                  style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid #e5e5e5;background:#fafafa;color:#555">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.6A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.07 6.07l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92v2z"/></svg>
+            Contactar soporte
+          </button>
+        </div>
+
+        <!-- Volver al menú -->
+        <button (click)="volverAMenu()"
+                style="width:100%;padding:12px;border:1px solid #d1d5db;background:white;border-radius:10px;font-size:14px;color:#555;cursor:pointer;font-weight:500">
+          ← Volver al menú
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</div>

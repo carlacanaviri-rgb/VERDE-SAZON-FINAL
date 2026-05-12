@@ -7,6 +7,7 @@ import { LandingComponent } from './components/landing/landing';
 import { CocinaComponent } from './components/cocina/cocina';
 import { CheckoutComponent } from './components/checkout/checkout';
 import { DeliveryComponent } from './components/delivery/delivery';
+import { SeguimientoComponent } from './components/seguimiento/seguimiento';
 
 import { RegisterComponent } from './components/register/register';
 
@@ -17,6 +18,7 @@ export const routes: Routes = [
   { path: 'menu', component: MenuComponent },
   { path: 'checkout/qr', component: CheckoutComponent, canActivate: [authGuard] },
   { path: 'checkout', component: CheckoutComponent, canActivate: [authGuard] },
+  { path: 'seguimiento/:id', component: SeguimientoComponent, canActivate: [authGuard] },
   { path: 'productos', component: ProductosComponent, canActivate: [adminGuard] },
   { path: 'admin', component: ProductosComponent, canActivate: [adminGuard] },
   { path: 'cocina', component: CocinaComponent, canActivate: [cocinaGuard] },

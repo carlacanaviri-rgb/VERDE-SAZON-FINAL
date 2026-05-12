@@ -46,23 +46,32 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
   private unsub: (() => void) | null = null;
 
   readonly PASOS: Paso[] = [
-    { key: 'pendiente',   label: 'Pedido recibido',      icon: '✓'  },
-    { key: 'preparando',  label: 'En preparación',       icon: '🍽' },
-    { key: 'listo',       label: 'Listo para despacho',  icon: '📦' },
-    { key: 'en_camino',   label: 'En camino',            icon: '🚚' },
-    { key: 'entregado',   label: 'Entregado',            icon: '🎉' },
+    { key: 'pendiente', label: 'Pedido recibido', icon: '✓' },
+    { key: 'preparando', label: 'En preparación', icon: '🍽' },
+    { key: 'listo', label: 'Listo para despacho', icon: '📦' },
+    { key: 'en_camino', label: 'En camino', icon: '🚚' },
+    { key: 'entregado', label: 'Entregado', icon: '🎉' },
   ];
 
   // pendiente_pago también cuenta como "pedido recibido" para el display
-  private readonly ORDEN = ['pendiente_pago', 'pendiente', 'preparando', 'listo', 'en_camino', 'entregado'];
-  // Mapa de estado Firestore → índice en PASOS (pendiente_pago = paso 0 = "Pedido recibido")
+  private readonly ORDEN = [
+    'pendiente_pago',
+    'pendiente',
+    'preparando',
+    'listo',
+    'en_camino',
+    'entregado',
+  ];
+  // Mapa de estado Firestore → índice en PASOS
+  // recogido es intermedio entre listo(2) y en_camino(3) → lo mostramos como paso 3 "En camino" activo
   private readonly ESTADO_A_PASO: Record<string, number> = {
     pendiente_pago: 0,
-    pendiente:      0,
-    preparando:     1,
-    listo:          2,
-    en_camino:      3,
-    entregado:      4,
+    pendiente: 0,
+    preparando: 1,
+    listo: 2,
+    recogido: 3, // repartidor recogió → mostrar "En camino" activo
+    en_camino: 3,
+    entregado: 4,
   };
 
   get indiceActual(): number {
@@ -85,7 +94,13 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
   subLabelPaso(paso: Paso): string {
     const estado = this.estadoPaso(paso);
     if (estado === 'completado') return 'Completado';
-    if (estado === 'activo') return 'En proceso...';
+    if (estado === 'activo') {
+      // Texto específico cuando el repartidor ya recogió pero aún no marcó en_camino
+      if (paso.key === 'en_camino' && this.pedido?.estado === 'recogido') {
+        return 'Repartidor en camino a ti...';
+      }
+      return 'En proceso...';
+    }
     return 'Pendiente';
   }
 
@@ -139,7 +154,7 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
         this.error = 'No se pudo conectar con el servidor para rastrear el pedido.';
         console.error(err);
         this.cdr.detectChanges();
-      }
+      },
     );
   }
 
