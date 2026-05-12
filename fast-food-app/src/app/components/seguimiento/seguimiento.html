@@ -41,6 +41,18 @@
     <div style="margin-bottom:28px">
       <h1 style="margin:0 0 4px;font-size:26px;font-weight:700;color:#111">Seguimiento de pedido</h1>
       <p style="margin:0;font-size:13px;color:#888">ID: {{ pedidoId }}</p>
+
+      <div *ngIf="mostrarAlertaChat && mensajesNoLeidos > 0"
+           style="margin-top:12px;padding:10px 12px;background:#ecfdf5;border:1px solid #86efac;border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div>
+          <p style="margin:0;font-size:13px;color:#166534;font-weight:600;">Tienes {{ mensajesNoLeidos }} mensaje(s) nuevo(s) de cocina</p>
+          <p *ngIf="ultimoMensajeCocina" style="margin:2px 0 0;font-size:12px;color:#166534;">"{{ ultimoMensajeCocina }}"</p>
+        </div>
+        <button (click)="abrirChatCliente()"
+                style="background:#1D9E75;color:white;border:none;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">
+          Abrir chat
+        </button>
+      </div>
     </div>
 
     <!-- Layout 2 columnas -->
@@ -93,7 +105,7 @@
 
               <!-- Hora (si está activo o completado) -->
               <div *ngIf="estadoPaso(paso) !== 'pendiente'" style="padding-top:8px">
-                <span style="font-size:12px;color:#888">{{ pedido?.hora }}</span>
+                <span style="font-size:12px;color:#888">{{ pedido.hora }}</span>
               </div>
             </div>
           </div>
@@ -163,6 +175,16 @@
         <div style="background:white;border:1px solid #e5e5e5;border-radius:16px;padding:24px">
           <h3 style="margin:0 0 16px;font-size:15px;font-weight:600;color:#111">Contacto</h3>
 
+          <button (click)="abrirChatCliente()"
+                  style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid #1D9E75;background:#f0faf5;color:#1D9E75;margin-bottom:10px;position:relative;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Chat con cocina
+            <span *ngIf="mensajesNoLeidos > 0"
+                  style="position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;padding:0 5px;background:#ef4444;color:white;border-radius:999px;font-size:11px;line-height:18px;font-weight:700;">
+              {{ mensajesNoLeidos }}
+            </span>
+          </button>
+
           <!-- Llamar al repartidor — solo activo cuando entregado -->
           <button (click)="llamarRepartidor()" [disabled]="!estaEntregado"
                   [style]="'width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border-radius:10px;font-size:13px;font-weight:500;cursor:'+(estaEntregado?'pointer':'not-allowed')+';border:1px solid '+(estaEntregado?'#1D9E75':'#e5e5e5')+';background:'+(estaEntregado?'#f0faf5':'#fafafa')+';color:'+(estaEntregado?'#1D9E75':'#bbb')+';margin-bottom:10px;transition:all 0.2s'">
@@ -189,7 +211,31 @@
     </div>
   </div>
 
+  <!-- FAB: Chat flotante siempre visible -->
+  <button *ngIf="!cargando && !error && pedido"
+          (click)="abrirChatCliente()"
+          [style]="mensajesNoLeidos > 0
+            ? 'position:fixed;bottom:28px;right:28px;z-index:900;width:56px;height:56px;border-radius:50%;background:#1D9E75;color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(29,158,117,0.5);animation:chatPulse 1.5s ease-in-out infinite'
+            : 'position:fixed;bottom:28px;right:28px;z-index:900;width:56px;height:56px;border-radius:50%;background:#1D9E75;color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.2)'"
+          title="Chat con cocina">
+    <!-- Ícono chat -->
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+    <!-- Badge de mensajes no leídos -->
+    <span *ngIf="mensajesNoLeidos > 0"
+          style="position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;background:#ef4444;color:white;border-radius:999px;font-size:11px;line-height:20px;font-weight:700;border:2px solid white;text-align:center;">
+      {{ mensajesNoLeidos }}
+    </span>
+  </button>
+
   <style>
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes chatPulse {
+      0%, 100% { box-shadow: 0 4px 20px rgba(29,158,117,0.5); transform: scale(1); }
+      50%       { box-shadow: 0 4px 32px rgba(29,158,117,0.9); transform: scale(1.08); }
+    }
   </style>
+
+  <app-chat-modal></app-chat-modal>
 </div>

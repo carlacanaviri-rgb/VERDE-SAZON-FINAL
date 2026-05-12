@@ -155,6 +155,28 @@ export class ChatModalComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Obtiene la inicial del autor para el avatar
+   */
+  obtenerInicialAutor(mensaje: Mensaje): string {
+    const inicial = mensaje.autorNombre?.trim().charAt(0);
+    return inicial ? inicial.toUpperCase() : 'U';
+  }
+
+  onInputFocus(event: FocusEvent) {
+    const target = event.target as HTMLTextAreaElement | null;
+    if (target) {
+      target.style.borderColor = '#1D9E75';
+    }
+  }
+
+  onInputBlur(event: FocusEvent) {
+    const target = event.target as HTMLTextAreaElement | null;
+    if (target) {
+      target.style.borderColor = '#e5e5e5';
+    }
+  }
+
+  /**
    * Desplaza el scroll al final de los mensajes
    */
   private scrollAlFinal() {

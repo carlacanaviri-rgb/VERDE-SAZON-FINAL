@@ -1,8 +1,14 @@
-import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { getFirestore, doc, onSnapshot } from 'firebase/firestore';
 import { getFirebaseApp } from '../../services/firebase-app';
+import { Subscription } from 'rxjs';
+import { ChatService } from '../../services/chat.service';
+import { AuthService } from '../../services/auth.service';
+import { Mensaje } from '../../models/mensaje.model';
+import { Pedido } from '../../models/pedido.model';
+import { ChatModalComponent } from '../chat-modal/chat-modal';
 
 export interface SeguimientoEstado {
   id?: string;
@@ -30,20 +36,31 @@ interface Paso {
 @Component({
   selector: 'app-seguimiento',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ChatModalComponent],
   templateUrl: './seguimiento.html',
 })
 export class SeguimientoComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private chatService = inject(ChatService);
+  private authService = inject(AuthService);
+
+  @ViewChild(ChatModalComponent) chatModal?: ChatModalComponent;
 
   pedidoId = '';
   pedido: SeguimientoEstado | null = null;
   cargando = true;
   error = '';
+  mensajesNoLeidos = 0;
+  ultimoMensajeCocina = '';
+  mostrarAlertaChat = false;
+  private mensajesActuales: Mensaje[] = [];
+  private usuarioActualId = '';
 
   private unsub: (() => void) | null = null;
+  private mensajesSub: Subscription | null = null;
+  private authSub: Subscription | null = null;
 
   readonly PASOS: Paso[] = [
     { key: 'pendiente', label: 'Pedido recibido', icon: '✓' },
@@ -117,6 +134,10 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.authSub = this.authService.usuario$.subscribe((user) => {
+      this.usuarioActualId = user?.uid ?? '';
+    });
+
     this.pedidoId = this.route.snapshot.paramMap.get('id') ?? '';
     if (!this.pedidoId) {
       this.error = 'No se especificó un pedido para rastrear.';
@@ -125,10 +146,85 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
       return;
     }
     this.escucharPedido();
+    this.escucharMensajesChat();
   }
 
   ngOnDestroy(): void {
     this.unsub?.();
+    this.mensajesSub?.unsubscribe();
+    this.authSub?.unsubscribe();
+  }
+
+  abrirChatCliente(): void {
+    if (!this.pedido) {
+      return;
+    }
+
+    this.chatModal?.abrir(this.toPedidoChat(this.pedido), 'cliente');
+    this.mostrarAlertaChat = false;
+    this.marcarMensajesCocinaComoLeidos(this.mensajesActuales);
+  }
+
+  private escucharMensajesChat(): void {
+    this.mensajesSub?.unsubscribe();
+    this.mensajesSub = this.chatService.getMensajes(this.pedidoId).subscribe({
+      next: (mensajes) => {
+        this.mensajesActuales = mensajes;
+        const mensajesCocina = mensajes.filter((m) => m.rol === 'cocina' && m.autorId !== this.usuarioActualId);
+        const noLeidos = mensajesCocina.filter((m) => m.estado !== 'leído').length;
+        const ultimo = mensajesCocina[mensajesCocina.length - 1];
+
+        if (noLeidos > this.mensajesNoLeidos) {
+          this.mostrarAlertaChat = true;
+        }
+
+        this.mensajesNoLeidos = noLeidos;
+        this.ultimoMensajeCocina = ultimo?.contenido ?? '';
+
+        if (this.chatModal?.isOpen) {
+          this.marcarMensajesCocinaComoLeidos(mensajes);
+        }
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('No se pudo escuchar el chat del pedido:', err);
+      },
+    });
+  }
+
+  private marcarMensajesCocinaComoLeidos(mensajes: Mensaje[]): void {
+    const pendientes = mensajes.filter(
+      (m) => m.rol === 'cocina' && m.estado !== 'leído' && !!m.id,
+    );
+
+    for (const msg of pendientes) {
+      if (!msg.id) {
+        continue;
+      }
+      void this.chatService.marcarComoLeido(this.pedidoId, msg.id);
+    }
+  }
+
+  private toPedidoChat(pedido: SeguimientoEstado): Pedido {
+    const estado = (pedido.estado ?? 'pendiente') as Pedido['estado'];
+    return {
+      id: pedido.id,
+      numero: pedido.numero ?? this.pedidoId,
+      estado,
+      hora: pedido.hora ?? '',
+      items: pedido.items?.map((item) => ({
+        nombre: item.nombre,
+        cantidad: item.cantidad,
+        nota: '',
+      })) ?? [],
+      clienteNombre: pedido.clienteNombre,
+      clienteEmail: pedido.clienteEmail,
+      direccionEntrega: pedido.direccionEntrega,
+      referenciaEntrega: pedido.referenciaEntrega,
+      total: pedido.total,
+      tiempoEstimado: pedido.tiempoEstimado,
+    };
   }
 
   private escucharPedido(): void {

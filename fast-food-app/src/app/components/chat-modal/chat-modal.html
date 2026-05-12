@@ -27,7 +27,7 @@
           <!-- Avatar + Nombre para mensajes de otros -->
           <div *ngIf="!esDelUsuarioActual(msg)" style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
             <div style="width: 24px; height: 24px; background: #1D9E75; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600;">
-              {{ msg.autorNombre?.charAt(0).toUpperCase() || 'U' }}
+              {{ obtenerInicialAutor(msg) }}
             </div>
             <span style="font-size: 11px; font-weight: 500; color: #666;">{{ msg.autorNombre }}</span>
           </div>
@@ -56,8 +56,8 @@
         [disabled]="enviando"
         placeholder="{{ 'CHAT.PLACEHOLDER' | translate }}"
         style="flex: 1; padding: 10px; border: 1px solid #e5e5e5; border-radius: 8px; font-size: 13px; font-family: inherit; resize: none; min-height: 40px; max-height: 80px; outline: none; transition: border-color 0.2s;"
-        (focus)="$event.target.style.borderColor = '#1D9E75'"
-        (blur)="$event.target.style.borderColor = '#e5e5e5'">
+        (focus)="onInputFocus($event)"
+        (blur)="onInputBlur($event)">
       </textarea>
       <button
         (click)="enviarMensaje()"
