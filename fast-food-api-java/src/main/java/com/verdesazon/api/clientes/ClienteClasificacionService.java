@@ -239,6 +239,73 @@ public class ClienteClasificacionService {
         }
     }
 
+    /**
+     * Crea un nuevo mensaje en la conversación de un pedido
+     */
+    public MensajeCreateResponse crearMensaje(String pedidoId, MensajeCreateRequest request) {
+        try {
+            // Validar que el pedido existe
+            DocumentReference pedidoRef = firestore.collection(COLECCION_PEDIDOS).document(pedidoId);
+            DocumentSnapshot pedidoSnapshot = await(pedidoRef.get());
+            if (!pedidoSnapshot.exists()) {
+                throw new IllegalArgumentException("Pedido no encontrado: " + pedidoId);
+            }
+
+            // Crear el mensaje en la colección anidada
+            DocumentReference mensajeRef = pedidoRef.collection("mensajes").document();
+            String timestamp = Instant.now().toString();
+
+            Map<String, Object> mensajePayload = new LinkedHashMap<>();
+            mensajePayload.put("pedidoId", pedidoId);
+            mensajePayload.put("autorId", safeTrim(request.getAutorId(), ""));
+            mensajePayload.put("autorNombre", safeTrim(request.getAutorNombre(), "Usuario"));
+            mensajePayload.put("rol", safeTrim(request.getRol(), "cliente"));
+            mensajePayload.put("contenido", safeTrim(request.getContenido(), ""));
+            mensajePayload.put("timestamp", timestamp);
+            mensajePayload.put("estado", "enviado");
+            mensajePayload.put("creadoEn", timestamp);
+
+            await(mensajeRef.set(mensajePayload));
+
+            return new MensajeCreateResponse(
+                    mensajeRef.getId(),
+                    pedidoId,
+                    timestamp,
+                    "enviado"
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo crear el mensaje", e);
+        }
+    }
+
+    /**
+     * Marca un mensaje como leído
+     */
+    public Map<String, Object> marcarMensajeComoLeido(String pedidoId, String mensajeId) {
+        try {
+            DocumentReference mensajeRef = firestore.collection(COLECCION_PEDIDOS)
+                    .document(pedidoId)
+                    .collection("mensajes")
+                    .document(mensajeId);
+
+            DocumentSnapshot mensajeSnapshot = await(mensajeRef.get());
+            if (!mensajeSnapshot.exists()) {
+                throw new IllegalArgumentException("Mensaje no encontrado: " + mensajeId);
+            }
+
+            WriteResult writeResult = await(mensajeRef.update("estado", "leído"));
+
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("mensajeId", mensajeId);
+            response.put("pedidoId", pedidoId);
+            response.put("estado", "leído");
+            response.put("actualizadoEn", writeResult.getUpdateTime().toString());
+            return response;
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo marcar el mensaje como leído", e);
+        }
+    }
+
     private ClientePerfilResponse recalcularClasificacionCliente(String clienteId) {
         try {
             List<QueryDocumentSnapshot> pedidosContabilizables = obtenerPedidosContabilizables();

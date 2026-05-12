@@ -1,0 +1,26 @@
+/* Estilos para el chat modal */
+
+/* Animación de entrada del modal */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Estilos responsivos para dispositivos pequeños */
+@media (max-width: 768px) {
+  :host ::ng-deep .chat-modal {
+    max-width: 100% !important;
+  }
+}
+
+/* Scroll suave en el área de mensajes */
+:host ::ng-deep .mensajes-container {
+  scroll-behavior: smooth;
+}
+

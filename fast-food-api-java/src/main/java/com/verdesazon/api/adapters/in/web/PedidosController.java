@@ -5,6 +5,8 @@ import com.verdesazon.api.clientes.PedidoCreateRequest;
 import com.verdesazon.api.clientes.PedidoCreateResponse;
 import com.verdesazon.api.clientes.PedidoEstadoUpdateRequest;
 import com.verdesazon.api.clientes.PedidoHistorialResponse;
+import com.verdesazon.api.clientes.MensajeCreateRequest;
+import com.verdesazon.api.clientes.MensajeCreateResponse;
 import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,6 +50,29 @@ public class PedidosController {
     @PatchMapping("/{pedidoId}/pago-confirmado")
     public Map<String, Object> confirmarPago(@PathVariable String pedidoId) {
         return clienteClasificacionService.confirmarPagoPedido(pedidoId);
+    }
+
+    /**
+     * Crea un nuevo mensaje en la conversación de un pedido
+     */
+    @PostMapping("/{pedidoId}/mensajes")
+    public MensajeCreateResponse crearMensaje(
+            @PathVariable String pedidoId,
+            @RequestBody MensajeCreateRequest request) {
+        if (request == null || request.getContenido() == null || request.getContenido().isBlank()) {
+            throw new IllegalArgumentException("El contenido del mensaje es requerido");
+        }
+        return clienteClasificacionService.crearMensaje(pedidoId, request);
+    }
+
+    /**
+     * Marca un mensaje como leído
+     */
+    @PatchMapping("/{pedidoId}/mensajes/{mensajeId}")
+    public Map<String, Object> marcarMensajeComoLeido(
+            @PathVariable String pedidoId,
+            @PathVariable String mensajeId) {
+        return clienteClasificacionService.marcarMensajeComoLeido(pedidoId, mensajeId);
     }
 }
 

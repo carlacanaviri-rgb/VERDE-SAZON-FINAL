@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { PedidoService } from '../../services/pedido.service';
@@ -6,11 +6,12 @@ import { AuthService } from '../../services/auth.service';
 import { Pedido } from '../../models/pedido.model';
 import { TranslateModule } from '@ngx-translate/core';
 import { LangSwitchComponent } from '../lang-switch/lang-switch';
+import { ChatModalComponent } from '../chat-modal/chat-modal';
 
 @Component({
   selector: 'app-cocina',
   standalone: true,
-  imports: [CommonModule, TranslateModule, LangSwitchComponent],
+  imports: [CommonModule, TranslateModule, LangSwitchComponent, ChatModalComponent],
   templateUrl: './cocina.html',
 })
 export class CocinaComponent implements OnInit {
@@ -18,6 +19,8 @@ export class CocinaComponent implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+
+  @ViewChild('chatModal') chatModal?: ChatModalComponent;
 
   pedidos: Pedido[] = [];
 
@@ -64,5 +67,14 @@ export class CocinaComponent implements OnInit {
   logout() {
     this.auth.logout();
     this.router.navigate(['/login']);
+  }
+
+  /**
+   * Abre el modal de chat para un pedido específico
+   */
+  abrirChat(pedido: Pedido) {
+    if (this.chatModal) {
+      this.chatModal.abrir(pedido, 'cocina');
+    }
   }
 }
