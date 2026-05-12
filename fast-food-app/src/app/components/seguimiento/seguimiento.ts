@@ -1,8 +1,10 @@
 import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { getFirestore, doc, onSnapshot } from 'firebase/firestore';
 import { getFirebaseApp } from '../../services/firebase-app';
+import { environment } from '../../../environments/environment';
 
 export interface SeguimientoEstado {
   id?: string;
@@ -27,6 +29,13 @@ interface Paso {
   icon: string;
 }
 
+// ─── Ubicación del restaurante ───────────────────────────────────────────────
+// Centro de Cochabamba — Plaza 14 de Septiembre
+const RESTAURANTE_LAT = -17.3935;
+const RESTAURANTE_LNG = -66.1568;
+const RESTAURANTE_LABEL = 'Verde Sazón — Centro, Cochabamba';
+// ────────────────────────────────────────────────────────────────────────────
+
 @Component({
   selector: 'app-seguimiento',
   standalone: true,
@@ -37,11 +46,14 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private sanitizer = inject(DomSanitizer);
 
   pedidoId = '';
   pedido: SeguimientoEstado | null = null;
   cargando = true;
   error = '';
+  mapaUrl: SafeResourceUrl | null = null;
+  mapaListo = false;
 
   private unsub: (() => void) | null = null;
 
@@ -53,30 +65,18 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
     { key: 'entregado', label: 'Entregado', icon: '🎉' },
   ];
 
-  // pendiente_pago también cuenta como "pedido recibido" para el display
-  private readonly ORDEN = [
-    'pendiente_pago',
-    'pendiente',
-    'preparando',
-    'listo',
-    'en_camino',
-    'entregado',
-  ];
-  // Mapa de estado Firestore → índice en PASOS
-  // recogido es intermedio entre listo(2) y en_camino(3) → lo mostramos como paso 3 "En camino" activo
   private readonly ESTADO_A_PASO: Record<string, number> = {
     pendiente_pago: 0,
     pendiente: 0,
     preparando: 1,
     listo: 2,
-    recogido: 3, // repartidor recogió → mostrar "En camino" activo
+    recogido: 3,
     en_camino: 3,
     entregado: 4,
   };
 
   get indiceActual(): number {
-    const estado = this.pedido?.estado ?? '';
-    return this.ESTADO_A_PASO[estado] ?? -1;
+    return this.ESTADO_A_PASO[this.pedido?.estado ?? ''] ?? -1;
   }
 
   get progreso(): number {
@@ -92,20 +92,18 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
   }
 
   subLabelPaso(paso: Paso): string {
-    const estado = this.estadoPaso(paso);
-    if (estado === 'completado') return 'Completado';
-    if (estado === 'activo') {
-      // Texto específico cuando el repartidor ya recogió pero aún no marcó en_camino
-      if (paso.key === 'en_camino' && this.pedido?.estado === 'recogido') {
-        return 'Repartidor en camino a ti...';
-      }
+    const e = this.estadoPaso(paso);
+    if (e === 'completado') return 'Completado';
+    if (e === 'activo') {
+      if (paso.key === 'en_camino' && this.pedido?.estado === 'recogido')
+        return 'Repartidor recogió tu pedido...';
       return 'En proceso...';
     }
     return 'Pendiente';
   }
 
-  get estaEnCamino(): boolean {
-    return this.pedido?.estado === 'en_camino';
+  get mostrarMapa(): boolean {
+    return ['recogido', 'en_camino', 'entregado'].includes(this.pedido?.estado ?? '');
   }
 
   get estaEntregado(): boolean {
@@ -144,33 +142,79 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
           this.cdr.detectChanges();
           return;
         }
+        const prevEstado = this.pedido?.estado;
         this.pedido = { id: snap.id, ...snap.data() } as SeguimientoEstado;
         this.cargando = false;
         this.error = '';
+
+        // Construir el mapa solo la primera vez que entra a un estado con mapa
+        if (this.mostrarMapa && prevEstado !== this.pedido.estado) {
+          this.construirMapaUrl();
+        }
         this.cdr.detectChanges();
       },
       (err) => {
         this.cargando = false;
-        this.error = 'No se pudo conectar con el servidor para rastrear el pedido.';
+        this.error = 'No se pudo conectar con el servidor.';
         console.error(err);
         this.cdr.detectChanges();
       },
     );
   }
 
-  abrirMapaRepartidor(): void {
-    const lat = this.pedido?.latEntrega;
-    const lng = this.pedido?.lngEntrega;
-    const dir = this.pedido?.direccionEntrega ?? '';
-    let url: string;
-    if (lat && lng) {
-      url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-    } else if (dir) {
-      url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dir)}`;
-    } else {
+  private construirMapaUrl(): void {
+    this.mapaListo = false;
+
+    const key = environment.mapsApiKey;
+    if (!key) {
+      console.warn(
+        'Maps API key no configurada. Agrega MAPS_API_KEY en las variables de entorno de Render.',
+      );
       return;
     }
-    window.open(url, '_blank', 'noopener');
+
+    // Origen: coordenadas fijas del restaurante (centro Cochabamba)
+    const origen = `${RESTAURANTE_LAT},${RESTAURANTE_LNG}`;
+
+    // Destino: coordenadas del cliente si las hay, si no la dirección de texto
+    const destino =
+      this.pedido?.latEntrega && this.pedido?.lngEntrega
+        ? `${this.pedido.latEntrega},${this.pedido.lngEntrega}`
+        : encodeURIComponent(
+            this.pedido?.direccionEntrega
+              ? `${this.pedido.direccionEntrega}, Cochabamba, Bolivia`
+              : 'Cochabamba, Bolivia',
+          );
+
+    const url =
+      `https://www.google.com/maps/embed/v1/directions` +
+      `?key=${key}` +
+      `&origin=${origen}` +
+      `&destination=${destino}` +
+      `&mode=driving` +
+      `&language=es` +
+      `&region=BO`;
+
+    this.mapaUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    this.mapaListo = true;
+    this.cdr.detectChanges();
+  }
+
+  abrirEnGoogleMaps(): void {
+    const origen = `${RESTAURANTE_LAT},${RESTAURANTE_LNG}`;
+    const destino =
+      this.pedido?.latEntrega && this.pedido?.lngEntrega
+        ? `${this.pedido.latEntrega},${this.pedido.lngEntrega}`
+        : encodeURIComponent(
+            this.pedido?.direccionEntrega
+              ? `${this.pedido.direccionEntrega}, Cochabamba, Bolivia`
+              : 'Cochabamba, Bolivia',
+          );
+    window.open(
+      `https://www.google.com/maps/dir/?api=1&origin=${origen}&destination=${destino}&travelmode=driving`,
+      '_blank',
+      'noopener',
+    );
   }
 
   llamarRepartidor(): void {
@@ -183,5 +227,9 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
 
   volverAMenu(): void {
     this.router.navigate(['/menu']);
+  }
+
+  get restauranteLabel(): string {
+    return RESTAURANTE_LABEL;
   }
 }

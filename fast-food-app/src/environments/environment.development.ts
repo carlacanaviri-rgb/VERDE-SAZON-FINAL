@@ -4,8 +4,8 @@ export const environment = {
   production: false,
   apiBaseUrl: '/api',
   apiUrl: '/api',
-  firebaseConfig
+  mapsApiKey: (window as any).__env?.MAPS_API_KEY ?? '',
+  firebaseConfig,
 };
 
 export const environmentDevelopment = environment;
-
