@@ -18,8 +18,19 @@ export class ProductoService {
     return this.http.get<Producto[]>(`${API}/productos`);
   }
 
-  addProducto(p: Producto) {
-    return this.http.post(`${API}/productos`, p).toPromise();
+  addProducto(p: Producto): Promise<any> {
+    const payload: any = {
+      nombre: p.nombre?.trim(),
+      descripcion: p.descripcion?.trim(),
+      precio: Number(p.precio),
+      categoria: p.categoria,
+      disponible: p.disponible ?? true,
+    };
+    if (p.imagen?.trim()) payload['imagen'] = p.imagen.trim();
+    if (p.ingredientes && p.ingredientes.length > 0) payload['ingredientes'] = p.ingredientes;
+    if (p.etiquetas && p.etiquetas.length > 0) payload['etiquetas'] = p.etiquetas;
+    if (p.calorias != null && !isNaN(Number(p.calorias))) payload['calorias'] = Number(p.calorias);
+    return this.http.post(`${API}/productos`, payload).toPromise();
   }
 
   updateProducto(id: string, dto: Partial<Producto>, original: Partial<Producto>) {
@@ -27,8 +38,10 @@ export class ProductoService {
   }
 
   deleteProducto(id: string, producto: Producto) {
-    return this.http.delete(`${API}/productos/${id}`, {
-      body: { nombre: producto.nombre }
-    }).toPromise();
+    return this.http
+      .delete(`${API}/productos/${id}`, {
+        body: { nombre: producto.nombre },
+      })
+      .toPromise();
   }
 }

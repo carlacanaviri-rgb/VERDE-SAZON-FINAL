@@ -45,6 +45,8 @@ export class ProductosComponent implements OnInit {
   editando: Producto | null = null;
   mostrarModal = false;
   errores: { [key: string]: string } = {};
+  toastExito: string | null = null;
+  guardando = false;
   form: Producto = this.formVacio();
   ingredientesTexto = '';
   etiquetasTexto = '';
@@ -227,26 +229,101 @@ export class ProductosComponent implements OnInit {
   validar(): boolean {
     this.errores = {};
     this.normalizarFormulario();
-    if (!this.form.nombre.trim())
-      this.errores['nombre'] = this.translate.instant('ADMIN.ERROR_NOMBRE');
-    if (!this.form.categoria.trim())
-      this.errores['categoria'] = this.translate.instant('ADMIN.ERROR_CATEGORIA');
-    if (!Number.isFinite(this.form.precio) || this.form.precio <= 0)
-      this.errores['precio'] = this.translate.instant('ADMIN.ERROR_PRECIO');
-    if (!this.form.descripcion.trim())
-      this.errores['descripcion'] = this.translate.instant('ADMIN.ERROR_DESCRIPCION');
+
+    // Nombre
+    const nombre = this.form.nombre.trim();
+    if (!nombre) {
+      this.errores['nombre'] = 'El nombre del platillo es obligatorio.';
+    } else if (nombre.length < 3) {
+      this.errores['nombre'] = 'El nombre debe tener al menos 3 caracteres (tiene ' + nombre.length + ').';
+    } else if (nombre.length > 80) {
+      this.errores['nombre'] = 'El nombre no puede superar los 80 caracteres.';
+    } else if (!this.editando) {
+      const nombreNorm = nombre.toLowerCase();
+      const duplicado = this.productos.some((p) => p.nombre.trim().toLowerCase() === nombreNorm);
+      if (duplicado) {
+        this.errores['nombre'] = 'Ya existe un platillo con ese nombre.';
+      }
+    }
+
+    // Descripción
+    const desc = this.form.descripcion.trim();
+    if (!desc) {
+      this.errores['descripcion'] = 'La descripción es obligatoria.';
+    } else if (desc.length < 10) {
+      this.errores['descripcion'] = 'La descripción debe tener al menos 10 caracteres (tiene ' + desc.length + ').';
+    } else if (desc.length > 300) {
+      this.errores['descripcion'] = 'La descripción no puede superar los 300 caracteres.';
+    }
+
+    // Precio — mínimo 0.50 Bs, máximo 9999 Bs
+    const precio = Number(this.form.precio);
+    if (isNaN(precio) || !Number.isFinite(precio)) {
+      this.errores['precio'] = 'Ingresa un precio numérico válido.';
+    } else if (precio < 0.5) {
+      this.errores['precio'] = 'El precio mínimo es 0.50 Bs.';
+    } else if (precio > 9999) {
+      this.errores['precio'] = 'El precio máximo es 9,999 Bs.';
+    }
+
+    // Categoría
+    if (!this.form.categoria?.trim()) {
+      this.errores['categoria'] = 'Selecciona una categoría.';
+    }
+
+    // Ingredientes — al menos 1, cada uno mínimo 2 caracteres
+    const ings = this.parsearLista(this.ingredientesTexto);
+    if (ings.length === 0) {
+      this.errores['ingredientes'] = 'Agrega al menos un ingrediente.';
+    } else if (ings.some((i) => i.trim().length < 2)) {
+      this.errores['ingredientes'] = 'Cada ingrediente debe tener al menos 2 caracteres.';
+    } else if (ings.length > 30) {
+      this.errores['ingredientes'] = 'No puedes agregar más de 30 ingredientes.';
+    }
+
     return Object.keys(this.errores).length === 0;
   }
 
   async guardar() {
     if (!this.validar()) return;
-    if (this.editando?.id) {
-      await this.svc.updateProducto(this.editando.id, this.form, this.editando);
-    } else {
-      await this.svc.addProducto({ ...this.form });
+    if (this.guardando) return;
+    this.guardando = true;
+    const nombreOriginal = this.form.nombre.trim();
+    try {
+      const esNuevo = !this.editando?.id;
+      if (this.editando?.id) {
+        await this.svc.updateProducto(this.editando.id, this.form, this.editando);
+      } else {
+        await this.svc.addProducto({ ...this.form });
+      }
+      this.cerrarModal();
+      this.cargarProductos();
+      if (esNuevo) {
+        this.mostrarToast('✅ Platillo "' + nombreOriginal + '" añadido exitosamente al menú.');
+      } else {
+        this.mostrarToast('✅ Platillo "' + nombreOriginal + '" actualizado correctamente.');
+      }
+    } catch (e: any) {
+      const status = e?.status;
+      if (status === 0 || status == null) {
+        this.errores['general'] = 'No se pudo conectar con el servidor. Verifica que el backend esté activo.';
+      } else if (status >= 400 && status < 500) {
+        this.errores['general'] = 'Datos inválidos (error ' + status + '). Revisa los campos e intenta de nuevo.';
+      } else if (status >= 500) {
+        this.errores['general'] = 'Error del servidor (' + status + '). Intenta más tarde.';
+      } else {
+        this.errores['general'] = 'Ocurrió un error al guardar. Intenta de nuevo.';
+      }
+    } finally {
+      this.guardando = false;
     }
-    this.cerrarModal();
-    this.cargarProductos();
+  }
+
+  mostrarToast(msg: string) {
+    this.toastExito = msg;
+    setTimeout(() => {
+      this.toastExito = null;
+    }, 4000);
   }
 
   async eliminar(p: Producto) {

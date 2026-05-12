@@ -63,6 +63,18 @@ public class FirestoreProductoRepositoryAdapter implements ProductoRepositoryPor
             payload.put("categoria", command.categoria());
             payload.put("disponible", command.disponible());
             payload.put("creadoEn", Instant.now().toString());
+            if (command.imagen() != null && !command.imagen().isBlank()) {
+                payload.put("imagen", command.imagen());
+            }
+            if (command.ingredientes() != null && !command.ingredientes().isEmpty()) {
+                payload.put("ingredientes", command.ingredientes());
+            }
+            if (command.etiquetas() != null && !command.etiquetas().isEmpty()) {
+                payload.put("etiquetas", command.etiquetas());
+            }
+            if (command.calorias() != null) {
+                payload.put("calorias", command.calorias());
+            }
 
             DocumentReference reference = productosCollection().add(payload).get();
             return findById(reference.getId()).orElseThrow();

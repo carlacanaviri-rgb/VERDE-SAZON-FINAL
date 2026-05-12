@@ -70,7 +70,11 @@ public class ProductosController {
                 dto.getDescripcion(),
                 dto.getPrecio(),
                 ProductoCategoriaCatalog.normalizeRequired(dto.getCategoria()),
-                dto.getDisponible());
+                dto.getDisponible(),
+                dto.getImagen(),
+                dto.getIngredientes() != null ? dto.getIngredientes() : java.util.List.of(),
+                dto.getEtiquetas() != null ? dto.getEtiquetas() : java.util.List.of(),
+                dto.getCalorias());
     }
 
     private UpdateProductoCommand toUpdateCommand(UpdateProductoDto dto) {
