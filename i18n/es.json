@@ -258,6 +258,7 @@
     "EDITAR_PLATILLO": "Editar platillo",
     "NOMBRE": "Nombre",
     "CATEGORIA": "Categoría",
+    "CATEGORIA_PLACEHOLDER": "Selecciona una categoría",
     "PRECIO": "Precio",
     "DESCRIPCION": "Descripción",
     "DISPONIBLE": "Disponible",
@@ -272,6 +273,7 @@
     "CONFIRMAR_ELIMINAR": "¿Eliminar producto?",
     "ERROR_NOMBRE": "El nombre es obligatorio",
     "ERROR_CATEGORIA": "La categoría es obligatoria",
+    "ERROR_CATEGORIA_INVALIDA": "Debes seleccionar una categoría válida del catálogo",
     "ERROR_PRECIO": "El precio debe ser mayor a 0",
     "ERROR_DESCRIPCION": "La descripción es obligatoria",
     "COBERTURA": {

@@ -258,6 +258,7 @@
     "EDITAR_PLATILLO": "Edit dish",
     "NOMBRE": "Name",
     "CATEGORIA": "Category",
+    "CATEGORIA_PLACEHOLDER": "Select a category",
     "PRECIO": "Price",
     "DESCRIPCION": "Description",
     "DISPONIBLE": "Available",
@@ -272,6 +273,7 @@
     "CONFIRMAR_ELIMINAR": "Delete product?",
     "ERROR_NOMBRE": "Name is required",
     "ERROR_CATEGORIA": "Category is required",
+    "ERROR_CATEGORIA_INVALIDA": "You must select a valid category from the catalog",
     "ERROR_PRECIO": "Price must be greater than 0",
     "ERROR_DESCRIPCION": "Description is required",
     "COBERTURA": {
