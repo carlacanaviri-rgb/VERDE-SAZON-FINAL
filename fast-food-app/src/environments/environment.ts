@@ -1,8 +1,9 @@
 import { firebaseConfig } from './firebase.config';
 
+// environment.ts
 export const environment = {
   production: false,
-  apiBaseUrl: 'https://verde-sazon-final-production.up.railway.app',
-  apiUrl: 'https://verde-sazon-final-production.up.railway.app',
+  apiBaseUrl: 'http://localhost:8080',  // ← para desarrollo local
+  apiUrl: 'http://localhost:8080',
   firebaseConfig
 };
