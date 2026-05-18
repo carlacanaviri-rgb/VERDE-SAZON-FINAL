@@ -1,10 +1,11 @@
-import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { getFirestore, doc, onSnapshot } from 'firebase/firestore';
 import { getFirebaseApp } from '../../services/firebase-app';
-import { environment } from '../../../environments/environment';
+import * as L from 'leaflet';
+
 
 export interface SeguimientoEstado {
   id?: string;
@@ -46,7 +47,12 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
-  private sanitizer = inject(DomSanitizer);
+
+  @ViewChild('mapaContainer') mapaContainer!: ElementRef;
+  private mapaLeaflet!: L.Map;
+  private markerDelivery!: L.Marker;
+  private markerDestino!: L.Marker;
+  private unsubUbicacion: (() => void) | null = null;
 
   pedidoId = '';
   pedido: SeguimientoEstado | null = null;
@@ -127,6 +133,7 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.unsub?.();
+    this.unsubUbicacion?.();
   }
 
   private escucharPedido(): void {
@@ -149,7 +156,7 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
 
         // Construir el mapa solo la primera vez que entra a un estado con mapa
         if (this.mostrarMapa && prevEstado !== this.pedido.estado) {
-          this.construirMapaUrl();
+          this.iniciarMapaLeaflet();
         }
         this.cdr.detectChanges();
       },
@@ -162,43 +169,82 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
     );
   }
 
-  private construirMapaUrl(): void {
-    this.mapaListo = false;
+  private iniciarMapaLeaflet(): void {
+    setTimeout(() => {
+      if (!this.mapaContainer) return;
+      const el = this.mapaContainer.nativeElement;
+      if ((el as any)._leaflet_id) return;
 
-    const key = environment.mapsApiKey;
-    if (!key) {
-      console.warn(
-        'Maps API key no configurada. Agrega MAPS_API_KEY en las variables de entorno de Render.',
-      );
-      return;
-    }
+      // Coordenadas iniciales — restaurante
+      const lat = this.pedido?.latEntrega ?? -17.3895;
+      const lng = this.pedido?.lngEntrega ?? -66.1568;
 
-    // Origen: coordenadas fijas del restaurante (centro Cochabamba)
-    const origen = `${RESTAURANTE_LAT},${RESTAURANTE_LNG}`;
+      this.mapaLeaflet = L.map(el).setView([lat, lng], 14);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap', maxZoom: 19
+      }).addTo(this.mapaLeaflet);
 
-    // Destino: coordenadas del cliente si las hay, si no la dirección de texto
-    const destino =
-      this.pedido?.latEntrega && this.pedido?.lngEntrega
-        ? `${this.pedido.latEntrega},${this.pedido.lngEntrega}`
-        : encodeURIComponent(
-            this.pedido?.direccionEntrega
-              ? `${this.pedido.direccionEntrega}, Cochabamba, Bolivia`
-              : 'Cochabamba, Bolivia',
-          );
+      // Pin destino (cliente) — rojo
+      if (this.pedido?.latEntrega && this.pedido?.lngEntrega) {
+        const iconDestino = L.icon({
+          iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+          shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+          iconSize: [25, 41], iconAnchor: [12, 41]
+        });
+        this.markerDestino = L.marker(
+          [this.pedido.latEntrega, this.pedido.lngEntrega],
+          { icon: iconDestino }
+        ).addTo(this.mapaLeaflet)
+          .bindPopup('📍 Tu ubicación');
+      }
 
-    const url =
-      `https://www.google.com/maps/embed/v1/directions` +
-      `?key=${key}` +
-      `&origin=${origen}` +
-      `&destination=${destino}` +
-      `&mode=driving` +
-      `&language=es` +
-      `&region=BO`;
+      setTimeout(() => this.mapaLeaflet.invalidateSize(), 300);
 
-    this.mapaUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-    this.mapaListo = true;
-    this.cdr.detectChanges();
+      // Escucha ubicación del delivery en tiempo real
+      console.log('Escuchando ubicación para pedido:', this.pedidoId); // debug
+      this.escucharUbicacionDelivery();
+    }, 400);
   }
+
+  private escucharUbicacionDelivery(): void {
+    if (!this.pedidoId) return;
+    const db = getFirestore(getFirebaseApp());
+    const ref = doc(db, 'ubicaciones_delivery', this.pedidoId);
+
+    this.unsubUbicacion = onSnapshot(ref, (snap) => {
+      if (!snap.exists()) return;
+      const { lat, lng } = snap.data() as { lat: number; lng: number };
+
+      const iconDelivery = L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconSize: [25, 41], iconAnchor: [12, 41]
+      });
+
+      if (this.markerDelivery) {
+        // Mueve el pin suavemente
+        this.markerDelivery.setLatLng([lat, lng]);
+      } else {
+        this.markerDelivery = L.marker([lat, lng], { icon: iconDelivery })
+          .addTo(this.mapaLeaflet)
+          .bindPopup('🚚 Repartidor');
+      }
+
+      // Centra el mapa entre delivery y destino
+      if (this.pedido?.latEntrega && this.pedido?.lngEntrega) {
+        const bounds = L.latLngBounds(
+          [lat, lng],
+          [this.pedido.latEntrega, this.pedido.lngEntrega]
+        );
+        this.mapaLeaflet.fitBounds(bounds, { padding: [40, 40] });
+      }
+
+      this.cdr.detectChanges();
+    });
+  }
+
+
+
 
   abrirEnGoogleMaps(): void {
     const origen = `${RESTAURANTE_LAT},${RESTAURANTE_LNG}`;

@@ -1,10 +1,13 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { PedidoService } from '../../services/pedido.service';
 import { AuthService } from '../../services/auth.service';
 import { Pedido } from '../../models/pedido.model';
 import { BolivianoCurrencyPipe } from '../../shared/pipes/boliviano-currency.pipe';
+
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import { getFirebaseApp } from '../../services/firebase-app';
 
 @Component({
   selector: 'app-delivery',
@@ -13,7 +16,7 @@ import { BolivianoCurrencyPipe } from '../../shared/pipes/boliviano-currency.pip
   templateUrl: './delivery.html',
   styleUrls: ['./delivery.css'],
 })
-export class DeliveryComponent implements OnInit {
+export class DeliveryComponent implements OnInit, OnDestroy {
   private svc = inject(PedidoService);
   private auth = inject(AuthService);
   private router = inject(Router);
@@ -23,6 +26,13 @@ export class DeliveryComponent implements OnInit {
   procesando: { [id: string]: boolean } = {};
 
   readonly ESTADOS_ACTIVOS = ['listo', 'recogido', 'en_camino'];
+
+  private trackingIntervals: { [pedidoId: string]: any } = {};
+
+  ngOnDestroy(): void {
+    // Limpia todos los intervalos al salir
+    Object.values(this.trackingIntervals).forEach(clearInterval);
+  }
 
   private sortByArrival(list: Pedido[]): Pedido[] {
     return [...list].sort((a, b) => {
@@ -101,6 +111,15 @@ export class DeliveryComponent implements OnInit {
 
     try {
       await this.svc.cambiarEstado(id, nextEstado as Pedido['estado']);
+
+      // 👇 Inicia tracking cuando sale a entregar
+      if (nextEstado === 'en_camino') {
+        this.iniciarTracking(id);
+      }
+      // 👇 Detiene tracking cuando entrega
+      if (nextEstado === 'entregado') {
+        this.detenerTracking(id);
+      }
     } catch (err) {
       console.error('Error cambiando estado:', err);
     } finally {
@@ -109,11 +128,74 @@ export class DeliveryComponent implements OnInit {
     }
   }
 
+
   abrirMapa(pedido: Pedido): void {
-    const dir = pedido.direccionEntrega ?? pedido.clienteNombre ?? '';
-    if (!dir) return;
-    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dir)}`;
-    window.open(url, '_blank', 'noopener');
+    const destino = pedido.latEntrega && pedido.lngEntrega
+      ? `${pedido.latEntrega},${pedido.lngEntrega}`
+      : encodeURIComponent(pedido.direccionEntrega ?? 'Cochabamba, Bolivia');
+
+    // Abre navegación desde ubicación actual del delivery
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const url = `https://www.google.com/maps/dir/?api=1` +
+          `&origin=${latitude},${longitude}` +
+          `&destination=${destino}` +
+          `&travelmode=driving`;
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      },
+      () => {
+        // Si no hay GPS, abre igual sin origen fijo
+        const url = `https://www.google.com/maps/dir/?api=1&destination=${destino}&travelmode=driving`;
+        window.location.href = url;
+      }
+    );
+  }
+
+  private iniciarTracking(pedidoId: string): void {
+    if (this.trackingIntervals[pedidoId]) return; // ya está corriendo
+
+    const db = getFirestore(getFirebaseApp());
+
+    const publicarUbicacion = () => {
+      console.log('📡 Obteniendo GPS...');
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const { latitude, longitude } = pos.coords;
+          console.log('✅ GPS obtenido:', latitude, longitude);
+          try {
+            await setDoc(
+              doc(db, 'ubicaciones_delivery', pedidoId),
+              { lat: latitude, lng: longitude, actualizadoEn: new Date().toISOString() },
+              { merge: true }
+            );
+            console.log('✅ Ubicación publicada en Firebase');
+          } catch (err) {
+            console.error('❌ Error publicando ubicación:', err);
+          }
+        },
+        (err) => {
+          console.error('❌ Error GPS:', err.message);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    };
+
+    publicarUbicacion(); // publica inmediatamente
+    this.trackingIntervals[pedidoId] = setInterval(publicarUbicacion, 5000);
+  }
+
+  private detenerTracking(pedidoId: string): void {
+    if (this.trackingIntervals[pedidoId]) {
+      clearInterval(this.trackingIntervals[pedidoId]);
+      delete this.trackingIntervals[pedidoId];
+    }
   }
 
   contactarCliente(pedido: Pedido): void {

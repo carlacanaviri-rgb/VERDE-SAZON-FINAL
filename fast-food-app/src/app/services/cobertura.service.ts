@@ -44,14 +44,36 @@ export class CoberturaService {
     return deleteDoc(doc(db, 'zonas_cobertura', id));
   }
 
-  validarDireccion(direccion: string, zonas: ZonaCobertura[]): { enCobertura: boolean; zona?: string } {
-    const dir = this.normalizar(direccion);
+  validarDireccion(
+    direccion: string,
+    zonas: ZonaCobertura[],
+    lat?: number,      // 👈 nuevo parámetro
+    lng?: number       // 👈 nuevo parámetro
+  ): { enCobertura: boolean; zona?: string } {
 
+    // ✅ Si hay coordenadas GPS, valida por distancia (prioridad)
+    if (lat !== undefined && lng !== undefined) {
+      for (const zona of zonas) {
+        if (zona.lat !== undefined && zona.lng !== undefined && zona.radioKm) {
+          const distancia = this.calcularDistanciaKm(lat, lng, zona.lat, zona.lng);
+          if (distancia <= zona.radioKm) {
+            return { enCobertura: true, zona: zona.nombre };
+          }
+        }
+      }
+      // Si ninguna zona tiene coordenadas configuradas, cae al texto
+      const algunaTieneCoords = zonas.some(z => z.lat && z.lng && z.radioKm);
+      if (algunaTieneCoords) {
+        return { enCobertura: false }; // coordenadas fuera de rango
+      }
+    }
+
+    // 📝 Fallback: valida por texto (comportamiento actual)
+    const dir = this.normalizar(direccion);
     for (const zona of zonas) {
       const candidatos = [zona.nombre, ...zona.referencias]
         .filter(texto => !!texto)
         .map(texto => this.normalizar(texto));
-
       const coincide = candidatos.some(c => dir.includes(c) || c.includes(dir));
       if (coincide) {
         return { enCobertura: true, zona: zona.nombre };
@@ -59,6 +81,17 @@ export class CoberturaService {
     }
 
     return { enCobertura: false };
+  }
+
+  private calcularDistanciaKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
   sugerirZonasCercanas(direccion: string, zonas: ZonaCobertura[], limite = 3): string[] {
