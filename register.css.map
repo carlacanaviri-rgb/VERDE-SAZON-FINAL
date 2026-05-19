@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["angular:styles/component:css;1109b6a47ae866e0469c370cabe60883b4a6f98fd7580571ac31fb3cc0281e81;C:\\Users\\admin\\IdeaProjects\\VERDE-SAZON-FINAL\\fast-food-app\\src\\app\\components\\register\\register.html"],
+  "sourcesContent": ["\n  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }\n"],
+  "mappings": ";AACE,WAAW;AAAO;AAAO,eAAW,OAAO;AAAO;AAAE;AAAK,eAAW,OAAO;AAAS;AAAE;",
+  "names": []
+}

@@ -145,6 +145,11 @@
     "HISTORIAL": "Historial",
     "SUSCRIPCIONES": "Suscripciones"
   },
+  "CHAT": {
+    "TITULO": "Chat",
+    "SIN_MENSAJES": "No hay mensajes aún",
+    "PLACEHOLDER": "Escribe tu mensaje..."
+  },
   "LANDING": {
     "SUBTITULO": "Comida saludable, rápida y personalizada para profesionales ocupados",
     "INICIAR": "Iniciar sesión",

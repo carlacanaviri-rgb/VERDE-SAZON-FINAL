@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["angular:styles/component:css;a00f442620f58b55f067d048ee2d6abf7a04d04eeb72b3b51134e3e2354f536b;C:\\Users\\admin\\IdeaProjects\\VERDE-SAZON-FINAL\\fast-food-app\\src\\app\\components\\seguimiento\\seguimiento.html"],
+  "sourcesContent": ["\n    @keyframes spin { to { transform: rotate(360deg); } }\n    @keyframes chatPulse {\n      0%, 100% { box-shadow: 0 4px 20px rgba(29,158,117,0.5); transform: scale(1); }\n      50%       { box-shadow: 0 4px 32px rgba(29,158,117,0.9); transform: scale(1.08); }\n    }\n    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }\n  "],
+  "mappings": ";AACI,WAAW;AAAO;AAAK,eAAW,OAAO;AAAS;AAAE;AACpD,WAAW;AACT;AAAW,gBAAY,EAAE,IAAI,KAAK,KAAK,EAAE,EAAC,GAAG,EAAC,GAAG,EAAC;AAAM,eAAW,MAAM;AAAI;AAC7E;AAAY,gBAAY,EAAE,IAAI,KAAK,KAAK,EAAE,EAAC,GAAG,EAAC,GAAG,EAAC;AAAM,eAAW,MAAM;AAAO;AACnF;AACA,WAAW;AAAU;AAAG,yBAAoB,KAAK;AAAC;AAAE;AAAK,yBAAoB,MAAM;AAAC;AAAE;",
+  "names": []
+}
