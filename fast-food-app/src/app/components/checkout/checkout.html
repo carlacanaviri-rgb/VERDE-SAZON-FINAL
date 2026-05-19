@@ -57,6 +57,17 @@
         <h3 style="margin:0 0 12px;font-size:16px;color:#0f172a">{{ 'CHECKOUT.SUMMARY' | translate }}</h3>
 
         <label for="checkout-direccion" style="display:block;font-size:13px;color:#334155;margin-bottom:6px">{{ 'CHECKOUT.DELIVERY_ADDRESS_LABEL' | translate }}</label>
+        <!--map-picker -->
+        <button type="button" (click)="toggleMapa()"
+                style="width:100%;margin-bottom:8px;padding:8px;border:1px dashed #1D9E75;background:#f0fdf4;
+         color:#166534;border-radius:10px;cursor:pointer;font-size:13px">
+          🗺️ {{ mostrarMapa ? 'Cerrar mapa' : 'Seleccionar ubicación en mapa' }}
+        </button>
+
+        <div *ngIf="mostrarMapa" style="margin-bottom:10px">
+          <app-map-picker (locationSelected)="onLocationSelected($event)" />
+        </div>
+        <!--map-picker-->
         <textarea id="checkout-direccion" [(ngModel)]="direccionEntrega" (ngModelChange)="validarCoberturaDireccion()" rows="2" [placeholder]="'CHECKOUT.DELIVERY_ADDRESS_PLACEHOLDER' | translate"
                   style="width:100%;box-sizing:border-box;resize:vertical;padding:10px;border:1px solid #cbd5e1;border-radius:10px;font-family:inherit;font-size:13px"></textarea>
 
@@ -65,10 +76,14 @@
                style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:10px;font-family:inherit;font-size:13px" />
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
-          <input id="checkout-lat" [(ngModel)]="latEntrega" type="number" step="any" [placeholder]="'CHECKOUT.DELIVERY_LAT_PLACEHOLDER' | translate"
-                 style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:10px;font-family:inherit;font-size:13px" />
-          <input id="checkout-lng" [(ngModel)]="lngEntrega" type="number" step="any" [placeholder]="'CHECKOUT.DELIVERY_LNG_PLACEHOLDER' | translate"
-                 style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:10px;font-family:inherit;font-size:13px" />
+          <input id="checkout-lat" [(ngModel)]="latEntrega" type="number" step="any"
+                 [placeholder]="'CHECKOUT.DELIVERY_LAT_PLACEHOLDER' | translate" readonly
+                 style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;
+           border-radius:10px;font-family:inherit;font-size:13px;background:#f8fafc" />
+          <input id="checkout-lng" [(ngModel)]="lngEntrega" type="number" step="any"
+                 [placeholder]="'CHECKOUT.DELIVERY_LNG_PLACEHOLDER' | translate" readonly
+                 style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;
+           border-radius:10px;font-family:inherit;font-size:13px;background:#f8fafc" />
         </div>
 
         <p *ngIf="coberturaValida" style="margin:10px 0 0;padding:8px 10px;background:#dcfce7;color:#166534;border-radius:8px;font-size:12px">

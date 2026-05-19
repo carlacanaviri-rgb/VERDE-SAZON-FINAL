@@ -15,6 +15,9 @@ import { CrearPedidoRequest, CrearPedidoResponse } from '../../models/pedido.mod
 import { ZonaCobertura } from '../../models/zona-cobertura.model';
 import { BolivianoCurrencyPipe } from '../../shared/pipes/boliviano-currency.pipe';
 
+import { MapPickerComponent, MapLocation } from '../map-picker/map-picker';
+
+
 const CHECKOUT_QR_SESSION_KEY = 'verde-sazon-checkout-qr';
 
 interface CheckoutQrSession {
@@ -26,7 +29,7 @@ interface CheckoutQrSession {
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, BolivianoCurrencyPipe],
+  imports: [CommonModule, FormsModule, TranslateModule, BolivianoCurrencyPipe, MapPickerComponent],
   templateUrl: './checkout.html'
 })
 export class CheckoutComponent implements OnInit, OnDestroy {
@@ -58,6 +61,21 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   sugerenciasCobertura: string[] = [];
   coberturaValida = false;
   errorCobertura = '';
+
+  mostrarMapa = false;
+
+  toggleMapa(): void {
+    this.mostrarMapa = !this.mostrarMapa;
+  }
+
+  onLocationSelected(loc: MapLocation): void {
+    this.direccionEntrega = loc.direccion;
+    this.latEntrega = String(loc.lat);
+    this.lngEntrega = String(loc.lng);
+    this.mostrarMapa = false;
+    this.validarCoberturaDireccion(); // ya tienes este método ✅
+  }
+
   private seguimientoPagoSub: Subscription | null = null;
 
   get totalCarrito(): number {
@@ -443,6 +461,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
   validarCoberturaDireccion(): void {
     const direccion = this.direccionEntrega.trim();
+    const lat = this.latEntregaNumero;
+    const lng = this.lngEntregaNumero;
 
     if (!direccion) {
       this.coberturaValida = false;
@@ -453,12 +473,17 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
     if (this.zonasCobertura.length === 0) {
       this.coberturaValida = false;
-      this.zonaCoberturaDetectada = '';
-      this.sugerenciasCobertura = [];
       return;
     }
 
-    const validacion = this.coberturaSvc.validarDireccion(direccion, this.zonasCobertura);
+    // 👇 Pasa lat/lng al servicio
+    const validacion = this.coberturaSvc.validarDireccion(
+      direccion,
+      this.zonasCobertura,
+      lat,   // undefined si no hay mapa
+      lng
+    );
+
     this.coberturaValida = validacion.enCobertura;
     this.zonaCoberturaDetectada = validacion.zona ?? '';
     this.sugerenciasCobertura = this.coberturaValida

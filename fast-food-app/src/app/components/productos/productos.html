@@ -128,23 +128,94 @@
           {{ mostrarFormularioZona ? ('ADMIN.COBERTURA.CERRAR' | translate) : ('ADMIN.COBERTURA.NUEVA' | translate) }}
         </button>
       </div>
-      <form *ngIf="mostrarFormularioZona" (ngSubmit)="guardarZona()" style="background:#f8faf8;border:1px solid #e5e5e5;border-radius:10px;padding:20px;margin-bottom:24px">
-        <h3 style="margin:0 0 16px;font-size:14px;font-weight:600;color:#111">{{ zonaEditando ? ('ADMIN.COBERTURA.EDITAR' | translate) : ('ADMIN.COBERTURA.NUEVA_ZONA' | translate) }}</h3>
+      <form *ngIf="mostrarFormularioZona" (ngSubmit)="guardarZona()"
+            style="background:#f8faf8;border:1px solid #e5e5e5;border-radius:10px;padding:20px;margin-bottom:24px">
+        <h3 style="margin:0 0 16px;font-size:14px;font-weight:600;color:#111">
+          {{ zonaEditando ? ('ADMIN.COBERTURA.EDITAR' | translate) : ('ADMIN.COBERTURA.NUEVA_ZONA' | translate) }}
+        </h3>
+
+        <!-- Nombre y Referencias -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
           <div>
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">{{ 'ADMIN.COBERTURA.NOMBRE' | translate }}</label>
-            <input [(ngModel)]="formZona.nombre" name="zonaNombre" required [placeholder]="'ADMIN.COBERTURA.NOMBRE_PLACEHOLDER'|translate" style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+            <input [(ngModel)]="formZona.nombre" name="zonaNombre" required
+                   [placeholder]="'ADMIN.COBERTURA.NOMBRE_PLACEHOLDER'|translate"
+                   style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
           </div>
           <div>
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px">{{ 'ADMIN.COBERTURA.REFERENCIAS' | translate }}</label>
-            <input [(ngModel)]="formZona.referencias" name="zonaReferencias" [placeholder]="'ADMIN.COBERTURA.REFERENCIAS_PLACEHOLDER'|translate" style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+            <input [(ngModel)]="formZona.referencias" name="zonaReferencias"
+                   [placeholder]="'ADMIN.COBERTURA.REFERENCIAS_PLACEHOLDER'|translate"
+                   style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px">
           </div>
         </div>
+
+        <!-- 👇 NUEVO: Sección de coordenadas con mapa -->
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:12px;color:#666;margin-bottom:6px">
+            📍 Área de cobertura
+            <span style="color:#9ca3af">(haz clic en el mapa para fijar el centro, luego ajusta el radio)</span>
+          </label>
+
+          <!-- Mini mapa -->
+          <div style="position:relative;height:240px;border-radius:10px;border:1px solid #ddd;overflow:hidden;margin-bottom:8px">
+            <div #zonaMapContainer style="position:absolute;top:0;left:0;width:100%;height:100%"></div>
+          </div>
+
+          <!-- Lat, Lng y Radio -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div>
+              <label style="display:block;font-size:11px;color:#888;margin-bottom:3px">Latitud</label>
+              <input [(ngModel)]="formZona.lat" name="zonaLat" type="number" step="any"
+                     placeholder="—" readonly
+                     style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #ddd;
+                      border-radius:8px;font-size:12px;background:#f8fafc;color:#334155">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;color:#888;margin-bottom:3px">Longitud</label>
+              <input [(ngModel)]="formZona.lng" name="zonaLng" type="number" step="any"
+                     placeholder="—" readonly
+                     style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #ddd;
+                      border-radius:8px;font-size:12px;background:#f8fafc;color:#334155">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;color:#888;margin-bottom:3px">Radio (km)</label>
+              <input [(ngModel)]="formZona.radioKm" name="zonaRadio" type="number"
+                     step="0.1" min="0.1" max="50"
+                     placeholder="ej: 2"
+                     (ngModelChange)="actualizarCirculo()"
+                     style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #ddd;
+                      border-radius:8px;font-size:12px">
+            </div>
+          </div>
+
+          <p *ngIf="formZona.lat && formZona.lng && formZona.radioKm"
+             style="margin:6px 0 0;font-size:11px;color:#166534;background:#dcfce7;
+              padding:5px 10px;border-radius:6px">
+            ✅ Zona definida: {{ formZona.radioKm }}km alrededor del punto seleccionado
+          </p>
+          <p *ngIf="!formZona.lat || !formZona.lng"
+             style="margin:6px 0 0;font-size:11px;color:#92400e;background:#fffbeb;
+              padding:5px 10px;border-radius:6px">
+            ⚠️ Haz clic en el mapa para definir el centro de la zona
+          </p>
+        </div>
+
+        <!-- Activa + botones -->
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer"><input [(ngModel)]="formZona.activa" name="zonaActiva" type="checkbox"> {{ 'ADMIN.COBERTURA.ACTIVA' | translate }}</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#555;cursor:pointer">
+            <input [(ngModel)]="formZona.activa" name="zonaActiva" type="checkbox">
+            {{ 'ADMIN.COBERTURA.ACTIVA' | translate }}
+          </label>
           <div style="display:flex;gap:8px">
-            <button type="button" (click)="cancelarZona();mostrarFormularioZona=false" style="padding:8px 16px;border:1px solid #ddd;border-radius:8px;background:white;font-size:13px;cursor:pointer;color:#555">{{ 'ADMIN.COBERTURA.CANCELAR' | translate }}</button>
-            <button type="submit" style="padding:8px 16px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">{{ zonaEditando ? ('ADMIN.COBERTURA.ACTUALIZAR'|translate) : ('ADMIN.COBERTURA.GUARDAR'|translate) }}</button>
+            <button type="button" (click)="cancelarZona();mostrarFormularioZona=false"
+                    style="padding:8px 16px;border:1px solid #ddd;border-radius:8px;background:white;font-size:13px;cursor:pointer;color:#555">
+              {{ 'ADMIN.COBERTURA.CANCELAR' | translate }}
+            </button>
+            <button type="submit"
+                    style="padding:8px 16px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">
+              {{ zonaEditando ? ('ADMIN.COBERTURA.ACTUALIZAR'|translate) : ('ADMIN.COBERTURA.GUARDAR'|translate) }}
+            </button>
           </div>
         </div>
         <p *ngIf="errorZona" style="margin:10px 0 0;font-size:12px;color:#dc2626">{{ errorZona }}</p>
