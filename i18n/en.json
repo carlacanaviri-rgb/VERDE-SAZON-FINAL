@@ -145,11 +145,6 @@
     "HISTORIAL": "History",
     "SUSCRIPCIONES": "Subscriptions"
   },
-  "CHAT": {
-    "TITULO": "Chat",
-    "SIN_MENSAJES": "No messages yet",
-    "PLACEHOLDER": "Type your message..."
-  },
   "LANDING": {
     "SUBTITULO": "Healthy, fast and personalized food for busy professionals",
     "INICIAR": "Sign in",
