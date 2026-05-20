@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/components/chat-modal/chat-modal.css"],
-  "sourcesContent": ["/* Estilos para el chat modal */\r\n\r\n/* Animaci\u00F3n de entrada del modal */\r\n@keyframes slideUp {\r\n  from {\r\n    transform: translateY(100%);\r\n    opacity: 0;\r\n  }\r\n  to {\r\n    transform: translateY(0);\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n/* Estilos responsivos para dispositivos peque\u00F1os */\r\n@media (max-width: 768px) {\r\n  :host ::ng-deep .chat-modal {\r\n    max-width: 100% !important;\r\n  }\r\n}\r\n\r\n/* Scroll suave en el \u00E1rea de mensajes */\r\n:host ::ng-deep .mensajes-container {\r\n  scroll-behavior: smooth;\r\n}\r\n\r\n"],
-  "mappings": ";AAGA,WAAW;AACT;AACE,eAAW,WAAW;AACtB,aAAS;AACX;AACA;AACE,eAAW,WAAW;AACtB,aAAS;AACX;AACF;AAGA,QAAO,WAAY;AACjB,QAAM,UAAU,CAAC;AACf,eAAW;AACb;AACF;AAGA,MAAM,UAAU,CAAC;AACf,mBAAiB;AACnB;",
-  "names": []
-}

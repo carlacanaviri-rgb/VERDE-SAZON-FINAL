@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["angular:styles/component:css;4c9e17e998005af72638d8540186cbcd7903339d1775984e59b6e9f75085b72d;C:\\Users\\admin\\IdeaProjects\\VERDE-SAZON-FINAL\\fast-food-app\\src\\app\\components\\productos\\productos.html"],
-  "sourcesContent": ["\n  @keyframes slideUp {\n    from { opacity:0; transform:translateX(-50%) translateY(12px); }\n    to   { opacity:1; transform:translateX(-50%) translateY(0); }\n  }\n  @keyframes spin {\n    to { transform:rotate(360deg); }\n  }\n"],
-  "mappings": ";AACE,WAAW;AACT;AAAO,aAAQ;AAAG,eAAU,WAAW,MAAM,WAAW;AAAO;AAC/D;AAAO,aAAQ;AAAG,eAAU,WAAW,MAAM,WAAW;AAAI;AAC9D;AACA,WAAW;AACT;AAAK,eAAU,OAAO;AAAS;AACjC;",
-  "names": []
-}
