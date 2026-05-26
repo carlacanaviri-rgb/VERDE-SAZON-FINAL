@@ -84,28 +84,7 @@
   </header>
 
 
-  <!-- ═══ BANNER FLOTANTE PEDIDOS ACTIVOS ═══════════════════════════════════ -->
-  <div *ngIf="hayPedidoActivo"
-       style="position:sticky;top:64px;z-index:90;background:#065f46;color:white;
-              padding:0 20px;display:flex;align-items:center;gap:0;
-              box-shadow:0 2px 8px rgba(6,95,70,0.3);overflow-x:auto">
-    <div style="display:flex;align-items:center;gap:8px;padding:10px 0;margin-right:12px;flex-shrink:0">
-      <span style="font-size:16px;animation:bounce 1s infinite">🚚</span>
-      <span style="font-size:13px;font-weight:600">Pedidos en curso:</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;flex:1;overflow-x:auto;padding:8px 0">
-      <button *ngFor="let pa of pedidosActivosVisibles"
-              (click)="irASeguimiento(pa.id)"
-              [style]="'display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:5px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background 0.2s'">
-        <span style="font-size:11px;color:rgba(255,255,255,0.85);font-weight:500">#{{ pa.numero }}</span>
-        <span [style]="'font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;background:'+getEstadoBg(pa.estado)+';color:'+getEstadoColor(pa.estado)">
-          {{ getEstadoLabel(pa.estado) }}
-        </span>
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-    </div>
-  </div>
-  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- Banner de pedidos activos eliminado: ahora solo visible dentro del panel "Mis pedidos" -->
 
   <div *ngIf="mostrarCarrito" (click)="toggleCarrito()" style="position:fixed;inset:0;background:rgba(15,23,42,0.35);z-index:150"></div>
   <aside *ngIf="mostrarCarrito" style="position:fixed;top:0;right:0;width:min(420px,92vw);height:100vh;background:white;box-shadow:-12px 0 32px rgba(15,23,42,0.18);z-index:160;display:flex;flex-direction:column">

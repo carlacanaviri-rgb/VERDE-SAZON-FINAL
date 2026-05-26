@@ -527,6 +527,7 @@ export class MenuComponent implements OnInit, OnDestroy {
     }
   }
 
+  // En menu.ts — método cargarHistorialPedidos
   cargarHistorialPedidos(clienteId: string): void {
     this.cargandoHistorial = true;
     this.errorHistorial = '';
@@ -534,6 +535,25 @@ export class MenuComponent implements OnInit, OnDestroy {
       next: (pedidos) => {
         this.historialPedidos = pedidos.slice(0, 5);
         this.cargandoHistorial = false;
+
+        // ✅ FIX: reconstruir pedidos activos desde el backend
+        const estadosActivos = [
+          'pendiente_pago',
+          'pendiente',
+          'preparando',
+          'listo',
+          'en_camino',
+          'recogido',
+        ];
+        const enProceso = pedidos.filter((p) => estadosActivos.includes(p.estado));
+        for (const p of enProceso) {
+          if (!this.pedidosActivos.find((a) => a.id === p.id)) {
+            this.iniciarListenerPedido(clienteId, p.id, p.numero);
+          }
+        }
+        if (enProceso.length > 0) {
+          this.persistirPedidosActivos(clienteId);
+        }
       },
       error: () => {
         this.errorHistorial = this.t(
