@@ -64,6 +64,10 @@ export class MenuComponent implements OnInit {
   sugerenciasCobertura: string[] = [];
   coberturaValida = false;
   errorCobertura = '';
+  // Agrega estas propiedades nuevas junto a las existentes
+  mostrarMisPedidos = false;
+  pedidoActivoId: string | null = null;
+  pedidoActivoNumero: string | null = null;
 
   get categorias(): string[] {
     const cats = this.productos.map((p) => p.categoria);
@@ -143,6 +147,9 @@ export class MenuComponent implements OnInit {
         });
 
         this.cargarHistorialPedidos(user.uid);
+        // Recuperar pedido activo guardado
+        this.pedidoActivoId = localStorage.getItem(`pedido_activo_${user.uid}`);
+        this.pedidoActivoNumero = localStorage.getItem(`pedido_activo_numero_${user.uid}`);
       }
 
       this.cdr.detectChanges();
@@ -288,6 +295,7 @@ export class MenuComponent implements OnInit {
     this.procesandoPedido = true;
 
     try {
+
       const response = await this.pedidoSvc.createPedido(payload);
       this.cartSvc.clear();
       this.notaPedido = '';
@@ -298,6 +306,11 @@ export class MenuComponent implements OnInit {
       this.zonaCoberturaDetectada = '';
       this.coberturaValida = false;
       this.mensajeCarrito = '';
+      // Guardar pedido activo para poder volver al seguimiento
+      localStorage.setItem(`pedido_activo_${usuario.uid}`, response.id);
+      localStorage.setItem(`pedido_activo_numero_${usuario.uid}`, response.numero);
+      this.pedidoActivoId = response.id;
+      this.pedidoActivoNumero = response.numero;
       this.exitoPedido = this.t(
         'MENU_CART.ORDER_CREATED',
         { numero: response.numero },
@@ -450,5 +463,55 @@ export class MenuComponent implements OnInit {
       'version vegetariana': '#f0fdf4',
     };
     return colores[categoriaNormalizada] ?? '#f0f7f0';
+  }
+  irASeguimiento(id: string): void {
+    this.mostrarMisPedidos = false;
+    this.mostrarDropdown = false;
+    this.router.navigate(['/seguimiento', id]);
+  }
+
+  toggleMisPedidos(): void {
+    this.mostrarMisPedidos = !this.mostrarMisPedidos;
+    this.mostrarDropdown = false;
+    if (this.mostrarMisPedidos) {
+      const user = this.auth.usuarioLogueado;
+      if (user) this.cargarHistorialPedidos(user.uid);
+    }
+  }
+
+  limpiarPedidoActivo(): void {
+    const user = this.auth.usuarioLogueado;
+    if (user) {
+      localStorage.removeItem(`pedido_activo_${user.uid}`);
+      localStorage.removeItem(`pedido_activo_numero_${user.uid}`);
+    }
+    this.pedidoActivoId = null;
+    this.pedidoActivoNumero = null;
+  }
+
+  getEstadoLabel(estado: string): string {
+    const labels: Record<string, string> = {
+      pendiente_pago: 'Pendiente de pago',
+      pendiente: 'Recibido',
+      preparando: 'En preparación',
+      listo: 'Listo',
+      en_camino: 'En camino',
+      recogido: 'Recogido',
+      entregado: 'Entregado',
+    };
+    return labels[estado] ?? estado;
+  }
+
+  getEstadoColor(estado: string): string {
+    const colors: Record<string, string> = {
+      pendiente_pago: '#f59e0b',
+      pendiente: '#3b82f6',
+      preparando: '#8b5cf6',
+      listo: '#1D9E75',
+      en_camino: '#f97316',
+      recogido: '#f97316',
+      entregado: '#6b7280',
+    };
+    return colors[estado] ?? '#888';
   }
 }
