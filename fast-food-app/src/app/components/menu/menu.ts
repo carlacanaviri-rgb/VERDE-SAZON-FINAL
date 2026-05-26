@@ -12,13 +12,14 @@ import { ClienteService } from '../../services/cliente.service';
 import { CartService } from '../../services/cart.service';
 import { CarritoItem } from '../../models/carrito-item.model';
 import { PedidoService } from '../../services/pedido.service';
+import { FavoritosService, FavoritoItem } from '../../services/favoritos';
 import { CrearPedidoRequest, PedidoHistorialItem } from '../../models/pedido.model';
 import { TimeoutError, Subscription } from 'rxjs';
 import { CoberturaService } from '../../services/cobertura.service';
 import { ZonaCobertura } from '../../models/zona-cobertura.model';
 import { BolivianoCurrencyPipe } from '../../shared/pipes/boliviano-currency.pipe';
 import { normalizarCategoriaProducto } from '../../shared/catalogs/producto-categorias';
-import { getFirestore, doc, onSnapshot, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { getFirestore, doc, onSnapshot } from 'firebase/firestore';
 import { getFirebaseApp } from '../../services/firebase-app';
 
 interface PedidoActivoTracked {
@@ -41,6 +42,7 @@ export class MenuComponent implements OnInit, OnDestroy {
   private clienteSvc = inject(ClienteService);
   private cartSvc = inject(CartService);
   private pedidoSvc = inject(PedidoService);
+  private favSvc = inject(FavoritosService);
   private coberturaSvc = inject(CoberturaService);
   private translate = inject(TranslateService);
   private cdr = inject(ChangeDetectorRef);
@@ -74,6 +76,9 @@ export class MenuComponent implements OnInit, OnDestroy {
   coberturaValida = false;
   errorCobertura = '';
   mostrarMisPedidos = false;
+  mostrarFavoritos = false;
+  favoritosIds: Set<string> = new Set();
+  favoritosItems: FavoritoItem[] = [];
 
   // ─── Multi-pedido activo ────────────────────────────────────────────────────
   pedidosActivos: PedidoActivoTracked[] = [];
@@ -112,7 +117,7 @@ export class MenuComponent implements OnInit, OnDestroy {
 
   /** Pedidos activos (no entregados ni cancelados) */
   get pedidosActivosVisibles(): PedidoActivoTracked[] {
-    return this.pedidosActivos.filter(p => !this.esEntregado(p.estado));
+    return this.pedidosActivos.filter((p) => !this.esEntregado(p.estado));
   }
 
   /** Si hay al menos un pedido en curso */
@@ -135,14 +140,14 @@ export class MenuComponent implements OnInit, OnDestroy {
         }));
         this.categoriaActiva = 'Todas';
         this.cdr.detectChanges();
-      })
+      }),
     );
 
     this.subs.push(
       this.cartSvc.items$.subscribe((items) => {
         this.carritoItems = items;
         this.cdr.detectChanges();
-      })
+      }),
     );
 
     this.subs.push(
@@ -165,7 +170,7 @@ export class MenuComponent implements OnInit, OnDestroy {
           );
           this.cdr.detectChanges();
         },
-      })
+      }),
     );
 
     this.subs.push(
@@ -183,52 +188,49 @@ export class MenuComponent implements OnInit, OnDestroy {
 
           this.cargarHistorialPedidos(user.uid);
           this.restaurarPedidosActivos(user.uid);
+          // Iniciar listener de favoritos
+          this.favSvc.iniciarListener(user.uid);
+          this.subs.push(
+            this.favSvc.favIds$.subscribe((ids) => {
+              this.favoritosIds = ids;
+              this.cdr.detectChanges();
+            }),
+            this.favSvc.favItems$.subscribe((items) => {
+              this.favoritosItems = items;
+              this.cdr.detectChanges();
+            }),
+          );
         }
         this.cdr.detectChanges();
-      })
+      }),
     );
   }
 
   ngOnDestroy(): void {
-    this.subs.forEach(s => s.unsubscribe());
-    this.pedidosActivos.forEach(p => p.unsubscribe());
+    this.subs.forEach((s) => s.unsubscribe());
+    this.pedidosActivos.forEach((p) => p.unsubscribe());
+    this.favSvc.detenerListener();
   }
 
-  // ─── Restaurar pedidos activos: primero Firestore, luego localStorage ────────
-  private async restaurarPedidosActivos(uid: string): Promise<void> {
-    // 1. Cargar desde Firestore directamente (fuente de verdad)
+  // ─── Restaurar y escuchar pedidos activos guardados en localStorage ─────────
+  private restaurarPedidosActivos(uid: string): void {
+    const raw = localStorage.getItem(`pedidos_activos_${uid}`);
+    if (!raw) return;
+
+    let guardados: { id: string; numero: string }[] = [];
     try {
-      const db = getFirestore(getFirebaseApp());
-      const ref = collection(db, 'pedidos');
-      const q = query(
-        ref,
-        where('clienteId', '==', uid),
-        where('estado', 'not-in', ['entregado', 'cancelado']),
-        orderBy('estado'),
-        orderBy('creadoEn', 'desc')
-      );
-      const snap = await getDocs(q);
-      for (const d of snap.docs) {
-        const data = d.data() as { numero?: string; estado?: string };
-        this.iniciarListenerPedido(uid, d.id, data['numero'] ?? d.id);
-      }
-      // Actualizar localStorage con los datos frescos
-      this.persistirPedidosActivos(uid);
-    } catch (err) {
-      console.warn('Firestore query fallback to localStorage:', err);
-      // 2. Fallback: localStorage si Firestore falla
-      const raw = localStorage.getItem(`pedidos_activos_${uid}`);
-      if (!raw) return;
-      let guardados: { id: string; numero: string }[] = [];
-      try { guardados = JSON.parse(raw); } catch { return; }
-      for (const g of guardados) {
-        this.iniciarListenerPedido(uid, g.id, g.numero);
-      }
+      guardados = JSON.parse(raw);
+    } catch {
+      return;
+    }
+
+    for (const g of guardados) {
+      this.iniciarListenerPedido(uid, g.id, g.numero);
     }
   }
 
   private persistirPedidosActivos(uid: string): void {
-    const data = this.pedidosActivos.map(p => ({ id: p.id, numero: p.numero }));
+    const data = this.pedidosActivos.map((p) => ({ id: p.id, numero: p.numero }));
     localStorage.setItem(`pedidos_activos_${uid}`, JSON.stringify(data));
     // Mantener compat. con clave legacy del último pedido
     if (this.pedidosActivos.length > 0) {
@@ -240,9 +242,14 @@ export class MenuComponent implements OnInit, OnDestroy {
 
   private iniciarListenerPedido(uid: string, pedidoId: string, numero: string): void {
     // Evitar duplicados
-    if (this.pedidosActivos.find(p => p.id === pedidoId)) return;
+    if (this.pedidosActivos.find((p) => p.id === pedidoId)) return;
 
-    const tracked: PedidoActivoTracked = { id: pedidoId, numero, estado: 'pendiente', unsubscribe: () => {} };
+    const tracked: PedidoActivoTracked = {
+      id: pedidoId,
+      numero,
+      estado: 'pendiente',
+      unsubscribe: () => {},
+    };
     this.pedidosActivos.push(tracked);
 
     const db = getFirestore(getFirebaseApp());
@@ -270,7 +277,7 @@ export class MenuComponent implements OnInit, OnDestroy {
   }
 
   private removerPedidoActivo(uid: string, pedidoId: string): void {
-    const idx = this.pedidosActivos.findIndex(p => p.id === pedidoId);
+    const idx = this.pedidosActivos.findIndex((p) => p.id === pedidoId);
     if (idx !== -1) {
       this.pedidosActivos[idx].unsubscribe();
       this.pedidosActivos.splice(idx, 1);
@@ -527,42 +534,16 @@ export class MenuComponent implements OnInit, OnDestroy {
       next: (pedidos) => {
         this.historialPedidos = pedidos.slice(0, 5);
         this.cargandoHistorial = false;
-        this.cdr.detectChanges();
       },
       error: () => {
-        // Fallback: leer historial directamente desde Firestore
-        this.cargarHistorialDesdeFirestore(clienteId);
+        this.errorHistorial = this.t(
+          'MENU_CART.ERROR_HISTORY',
+          undefined,
+          'No se pudo cargar tu historial de pedidos.',
+        );
+        this.cargandoHistorial = false;
       },
     });
-  }
-
-  private async cargarHistorialDesdeFirestore(clienteId: string): Promise<void> {
-    try {
-      const db = getFirestore(getFirebaseApp());
-      const ref = collection(db, 'pedidos');
-      const q = query(
-        ref,
-        where('clienteId', '==', clienteId),
-        orderBy('creadoEn', 'desc')
-      );
-      const snap = await getDocs(q);
-      this.historialPedidos = snap.docs.slice(0, 5).map(d => {
-        const data = d.data() as any;
-        return {
-          id: d.id,
-          numero: data['numero'] ?? d.id,
-          estado: data['estado'] ?? 'pendiente',
-          hora: data['hora'] ?? '',
-          total: data['total'] ?? 0,
-          creadoEn: data['creadoEn'] ?? '',
-        };
-      });
-    } catch {
-      this.errorHistorial = 'No se pudo cargar el historial de pedidos.';
-    } finally {
-      this.cargandoHistorial = false;
-      this.cdr.detectChanges();
-    }
   }
 
   private t(key: string, params?: Record<string, unknown>, fallback = ''): string {
@@ -571,6 +552,50 @@ export class MenuComponent implements OnInit, OnDestroy {
       return fallback;
     }
     return translated;
+  }
+
+  esFavorito(productoId: string | undefined): boolean {
+    return this.favoritosIds.has(productoId ?? '');
+  }
+
+  async toggleFavorito(p: {
+    id?: string;
+    nombre: string;
+    descripcion: string;
+    precio: number;
+    categoria: string;
+  }): Promise<void> {
+    const usuario = this.auth.usuarioLogueado;
+    if (!usuario) return;
+    await this.favSvc.toggleFavorito(usuario.uid, p);
+  }
+
+  toggleFavoritos(): void {
+    this.mostrarFavoritos = !this.mostrarFavoritos;
+    this.mostrarDropdown = false;
+  }
+
+  agregarFavoritoAlCarrito(fav: {
+    productoId: string;
+    nombre: string;
+    descripcion: string;
+    precio: number;
+    categoria: string;
+  }): void {
+    // Construir un Producto mínimo compatible con CartService
+    const prod = {
+      id: fav.productoId,
+      nombre: fav.nombre,
+      descripcion: fav.descripcion,
+      precio: fav.precio,
+      categoria: fav.categoria,
+      disponible: true,
+      ingredientes: [] as string[],
+    };
+    this.cartSvc.addProducto(prod as any);
+    this.mensajeCarrito = `${fav.nombre} agregado al carrito`;
+    this.mostrarFavoritos = false;
+    this.mostrarCarrito = true;
   }
 
   irASeccion(id: string): void {

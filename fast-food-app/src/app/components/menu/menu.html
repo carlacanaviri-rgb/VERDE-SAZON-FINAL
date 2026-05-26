@@ -41,9 +41,19 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <span style="font-size:14px;color:#111">{{ 'COMUN.PERFIL' | translate }}</span>
           </div>
-          <div style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          <div (click)="toggleFavoritos()"
+               style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
+            <svg width="16" height="16" viewBox="0 0 24 24"
+                 [attr.fill]="favoritosItems.length > 0 ? '#e11d48' : 'none'"
+                 [attr.stroke]="favoritosItems.length > 0 ? '#e11d48' : '#555'"
+                 stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+            </svg>
             <span style="font-size:14px;color:#555">{{ 'COMUN.FAVORITOS' | translate }}</span>
+            <span *ngIf="favoritosItems.length > 0"
+                  style="margin-left:auto;background:#fef2f2;color:#e11d48;font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px">
+              {{ favoritosItems.length }}
+            </span>
           </div>
 
           <div (click)="toggleMisPedidos()"
@@ -282,7 +292,21 @@
           <div style="padding:16px">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
               <h3 style="margin:0;font-size:15px;font-weight:600;color:#111;flex:1">{{ p.nombre }}</h3>
-              <span style="background:#e1f5ee;color:#0F6E56;font-size:11px;padding:3px 8px;border-radius:20px;white-space:nowrap;margin-left:8px">{{ 'MENU_PAGE.DISPONIBLE' | translate }}</span>
+              <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px">
+                <!-- Me gusta / Favorito -->
+                <button type="button"
+                        (click)="toggleFavorito(p); $event.stopPropagation()"
+                        [title]="esFavorito(p.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+                        [style]="'width:30px;height:30px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;' + (esFavorito(p.id) ? 'background:#fef2f2;' : 'background:#f8f8f8;')">
+                  <svg width="15" height="15" viewBox="0 0 24 24"
+                       [attr.fill]="esFavorito(p.id) ? '#e11d48' : 'none'"
+                       [attr.stroke]="esFavorito(p.id) ? '#e11d48' : '#aaa'"
+                       stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                  </svg>
+                </button>
+                <span style="background:#e1f5ee;color:#0F6E56;font-size:11px;padding:3px 8px;border-radius:20px;white-space:nowrap">{{ 'MENU_PAGE.DISPONIBLE' | translate }}</span>
+              </div>
             </div>
             <p style="margin:0 0 12px;font-size:13px;color:#888;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
               {{ p.descripcion }}
@@ -417,8 +441,167 @@
     </aside>
   </div>
 
+
+  <!-- ═══ PÁGINA COMPLETA MIS FAVORITOS ══════════════════════════════════════ -->
+  <div *ngIf="mostrarFavoritos"
+       style="position:fixed;inset:0;z-index:200;background:#f4f6f4;overflow-y:auto;
+              font-family:'Segoe UI',sans-serif">
+
+    <!-- Navbar de la página favoritos -->
+    <header style="background:white;border-bottom:1px solid #e5e5e5;padding:0 40px;
+                   display:flex;align-items:center;justify-content:space-between;height:64px;
+                   position:sticky;top:0;z-index:10">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;background:#1D9E75;border-radius:50%;display:flex;align-items:center;justify-content:center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12c0-2.2 1.8-4 4-4s4 1.8 4 4"/></svg>
+        </div>
+        <span style="font-weight:700;font-size:18px;color:#111">Verde Sazón</span>
+      </div>
+      <nav style="display:flex;gap:32px">
+        <button type="button" (click)="mostrarFavoritos=false; irASeccion('inicio')"
+                style="font-size:14px;color:#555;background:none;border:none;padding:0;cursor:pointer">Inicio</button>
+        <button type="button" (click)="mostrarFavoritos=false; irASeccion('categorias')"
+                style="font-size:14px;color:#555;background:none;border:none;padding:0;cursor:pointer">Categorías</button>
+        <button type="button" (click)="mostrarFavoritos=false; irASeccion('menu')"
+                style="font-size:14px;color:#555;background:none;border:none;padding:0;cursor:pointer">Menú</button>
+      </nav>
+      <button (click)="mostrarFavoritos=false"
+              style="display:flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid #e5e5e5;
+                     border-radius:10px;background:white;color:#555;font-size:13px;font-weight:600;cursor:pointer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Volver al menú
+      </button>
+    </header>
+
+    <!-- Contenido principal -->
+    <div style="max-width:1100px;margin:0 auto;padding:48px 32px">
+
+      <!-- Título -->
+      <div style="margin-bottom:36px">
+        <h1 style="margin:0 0 6px;font-size:32px;font-weight:800;color:#111">Mis Favoritos</h1>
+        <p style="margin:0;font-size:15px;color:#888">
+          <ng-container *ngIf="favoritosItems.length === 0">Aún no tienes platillos favoritos</ng-container>
+          <ng-container *ngIf="favoritosItems.length === 1">Tienes 1 platillo favorito</ng-container>
+          <ng-container *ngIf="favoritosItems.length > 1">Tienes {{ favoritosItems.length }} platillos favoritos</ng-container>
+        </p>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="favoritosItems.length === 0"
+           style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+                  padding:80px 0;gap:18px;text-align:center">
+        <div style="width:80px;height:80px;background:#fef2f2;border-radius:50%;display:flex;
+                    align-items:center;justify-content:center">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#f9a8b8" stroke-width="1.5">
+            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+          </svg>
+        </div>
+        <p style="margin:0;font-size:18px;font-weight:700;color:#333">Aún no tienes favoritos</p>
+        <p style="margin:0;font-size:14px;color:#aaa;max-width:300px">Toca el corazón ❤️ en cualquier platillo del menú para guardarlo aquí</p>
+        <button (click)="mostrarFavoritos=false; irASeccion('menu')"
+                style="margin-top:8px;padding:12px 28px;background:#1D9E75;color:white;border:none;
+                       border-radius:12px;font-size:14px;font-weight:600;cursor:pointer">
+          Explorar el menú
+        </button>
+      </div>
+
+      <!-- Grid de cards -->
+      <div *ngIf="favoritosItems.length > 0"
+           style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px">
+
+        <div *ngFor="let fav of favoritosItems"
+             style="background:white;border-radius:18px;overflow:hidden;
+                    box-shadow:0 2px 12px rgba(0,0,0,0.07);
+                    transition:transform 0.2s,box-shadow 0.2s"
+             onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 28px rgba(0,0,0,0.13)'"
+             onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 12px rgba(0,0,0,0.07)'">
+
+          <!-- Imagen / Emoji con corazón superpuesto -->
+          <div style="position:relative">
+            <div [style]="'height:220px;display:flex;align-items:center;justify-content:center;font-size:88px;background:' + getColorCategoria(fav.categoria)">
+              {{ getEmojiCategoria(fav.categoria) }}
+            </div>
+
+            <!-- Botón corazón superpuesto (esquina superior derecha) -->
+            <button type="button"
+                    (click)="toggleFavorito({id: fav.productoId, nombre: fav.nombre, descripcion: fav.descripcion, precio: fav.precio, categoria: fav.categoria})"
+                    title="Quitar de favoritos"
+                    style="position:absolute;top:12px;right:12px;
+                           width:40px;height:40px;border-radius:50%;border:none;
+                           background:white;cursor:pointer;
+                           display:flex;align-items:center;justify-content:center;
+                           box-shadow:0 2px 10px rgba(0,0,0,0.15);
+                           transition:transform 0.2s"
+                    onmouseover="this.style.transform='scale(1.1)'"
+                    onmouseout="this.style.transform='scale(1)'">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Contenido de la card -->
+          <div style="padding:20px">
+            <h3 style="margin:0 0 6px;font-size:17px;font-weight:700;color:#111">{{ fav.nombre }}</h3>
+            <p style="margin:0 0 16px;font-size:13px;color:#888;line-height:1.5;
+                      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
+              {{ fav.descripcion }}
+            </p>
+
+            <!-- Precio -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+              <span style="font-size:20px;font-weight:800;color:#1D9E75">{{ fav.precio | bolivianos }}</span>
+              <span style="font-size:12px;background:#f0f7f0;color:#0F6E56;padding:4px 10px;border-radius:8px;font-weight:500">
+                {{ fav.categoria }}
+              </span>
+            </div>
+
+            <!-- Acciones -->
+            <div style="display:flex;gap:10px">
+              <button type="button"
+                      (click)="mostrarFavoritos=false; irASeccion('menu')"
+                      style="flex:1;padding:11px 0;border:1.5px solid #e5e5e5;border-radius:12px;
+                             background:white;color:#333;font-size:13px;font-weight:600;cursor:pointer;
+                             transition:border-color 0.2s"
+                      onmouseover="this.style.borderColor='#1D9E75'"
+                      onmouseout="this.style.borderColor='#e5e5e5'">
+                Ver detalles
+              </button>
+              <button type="button"
+                      (click)="agregarFavoritoAlCarrito(fav)"
+                      title="Agregar al carrito"
+                      style="width:44px;height:44px;border-radius:12px;border:none;
+                             background:#1D9E75;color:white;cursor:pointer;flex-shrink:0;
+                             display:flex;align-items:center;justify-content:center;
+                             transition:background 0.2s"
+                      onmouseover="this.style.background='#0F6E56'"
+                      onmouseout="this.style.background='#1D9E75'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
+                  <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.57l1.65-8.42H6"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+
   <footer style="background:white;border-top:1px solid #e5e5e5;padding:24px 40px;text-align:center">
     <p style="margin:0;font-size:13px;color:#888">© 2026 Verde Sazón · Todos los derechos reservados</p>
   </footer>
+
+
+  <style>
+    @keyframes heartpop { 0%{transform:scale(1)} 40%{transform:scale(1.4)} 70%{transform:scale(0.85)} 100%{transform:scale(1)} }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+  </style>
 
 </div>
