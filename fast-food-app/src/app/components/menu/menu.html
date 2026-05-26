@@ -52,7 +52,7 @@
               <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
             </svg>
             <span style="font-size:14px;color:#555">Mis pedidos</span>
-            <span *ngIf="pedidoActivoId"
+            <span *ngIf="hayPedidoActivo"
                   style="margin-left:auto;width:8px;height:8px;background:#1D9E75;border-radius:50%"></span>
           </div>
 
@@ -72,6 +72,30 @@
       </div>
     </div>
   </header>
+
+
+  <!-- ═══ BANNER FLOTANTE PEDIDOS ACTIVOS ═══════════════════════════════════ -->
+  <div *ngIf="hayPedidoActivo"
+       style="position:sticky;top:64px;z-index:90;background:#065f46;color:white;
+              padding:0 20px;display:flex;align-items:center;gap:0;
+              box-shadow:0 2px 8px rgba(6,95,70,0.3);overflow-x:auto">
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 0;margin-right:12px;flex-shrink:0">
+      <span style="font-size:16px;animation:bounce 1s infinite">🚚</span>
+      <span style="font-size:13px;font-weight:600">Pedidos en curso:</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex:1;overflow-x:auto;padding:8px 0">
+      <button *ngFor="let pa of pedidosActivosVisibles"
+              (click)="irASeguimiento(pa.id)"
+              [style]="'display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:5px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background 0.2s'">
+        <span style="font-size:11px;color:rgba(255,255,255,0.85);font-weight:500">#{{ pa.numero }}</span>
+        <span [style]="'font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;background:'+getEstadoBg(pa.estado)+';color:'+getEstadoColor(pa.estado)">
+          {{ getEstadoLabel(pa.estado) }}
+        </span>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
 
   <div *ngIf="mostrarCarrito" (click)="toggleCarrito()" style="position:fixed;inset:0;background:rgba(15,23,42,0.35);z-index:150"></div>
   <aside *ngIf="mostrarCarrito" style="position:fixed;top:0;right:0;width:min(420px,92vw);height:100vh;background:white;box-shadow:-12px 0 32px rgba(15,23,42,0.18);z-index:160;display:flex;flex-direction:column">
@@ -171,12 +195,26 @@
   </aside>
 
   <div *ngIf="mostrarModalExito" style="position:fixed;inset:0;background:rgba(15,23,42,0.45);z-index:210;display:flex;align-items:center;justify-content:center;padding:16px">
-    <div style="width:min(420px,95vw);background:white;border-radius:18px;padding:24px;box-shadow:0 20px 48px rgba(15,23,42,0.3)">
-      <div style="width:52px;height:52px;border-radius:999px;background:#dcfce7;color:#166534;display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:12px">✓</div>
-      <h3 style="margin:0 0 8px;font-size:22px;color:#0f172a">{{ 'MENU_CART.ORDER_CONFIRMED_TITLE' | translate }}</h3>
-      <p style="margin:0 0 16px;font-size:14px;color:#475569">{{ exitoPedido }}</p>
-      <div style="display:flex;justify-content:flex-end;gap:8px">
-        <button type="button" (click)="cerrarModalExito()" style="padding:10px 14px;border:none;border-radius:10px;background:#1D9E75;color:white;font-size:13px;font-weight:700;cursor:pointer">{{ 'MENU_CART.OK' | translate }}</button>
+    <div style="width:min(440px,95vw);background:white;border-radius:20px;padding:28px;box-shadow:0 20px 48px rgba(15,23,42,0.3)">
+      <div style="display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:20px">
+        <div style="width:60px;height:60px;border-radius:999px;background:#dcfce7;color:#166534;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:14px">✓</div>
+        <h3 style="margin:0 0 6px;font-size:22px;font-weight:700;color:#0f172a">{{ 'MENU_CART.ORDER_CONFIRMED_TITLE' | translate }}</h3>
+        <p style="margin:0;font-size:14px;color:#475569">{{ exitoPedido }}</p>
+      </div>
+      <!-- Aviso de seguimiento en tiempo real -->
+      <div style="background:#f0faf5;border:1px solid #a7f3d0;border-radius:12px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:22px">🚚</span>
+        <div>
+          <p style="margin:0 0 2px;font-size:13px;font-weight:600;color:#065f46">Seguimiento en tiempo real activado</p>
+          <p style="margin:0;font-size:12px;color:#047857">Puedes volver al menú y retomar el seguimiento desde la barra de pedido activo.</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button type="button" (click)="cerrarModalExito()" style="flex:1;padding:11px 14px;border:1px solid #d1d5db;border-radius:10px;background:white;color:#475569;font-size:13px;font-weight:600;cursor:pointer">Seguir comprando</button>
+        <button type="button" (click)="irASeguimientoDesdeModal()" style="flex:1;padding:11px 14px;border:none;border-radius:10px;background:#1D9E75;color:white;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Ver seguimiento
+        </button>
       </div>
     </div>
   </div>
@@ -300,29 +338,28 @@
 
       <div style="flex:1;overflow-y:auto;padding:20px 24px">
 
-        <!-- PEDIDO ACTIVO -->
-        <div *ngIf="pedidoActivoId" style="margin-bottom:24px">
+        <!-- PEDIDOS ACTIVOS (multi-pedido) -->
+        <div *ngIf="pedidosActivosVisibles.length > 0" style="margin-bottom:24px">
           <p style="margin:0 0 10px;font-size:12px;font-weight:700;color:#1D9E75;text-transform:uppercase;letter-spacing:0.6px">
-            🟢 Pedido activo
+            🟢 Pedidos en curso ({{ pedidosActivosVisibles.length }})
           </p>
-          <div style="background:#f0faf5;border:1px solid #a7f3d0;border-radius:14px;padding:16px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <div>
-                <p style="margin:0;font-size:15px;font-weight:700;color:#111">Pedido #{{ pedidoActivoNumero }}</p>
-                <p style="margin:3px 0 0;font-size:12px;color:#047857">En proceso — toca para ver el estado</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div *ngFor="let pa of pedidosActivosVisibles"
+                 style="background:#f0faf5;border:1px solid #a7f3d0;border-radius:14px;padding:14px 16px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <div>
+                  <p style="margin:0;font-size:14px;font-weight:700;color:#111">Pedido #{{ pa.numero }}</p>
+                  <span [style]="'font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:'+getEstadoBg(pa.estado)+';color:'+getEstadoColor(pa.estado)">
+                    {{ getEstadoLabel(pa.estado) }}
+                  </span>
+                </div>
+                <span style="font-size:20px">🚚</span>
               </div>
-              <span style="font-size:22px">📦</span>
-            </div>
-            <div style="display:flex;gap:8px">
-              <button (click)="irASeguimiento(pedidoActivoId)"
-                      style="flex:1;padding:10px;background:#1D9E75;color:white;border:none;border-radius:10px;
+              <button (click)="irASeguimiento(pa.id)"
+                      style="width:100%;padding:9px;background:#1D9E75;color:white;border:none;border-radius:10px;
                          font-size:13px;font-weight:600;cursor:pointer">
                 Ver seguimiento →
               </button>
-              <button (click)="limpiarPedidoActivo()"
-                      style="padding:10px 14px;background:white;color:#888;border:1px solid #d1d5db;
-                         border-radius:10px;font-size:12px;cursor:pointer"
-                      title="Quitar de activos">✕</button>
             </div>
           </div>
         </div>

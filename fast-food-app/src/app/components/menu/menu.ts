@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -13,11 +13,20 @@ import { CartService } from '../../services/cart.service';
 import { CarritoItem } from '../../models/carrito-item.model';
 import { PedidoService } from '../../services/pedido.service';
 import { CrearPedidoRequest, PedidoHistorialItem } from '../../models/pedido.model';
-import { TimeoutError } from 'rxjs';
+import { TimeoutError, Subscription } from 'rxjs';
 import { CoberturaService } from '../../services/cobertura.service';
 import { ZonaCobertura } from '../../models/zona-cobertura.model';
 import { BolivianoCurrencyPipe } from '../../shared/pipes/boliviano-currency.pipe';
 import { normalizarCategoriaProducto } from '../../shared/catalogs/producto-categorias';
+import { getFirestore, doc, onSnapshot, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { getFirebaseApp } from '../../services/firebase-app';
+
+interface PedidoActivoTracked {
+  id: string;
+  numero: string;
+  estado: string;
+  unsubscribe: () => void;
+}
 
 @Component({
   selector: 'app-menu',
@@ -25,7 +34,7 @@ import { normalizarCategoriaProducto } from '../../shared/catalogs/producto-cate
   imports: [CommonModule, FormsModule, TranslateModule, LangSwitchComponent, BolivianoCurrencyPipe],
   templateUrl: './menu.html',
 })
-export class MenuComponent implements OnInit {
+export class MenuComponent implements OnInit, OnDestroy {
   private svc = inject(ProductoService);
   private router = inject(Router);
   private auth = inject(AuthService);
@@ -64,10 +73,15 @@ export class MenuComponent implements OnInit {
   sugerenciasCobertura: string[] = [];
   coberturaValida = false;
   errorCobertura = '';
-  // Agrega estas propiedades nuevas junto a las existentes
   mostrarMisPedidos = false;
-  pedidoActivoId: string | null = null;
-  pedidoActivoNumero: string | null = null;
+
+  // ─── Multi-pedido activo ────────────────────────────────────────────────────
+  pedidosActivos: PedidoActivoTracked[] = [];
+  ultimoPedidoActivoId: string | null = null;
+  ultimoPedidoActivoNumero: string | null = null;
+  // ───────────────────────────────────────────────────────────────────────────
+
+  private subs: Subscription[] = [];
 
   get categorias(): string[] {
     const cats = this.productos.map((p) => p.categoria);
@@ -96,65 +110,175 @@ export class MenuComponent implements OnInit {
     return this.cantidadCarrito > 0 && !!this.auth.usuarioLogueado && !this.procesandoPedido;
   }
 
+  /** Pedidos activos (no entregados ni cancelados) */
+  get pedidosActivosVisibles(): PedidoActivoTracked[] {
+    return this.pedidosActivos.filter(p => !this.esEntregado(p.estado));
+  }
+
+  /** Si hay al menos un pedido en curso */
+  get hayPedidoActivo(): boolean {
+    return this.pedidosActivosVisibles.length > 0;
+  }
+
+  esEntregado(estado: string): boolean {
+    return estado === 'entregado';
+  }
+
   ngOnInit() {
     this.categoriaActiva = 'Todas';
 
-    this.svc.getProductos().subscribe((data) => {
-      this.productos = data.map((producto) => ({
-        ...producto,
-        categoria: normalizarCategoriaProducto(producto.categoria),
-      }));
-      this.categoriaActiva = 'Todas';
-      this.cdr.detectChanges();
-    });
-
-    this.cartSvc.items$.subscribe((items) => {
-      this.carritoItems = items;
-      this.cdr.detectChanges();
-    });
-
-    this.coberturaSvc.getZonasCobertura().subscribe({
-      next: (zonas) => {
-        this.zonasCobertura = zonas;
-        this.errorCobertura = '';
-        this.validarCoberturaDireccion();
+    this.subs.push(
+      this.svc.getProductos().subscribe((data) => {
+        this.productos = data.map((producto) => ({
+          ...producto,
+          categoria: normalizarCategoriaProducto(producto.categoria),
+        }));
+        this.categoriaActiva = 'Todas';
         this.cdr.detectChanges();
-      },
-      error: () => {
-        this.zonasCobertura = [];
-        this.coberturaValida = false;
-        this.zonaCoberturaDetectada = '';
-        this.sugerenciasCobertura = [];
-        this.errorCobertura = this.t(
-          'MENU_CART.ERROR_COVERAGE_UNAVAILABLE',
-          undefined,
-          'No se pudo cargar la cobertura en este momento.',
-        );
+      })
+    );
+
+    this.subs.push(
+      this.cartSvc.items$.subscribe((items) => {
+        this.carritoItems = items;
         this.cdr.detectChanges();
-      },
-    });
+      })
+    );
 
-    this.auth.usuario$.subscribe((user) => {
-      if (user) {
-        this.nombreUsuario = user.displayName ?? 'Cliente';
-        this.emailUsuario = user.email ?? '';
-
-        this.clienteSvc.getPerfil(user.uid).subscribe((perfil) => {
-          this.clasificacionUsuario = perfil.clasificacion;
-          this.pedidosCompletados = perfil.pedidosCompletados;
-          this.montoTotalCompletado = perfil.montoTotalCompletado;
+    this.subs.push(
+      this.coberturaSvc.getZonasCobertura().subscribe({
+        next: (zonas) => {
+          this.zonasCobertura = zonas;
+          this.errorCobertura = '';
+          this.validarCoberturaDireccion();
           this.cdr.detectChanges();
-        });
+        },
+        error: () => {
+          this.zonasCobertura = [];
+          this.coberturaValida = false;
+          this.zonaCoberturaDetectada = '';
+          this.sugerenciasCobertura = [];
+          this.errorCobertura = this.t(
+            'MENU_CART.ERROR_COVERAGE_UNAVAILABLE',
+            undefined,
+            'No se pudo cargar la cobertura en este momento.',
+          );
+          this.cdr.detectChanges();
+        },
+      })
+    );
 
-        this.cargarHistorialPedidos(user.uid);
-        // Recuperar pedido activo guardado
-        this.pedidoActivoId = localStorage.getItem(`pedido_activo_${user.uid}`);
-        this.pedidoActivoNumero = localStorage.getItem(`pedido_activo_numero_${user.uid}`);
+    this.subs.push(
+      this.auth.usuario$.subscribe((user) => {
+        if (user) {
+          this.nombreUsuario = user.displayName ?? 'Cliente';
+          this.emailUsuario = user.email ?? '';
+
+          this.clienteSvc.getPerfil(user.uid).subscribe((perfil) => {
+            this.clasificacionUsuario = perfil.clasificacion;
+            this.pedidosCompletados = perfil.pedidosCompletados;
+            this.montoTotalCompletado = perfil.montoTotalCompletado;
+            this.cdr.detectChanges();
+          });
+
+          this.cargarHistorialPedidos(user.uid);
+          this.restaurarPedidosActivos(user.uid);
+        }
+        this.cdr.detectChanges();
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subs.forEach(s => s.unsubscribe());
+    this.pedidosActivos.forEach(p => p.unsubscribe());
+  }
+
+  // ─── Restaurar pedidos activos: primero Firestore, luego localStorage ────────
+  private async restaurarPedidosActivos(uid: string): Promise<void> {
+    // 1. Cargar desde Firestore directamente (fuente de verdad)
+    try {
+      const db = getFirestore(getFirebaseApp());
+      const ref = collection(db, 'pedidos');
+      const q = query(
+        ref,
+        where('clienteId', '==', uid),
+        where('estado', 'not-in', ['entregado', 'cancelado']),
+        orderBy('estado'),
+        orderBy('creadoEn', 'desc')
+      );
+      const snap = await getDocs(q);
+      for (const d of snap.docs) {
+        const data = d.data() as { numero?: string; estado?: string };
+        this.iniciarListenerPedido(uid, d.id, data['numero'] ?? d.id);
+      }
+      // Actualizar localStorage con los datos frescos
+      this.persistirPedidosActivos(uid);
+    } catch (err) {
+      console.warn('Firestore query fallback to localStorage:', err);
+      // 2. Fallback: localStorage si Firestore falla
+      const raw = localStorage.getItem(`pedidos_activos_${uid}`);
+      if (!raw) return;
+      let guardados: { id: string; numero: string }[] = [];
+      try { guardados = JSON.parse(raw); } catch { return; }
+      for (const g of guardados) {
+        this.iniciarListenerPedido(uid, g.id, g.numero);
+      }
+    }
+  }
+
+  private persistirPedidosActivos(uid: string): void {
+    const data = this.pedidosActivos.map(p => ({ id: p.id, numero: p.numero }));
+    localStorage.setItem(`pedidos_activos_${uid}`, JSON.stringify(data));
+    // Mantener compat. con clave legacy del último pedido
+    if (this.pedidosActivos.length > 0) {
+      const ultimo = this.pedidosActivos[this.pedidosActivos.length - 1];
+      this.ultimoPedidoActivoId = ultimo.id;
+      this.ultimoPedidoActivoNumero = ultimo.numero;
+    }
+  }
+
+  private iniciarListenerPedido(uid: string, pedidoId: string, numero: string): void {
+    // Evitar duplicados
+    if (this.pedidosActivos.find(p => p.id === pedidoId)) return;
+
+    const tracked: PedidoActivoTracked = { id: pedidoId, numero, estado: 'pendiente', unsubscribe: () => {} };
+    this.pedidosActivos.push(tracked);
+
+    const db = getFirestore(getFirebaseApp());
+    const ref = doc(db, 'pedidos', pedidoId);
+
+    const unsub = onSnapshot(ref, (snap) => {
+      if (!snap.exists()) {
+        this.removerPedidoActivo(uid, pedidoId);
+        return;
+      }
+      const data = snap.data() as { estado?: string };
+      tracked.estado = data['estado'] ?? 'pendiente';
+
+      // Si ya fue entregado, limpiarlo tras 30 s para que el usuario vea el estado final
+      if (tracked.estado === 'entregado') {
+        setTimeout(() => {
+          this.removerPedidoActivo(uid, pedidoId);
+        }, 30_000);
       }
 
       this.cdr.detectChanges();
     });
+
+    tracked.unsubscribe = unsub;
   }
+
+  private removerPedidoActivo(uid: string, pedidoId: string): void {
+    const idx = this.pedidosActivos.findIndex(p => p.id === pedidoId);
+    if (idx !== -1) {
+      this.pedidosActivos[idx].unsubscribe();
+      this.pedidosActivos.splice(idx, 1);
+    }
+    this.persistirPedidosActivos(uid);
+    this.cdr.detectChanges();
+  }
+  // ───────────────────────────────────────────────────────────────────────────
 
   agregarAlCarrito(producto: Producto): void {
     this.cartSvc.addProducto(producto);
@@ -295,7 +419,6 @@ export class MenuComponent implements OnInit {
     this.procesandoPedido = true;
 
     try {
-
       const response = await this.pedidoSvc.createPedido(payload);
       this.cartSvc.clear();
       this.notaPedido = '';
@@ -306,11 +429,13 @@ export class MenuComponent implements OnInit {
       this.zonaCoberturaDetectada = '';
       this.coberturaValida = false;
       this.mensajeCarrito = '';
-      // Guardar pedido activo para poder volver al seguimiento
-      localStorage.setItem(`pedido_activo_${usuario.uid}`, response.id);
-      localStorage.setItem(`pedido_activo_numero_${usuario.uid}`, response.numero);
-      this.pedidoActivoId = response.id;
-      this.pedidoActivoNumero = response.numero;
+
+      // Registrar nuevo pedido activo y lanzar listener en tiempo real
+      this.iniciarListenerPedido(usuario.uid, response.id, response.numero);
+      this.persistirPedidosActivos(usuario.uid);
+      this.ultimoPedidoActivoId = response.id;
+      this.ultimoPedidoActivoNumero = response.numero;
+
       this.exitoPedido = this.t(
         'MENU_CART.ORDER_CREATED',
         { numero: response.numero },
@@ -388,6 +513,13 @@ export class MenuComponent implements OnInit {
     this.mostrarModalExito = false;
   }
 
+  irASeguimientoDesdeModal(): void {
+    this.mostrarModalExito = false;
+    if (this.ultimoPedidoActivoId) {
+      this.router.navigate(['/seguimiento', this.ultimoPedidoActivoId]);
+    }
+  }
+
   cargarHistorialPedidos(clienteId: string): void {
     this.cargandoHistorial = true;
     this.errorHistorial = '';
@@ -395,16 +527,42 @@ export class MenuComponent implements OnInit {
       next: (pedidos) => {
         this.historialPedidos = pedidos.slice(0, 5);
         this.cargandoHistorial = false;
+        this.cdr.detectChanges();
       },
       error: () => {
-        this.errorHistorial = this.t(
-          'MENU_CART.ERROR_HISTORY',
-          undefined,
-          'No se pudo cargar tu historial de pedidos.',
-        );
-        this.cargandoHistorial = false;
+        // Fallback: leer historial directamente desde Firestore
+        this.cargarHistorialDesdeFirestore(clienteId);
       },
     });
+  }
+
+  private async cargarHistorialDesdeFirestore(clienteId: string): Promise<void> {
+    try {
+      const db = getFirestore(getFirebaseApp());
+      const ref = collection(db, 'pedidos');
+      const q = query(
+        ref,
+        where('clienteId', '==', clienteId),
+        orderBy('creadoEn', 'desc')
+      );
+      const snap = await getDocs(q);
+      this.historialPedidos = snap.docs.slice(0, 5).map(d => {
+        const data = d.data() as any;
+        return {
+          id: d.id,
+          numero: data['numero'] ?? d.id,
+          estado: data['estado'] ?? 'pendiente',
+          hora: data['hora'] ?? '',
+          total: data['total'] ?? 0,
+          creadoEn: data['creadoEn'] ?? '',
+        };
+      });
+    } catch {
+      this.errorHistorial = 'No se pudo cargar el historial de pedidos.';
+    } finally {
+      this.cargandoHistorial = false;
+      this.cdr.detectChanges();
+    }
   }
 
   private t(key: string, params?: Record<string, unknown>, fallback = ''): string {
@@ -418,7 +576,6 @@ export class MenuComponent implements OnInit {
   irASeccion(id: string): void {
     const section = document.getElementById(id);
     if (!section) return;
-
     section.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
@@ -464,6 +621,7 @@ export class MenuComponent implements OnInit {
     };
     return colores[categoriaNormalizada] ?? '#f0f7f0';
   }
+
   irASeguimiento(id: string): void {
     this.mostrarMisPedidos = false;
     this.mostrarDropdown = false;
@@ -479,16 +637,6 @@ export class MenuComponent implements OnInit {
     }
   }
 
-  limpiarPedidoActivo(): void {
-    const user = this.auth.usuarioLogueado;
-    if (user) {
-      localStorage.removeItem(`pedido_activo_${user.uid}`);
-      localStorage.removeItem(`pedido_activo_numero_${user.uid}`);
-    }
-    this.pedidoActivoId = null;
-    this.pedidoActivoNumero = null;
-  }
-
   getEstadoLabel(estado: string): string {
     const labels: Record<string, string> = {
       pendiente_pago: 'Pendiente de pago',
@@ -497,7 +645,7 @@ export class MenuComponent implements OnInit {
       listo: 'Listo',
       en_camino: 'En camino',
       recogido: 'Recogido',
-      entregado: 'Entregado',
+      entregado: 'Entregado ✓',
     };
     return labels[estado] ?? estado;
   }
@@ -513,5 +661,18 @@ export class MenuComponent implements OnInit {
       entregado: '#6b7280',
     };
     return colors[estado] ?? '#888';
+  }
+
+  getEstadoBg(estado: string): string {
+    const bgs: Record<string, string> = {
+      pendiente_pago: '#fffbeb',
+      pendiente: '#eff6ff',
+      preparando: '#f5f3ff',
+      listo: '#f0faf5',
+      en_camino: '#fff7ed',
+      recogido: '#fff7ed',
+      entregado: '#f9fafb',
+    };
+    return bgs[estado] ?? '#f8f8f8';
   }
 }

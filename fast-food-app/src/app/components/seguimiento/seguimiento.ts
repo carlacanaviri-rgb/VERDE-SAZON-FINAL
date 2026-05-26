@@ -1,11 +1,18 @@
-import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  OnDestroy,
+  ChangeDetectorRef,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { getFirestore, doc, onSnapshot } from 'firebase/firestore';
 import { getFirebaseApp } from '../../services/firebase-app';
 import * as L from 'leaflet';
-
 
 export interface SeguimientoEstado {
   id?: string;
@@ -181,20 +188,23 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
 
       this.mapaLeaflet = L.map(el).setView([lat, lng], 14);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap', maxZoom: 19
+        attribution: '© OpenStreetMap',
+        maxZoom: 19,
       }).addTo(this.mapaLeaflet);
 
       // Pin destino (cliente) — rojo
       if (this.pedido?.latEntrega && this.pedido?.lngEntrega) {
         const iconDestino = L.icon({
-          iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+          iconUrl:
+            'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
           shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-          iconSize: [25, 41], iconAnchor: [12, 41]
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
         });
-        this.markerDestino = L.marker(
-          [this.pedido.latEntrega, this.pedido.lngEntrega],
-          { icon: iconDestino }
-        ).addTo(this.mapaLeaflet)
+        this.markerDestino = L.marker([this.pedido.latEntrega, this.pedido.lngEntrega], {
+          icon: iconDestino,
+        })
+          .addTo(this.mapaLeaflet)
           .bindPopup('📍 Tu ubicación');
       }
 
@@ -216,9 +226,11 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
       const { lat, lng } = snap.data() as { lat: number; lng: number };
 
       const iconDelivery = L.icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+        iconUrl:
+          'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
         shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-        iconSize: [25, 41], iconAnchor: [12, 41]
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
       });
 
       if (this.markerDelivery) {
@@ -232,19 +244,13 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
 
       // Centra el mapa entre delivery y destino
       if (this.pedido?.latEntrega && this.pedido?.lngEntrega) {
-        const bounds = L.latLngBounds(
-          [lat, lng],
-          [this.pedido.latEntrega, this.pedido.lngEntrega]
-        );
+        const bounds = L.latLngBounds([lat, lng], [this.pedido.latEntrega, this.pedido.lngEntrega]);
         this.mapaLeaflet.fitBounds(bounds, { padding: [40, 40] });
       }
 
       this.cdr.detectChanges();
     });
   }
-
-
-
 
   abrirEnGoogleMaps(): void {
     const origen = `${RESTAURANTE_LAT},${RESTAURANTE_LNG}`;
