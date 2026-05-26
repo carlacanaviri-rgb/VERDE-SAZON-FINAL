@@ -8,7 +8,7 @@ import {
   User,
 } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, filter, take } from 'rxjs';
 import { getFirebaseApp } from './firebase-app';
 import { CartService } from './cart.service';
 
@@ -22,9 +22,15 @@ export class AuthService {
 
   private usuarioActual = new BehaviorSubject<User | null>(null);
   private rolActual = new BehaviorSubject<string | null>(null);
+  private inicializado = new BehaviorSubject<boolean>(false);
 
   usuario$ = this.usuarioActual.asObservable();
   rol$ = this.rolActual.asObservable();
+  /** Emite true una sola vez cuando Firebase ya resolvió la sesión guardada */
+  listo$ = this.inicializado.pipe(
+    filter((v) => v),
+    take(1),
+  );
 
   constructor() {
     onAuthStateChanged(auth, async (user) => {
@@ -36,6 +42,8 @@ export class AuthService {
       } else {
         this.rolActual.next(null);
       }
+      // Marca como listo después del primer disparo (con o sin sesión)
+      this.inicializado.next(true);
     });
   }
 

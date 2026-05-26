@@ -3,7 +3,6 @@ import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { take, switchMap, filter, map } from 'rxjs';
 
-/** Espera hasta que el rol esté cargado (no null) y retorna el primer valor */
 function waitForRol(auth: AuthService) {
   return auth.rol$.pipe(
     filter((r) => r !== null),
@@ -15,14 +14,14 @@ export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  return auth.usuario$.pipe(
-    take(1),
-    switchMap((user) => {
+  return auth.listo$.pipe(
+    switchMap(() => auth.usuario$.pipe(take(1))),
+    map((user) => {
       if (!user) {
         router.navigate(['/login']);
-        return [false];
+        return false;
       }
-      return [true];
+      return true;
     }),
   );
 };
@@ -31,8 +30,8 @@ export const adminGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  return auth.usuario$.pipe(
-    take(1),
+  return auth.listo$.pipe(
+    switchMap(() => auth.usuario$.pipe(take(1))),
     switchMap((user) => {
       if (!user) {
         router.navigate(['/login']);
@@ -55,8 +54,8 @@ export const cocinaGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  return auth.usuario$.pipe(
-    take(1),
+  return auth.listo$.pipe(
+    switchMap(() => auth.usuario$.pipe(take(1))),
     switchMap((user) => {
       if (!user) {
         router.navigate(['/login']);
@@ -79,8 +78,8 @@ export const deliveryGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  return auth.usuario$.pipe(
-    take(1),
+  return auth.listo$.pipe(
+    switchMap(() => auth.usuario$.pipe(take(1))),
     switchMap((user) => {
       if (!user) {
         router.navigate(['/login']);
