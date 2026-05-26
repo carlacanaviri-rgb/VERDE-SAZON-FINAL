@@ -99,13 +99,20 @@
           </div>
         </div>
 
-        <!-- Ruta de entrega -->
+        <!-- Ruta de entrega — iframe Google Maps Directions -->
         <div style="background:white;border:1px solid #e5e5e5;border-radius:16px;padding:24px">
-          <h3 style="margin:0 0 16px;font-size:15px;font-weight:600;color:#111">Ruta de entrega</h3>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <h3 style="margin:0;font-size:15px;font-weight:600;color:#111">Ruta de entrega</h3>
+            <button *ngIf="mostrarMapa" (click)="abrirEnGoogleMaps()"
+                    style="display:flex;align-items:center;gap:6px;background:transparent;border:1px solid #1D9E75;color:#1D9E75;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Abrir en Maps
+            </button>
+          </div>
 
           <!-- PLACEHOLDER — aún no recogido -->
           <div *ngIf="!mostrarMapa"
-               style="background:#f5f5f5;border-radius:12px;height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
+               style="background:#f5f5f5;border-radius:12px;height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5">
               <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
             </svg>
@@ -114,36 +121,23 @@
             </p>
           </div>
 
-          <!-- IMAGEN CLICKABLE — abre Google Maps con la ruta real -->
+          <!-- MAPA REAL — Leaflet con tracking en tiempo real -->
           <div *ngIf="mostrarMapa"
-               (click)="abrirEnGoogleMaps()"
-               style="position:relative;border-radius:12px;overflow:hidden;cursor:pointer;border:1px solid #e5e5e5">
+               style="border-radius:12px;overflow:hidden;border:1px solid #e5e5e5;position:relative">
+            <div #mapaContainer style="height:320px;width:100%"></div>
 
-            <!-- Imagen de fondo: mapa de Cochabamba centro via OpenStreetMap (sin key) -->
-            <img src="https://maps.geoapify.com/v1/staticmap?style=osm-bright-smooth&width=700&height=280&center=lonlat:-66.1568,-17.3935&zoom=14&marker=lonlat:-66.1568,-17.3935;color:%231D9E75;size:large&apiKey=00000000000000000000000000000000"
-                 onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png'; this.style.display='none'; this.nextElementSibling.style.display='flex'"
-                 alt="Mapa de Cochabamba"
-                 style="width:100%;height:220px;object-fit:cover;display:block">
-
-            <!-- Fallback visual SVG si la imagen falla -->
-            <div style="display:none;width:100%;height:220px;background:linear-gradient(135deg,#e8f5e9 0%,#c8e6c9 50%,#a5d6a7 100%);align-items:center;justify-content:center;flex-direction:column;gap:8px">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="1.5">
-                <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
-              </svg>
-              <span style="font-size:13px;color:#1D9E75;font-weight:600">Ver ruta en Google Maps</span>
-            </div>
-
-            <!-- Overlay oscuro con botón central -->
-            <div style="position:absolute;inset:0;background:rgba(0,0,0,0.32);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
-              <div style="background:white;border-radius:50%;width:52px;height:52px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,0.25)">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2">
-                  <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
-                </svg>
+            <!-- Leyenda -->
+            <div style="position:absolute;bottom:10px;left:10px;z-index:999;background:white;
+              border-radius:8px;padding:6px 10px;font-size:11px;
+              box-shadow:0 2px 8px rgba(0,0,0,0.15);display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;align-items:center;gap:6px">
+                <div style="width:10px;height:10px;background:#1D9E75;border-radius:50%"></div>
+                <span>Repartidor</span>
               </div>
-              <span style="color:white;font-size:14px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,0.5)">
-                Toca para ver la ruta completa
-              </span>
-              <span style="color:rgba(255,255,255,0.85);font-size:12px">Abre Google Maps</span>
+              <div style="display:flex;align-items:center;gap:6px">
+                <div style="width:10px;height:10px;background:#dc2626;border-radius:50%"></div>
+                <span>Tu dirección</span>
+              </div>
             </div>
           </div>
 

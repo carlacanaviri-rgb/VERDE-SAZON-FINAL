@@ -26,6 +26,8 @@ export interface Pedido {
   referenciaEntrega?: string;
   zonaCobertura?: string;
   notaGeneral?: string;
+  latEntrega?: number;
+  lngEntrega?: number;
 }
 
 export interface CrearPedidoRequest {

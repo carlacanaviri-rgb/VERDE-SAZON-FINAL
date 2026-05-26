@@ -3,4 +3,8 @@ export interface ZonaCobertura {
   nombre: string;
   referencias: string[];
   activa: boolean;
+
+  lat?: number;
+  lng?: number;
+  radioKm?: number;
 }

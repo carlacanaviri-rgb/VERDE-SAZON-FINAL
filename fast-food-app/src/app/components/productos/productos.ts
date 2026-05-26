@@ -16,6 +16,9 @@ import { CategoriaService } from '../../services/categoria.service';
 import { ZonaCobertura } from '../../models/zona-cobertura.model';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
+import { ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import * as L from 'leaflet';
+
 import {
   esCategoriaProductoValida,
   normalizarCategoriaProducto,
@@ -29,7 +32,7 @@ import {
   imports: [CommonModule, FormsModule, TranslateModule, LangSwitchComponent, BolivianoCurrencyPipe],
   templateUrl: './productos.html',
 })
-export class ProductosComponent implements OnInit {
+export class ProductosComponent implements OnInit, AfterViewInit {
   readonly svc = inject(ProductoService);
   readonly authSvc = inject(AuthService);
   readonly router = inject(Router);
@@ -39,6 +42,11 @@ export class ProductosComponent implements OnInit {
   readonly categoriaSvc = inject(CategoriaService);
   // Debajo de tus otros injects
   readonly sanitizer = inject(DomSanitizer);
+
+  @ViewChild('zonaMapContainer') zonaMapContainer!: ElementRef;
+  private zonaMap!: L.Map;
+  private zonaMarker!: L.Marker;
+  private zonaCirculo!: L.Circle;
 
   // ── Productos ──────────────────────────────────────────
   productos: Producto[] = [];
@@ -431,8 +439,19 @@ export class ProductosComponent implements OnInit {
   // ══════════════════════════════════════════════════════
   // Zonas de cobertura
   // ══════════════════════════════════════════════════════
+  ngAfterViewInit(): void {
+    // vacío — el mapa se inicia bajo demanda
+  }
+
   formZonaVacia() {
-    return { nombre: '', referencias: '', activa: true };
+    return {
+      nombre: '',
+      referencias: '',
+      activa: true,
+      lat: undefined as number | undefined,
+      lng: undefined as number | undefined,
+      radioKm: undefined as number | undefined
+    };
   }
 
   async guardarZona() {
@@ -442,10 +461,17 @@ export class ProductosComponent implements OnInit {
       return;
     }
     const referencias = this.formZona.referencias
-      .split(',')
-      .map((r) => r.trim())
-      .filter(Boolean);
-    const payload = { nombre, referencias, activa: this.formZona.activa };
+      .split(',').map(r => r.trim()).filter(Boolean);
+
+    const payload: Omit<ZonaCobertura, 'id'> = {
+      nombre,
+      referencias,
+      activa: this.formZona.activa,
+      ...(this.formZona.lat !== undefined && { lat: this.formZona.lat }),
+      ...(this.formZona.lng !== undefined && { lng: this.formZona.lng }),
+      ...(this.formZona.radioKm !== undefined && { radioKm: this.formZona.radioKm })
+    };
+
     if (this.zonaEditando?.id) {
       await this.coberturaSvc.updateZona(this.zonaEditando.id, payload);
     } else {
@@ -455,15 +481,116 @@ export class ProductosComponent implements OnInit {
     this.mostrarFormularioZona = false;
   }
 
+  iniciarMapaZona(): void {
+    setTimeout(() => {
+      if (!this.zonaMapContainer) return;
+      const el = this.zonaMapContainer.nativeElement;
+
+      // Limpia marcador y círculo anteriores siempre
+      if (this.zonaMarker) { this.zonaMarker.remove(); this.zonaMarker = undefined!; }
+      if (this.zonaCirculo) { this.zonaCirculo.remove(); this.zonaCirculo = undefined!; }
+
+      if ((el as any)._leaflet_id) {
+        // Mapa ya existe — solo reposiciona y re-registra el click
+        if (this.formZona.lat && this.formZona.lng) {
+          const latlng = L.latLng(this.formZona.lat, this.formZona.lng);
+          this.zonaMarker = L.marker(latlng, { icon: this.iconaLeaflet() }).addTo(this.zonaMap);
+          if (this.formZona.radioKm) {
+            this.zonaCirculo = L.circle(latlng, {
+              radius: this.formZona.radioKm * 1000,
+              color: '#1D9E75', fillColor: '#1D9E75', fillOpacity: 0.15
+            }).addTo(this.zonaMap);
+          }
+          this.zonaMap.setView(latlng, 14);
+        } else {
+          this.zonaMap.setView([-17.3895, -66.1568], 13);
+        }
+
+        // 👇 Quita listeners viejos y re-registra
+        this.zonaMap.off('click');
+        this.zonaMap.on('click', (e: L.LeafletMouseEvent) => this.onMapaZonaClick(e));
+        this.zonaMap.invalidateSize();
+        return;
+      }
+
+      // Primera vez — crea el mapa
+      this.zonaMap = L.map(el).setView([-17.3895, -66.1568], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap', maxZoom: 19
+      }).addTo(this.zonaMap);
+
+      if (this.formZona.lat && this.formZona.lng) {
+        const latlng = L.latLng(this.formZona.lat, this.formZona.lng);
+        this.zonaMarker = L.marker(latlng, { icon: this.iconaLeaflet() }).addTo(this.zonaMap);
+        if (this.formZona.radioKm) {
+          this.zonaCirculo = L.circle(latlng, {
+            radius: this.formZona.radioKm * 1000,
+            color: '#1D9E75', fillColor: '#1D9E75', fillOpacity: 0.15
+          }).addTo(this.zonaMap);
+        }
+        this.zonaMap.setView(latlng, 14);
+      }
+
+      this.zonaMap.on('click', (e: L.LeafletMouseEvent) => this.onMapaZonaClick(e));
+      setTimeout(() => this.zonaMap.invalidateSize(), 300);
+    }, 400);
+  }
+
+
+  private onMapaZonaClick(e: L.LeafletMouseEvent): void {
+    const { lat, lng } = e.latlng;
+    this.formZona.lat = lat;
+    this.formZona.lng = lng;
+
+    if (this.zonaMarker) {
+      this.zonaMarker.setLatLng(e.latlng);
+    } else {
+      this.zonaMarker = L.marker(e.latlng, { icon: this.iconaLeaflet() }).addTo(this.zonaMap);
+    }
+    this.actualizarCirculo();
+  }
+
+// 👇 Icono extraído para no repetirlo
+  private iconaLeaflet(): L.Icon {
+    return L.icon({
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [25, 41], iconAnchor: [12, 41]
+    });
+  }
+
+
+
+
+  actualizarCirculo(): void {
+    if (!this.zonaMap || !this.formZona.lat || !this.formZona.lng || !this.formZona.radioKm) return;
+    const latlng = L.latLng(this.formZona.lat, this.formZona.lng);
+    const radioMetros = this.formZona.radioKm * 1000;
+
+    if (this.zonaCirculo) {
+      this.zonaCirculo.setLatLng(latlng).setRadius(radioMetros);
+    } else {
+      this.zonaCirculo = L.circle(latlng, {
+        radius: radioMetros,
+        color: '#1D9E75', fillColor: '#1D9E75', fillOpacity: 0.15
+      }).addTo(this.zonaMap);
+    }
+  }
+
+
   editarZona(zona: ZonaCobertura) {
     this.zonaEditando = zona;
     this.formZona = {
       nombre: zona.nombre,
       referencias: (zona.referencias ?? []).join(', '),
       activa: zona.activa !== false,
+      lat: zona.lat,
+      lng: zona.lng,
+      radioKm: zona.radioKm
     };
     this.errorZona = '';
     this.mostrarFormularioZona = true;
+    this.iniciarMapaZona();
   }
 
   async cambiarEstadoZona(zona: ZonaCobertura, activa: boolean) {
@@ -479,7 +606,11 @@ export class ProductosComponent implements OnInit {
 
   toggleFormularioZona() {
     this.mostrarFormularioZona = !this.mostrarFormularioZona;
-    if (!this.mostrarFormularioZona) this.cancelarZona();
+    if (!this.mostrarFormularioZona) {
+      this.cancelarZona();
+    } else {
+      this.iniciarMapaZona(); // 👈
+    }
   }
 
   // ══════════════════════════════════════════════════════
