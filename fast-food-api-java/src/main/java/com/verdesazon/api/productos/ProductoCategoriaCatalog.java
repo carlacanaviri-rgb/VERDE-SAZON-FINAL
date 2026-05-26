@@ -19,7 +19,7 @@ public final class ProductoCategoriaCatalog {
             "Wraps",
             "Snacks",
             "Hamburguesas",
-            "Pizza");
+            "Pizza","Desayunos Fit");
 
     private static final Map<String, String> CATEGORIAS_POR_ALIAS = buildAliases();
 
