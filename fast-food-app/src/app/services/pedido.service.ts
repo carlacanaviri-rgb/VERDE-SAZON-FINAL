@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { getFirestore, collection, doc, onSnapshot } from 'firebase/firestore';
-import { Observable, firstValueFrom, timeout } from 'rxjs';
+import { Observable, firstValueFrom, timeout, retry } from 'rxjs';
 import {
   CrearPedidoRequest,
   CrearPedidoResponse,
@@ -13,7 +13,7 @@ import { environment } from '../../environments/environment';
 import { getFirebaseApp } from './firebase-app';
 
 const API = environment.apiUrl;
-const PEDIDO_TIMEOUT_MS = 15000;
+const PEDIDO_TIMEOUT_MS = 60_000;
 const FIRESTORE_SYNC_TIMEOUT_MS = 12000;
 
 export interface PedidoEstadoRealtime {
@@ -148,6 +148,9 @@ export class PedidoService {
   getPedidosPorCliente(clienteId: string): Observable<PedidoHistorialItem[]> {
     return this.http
       .get<PedidoHistorialItem[]>(`${API}/pedidos/cliente/${clienteId}`)
-      .pipe(timeout(PEDIDO_TIMEOUT_MS));
+      .pipe(
+        timeout(PEDIDO_TIMEOUT_MS),
+        retry({ count: 2, delay: 3000 }) // 2 reintentos con 3s de espera
+      );
   }
 }
