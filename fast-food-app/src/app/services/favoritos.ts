@@ -19,6 +19,7 @@ export interface FavoritoItem {
   descripcion: string;
   precio: number;
   categoria: string;
+  imagen?: string;
   savedAt: string;
 }
 
@@ -56,6 +57,7 @@ export class FavoritosService {
           descripcion: data.descripcion,
           precio: data.precio,
           categoria: data.categoria,
+          imagen: (data as any).imagen,
           savedAt: data.savedAt,
         });
       });
@@ -86,6 +88,7 @@ export class FavoritosService {
       descripcion: string;
       precio: number;
       categoria: string;
+      imagen?: string;
     },
   ): Promise<void> {
     const pid = producto.id ?? producto.nombre;
@@ -102,6 +105,7 @@ export class FavoritosService {
         descripcion: producto.descripcion,
         precio: producto.precio,
         categoria: producto.categoria,
+        ...(producto.imagen ? { imagen: producto.imagen } : {}),
         savedAt: new Date().toISOString(),
       });
     }

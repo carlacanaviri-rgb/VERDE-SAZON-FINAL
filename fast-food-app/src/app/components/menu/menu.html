@@ -84,8 +84,6 @@
   </header>
 
 
-  <!-- Banner de pedidos activos eliminado: ahora solo visible dentro del panel "Mis pedidos" -->
-
   <div *ngIf="mostrarCarrito" (click)="toggleCarrito()" style="position:fixed;inset:0;background:rgba(15,23,42,0.35);z-index:150"></div>
   <aside *ngIf="mostrarCarrito" style="position:fixed;top:0;right:0;width:min(420px,92vw);height:100vh;background:white;box-shadow:-12px 0 32px rgba(15,23,42,0.18);z-index:160;display:flex;flex-direction:column">
     <div style="padding:24px 24px 18px;border-bottom:1px solid #eef2f7;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
@@ -265,8 +263,19 @@
              style="background:white;border-radius:12px;border:1px solid #e5e5e5;overflow:hidden;transition:transform 0.2s"
              onmouseover="this.style.transform='translateY(-4px)'"
              onmouseout="this.style.transform='translateY(0)'">
-          <div [style]="'height:180px;display:flex;align-items:center;justify-content:center;font-size:64px;background:' + getColorCategoria(p.categoria)">
-            {{ getEmojiCategoria(p.categoria) }}
+          <!-- Imagen del producto con fallback a emoji -->
+          <div style="height:200px;position:relative;overflow:hidden"
+               [style.background]="getColorCategoria(p.categoria)">
+            <img *ngIf="p.imagen"
+                 [src]="p.imagen"
+                 [alt]="p.nombre"
+                 style="width:100%;height:100%;object-fit:cover;display:block"
+                 (error)="$any($event.target).style.display='none'; $any($event.target).nextElementSibling.style.display='flex'">
+            <!-- Fallback emoji (visible si no hay imagen o si la imagen falla) -->
+            <div [style]="'width:100%;height:100%;display:' + (p.imagen ? 'none' : 'flex') + ';align-items:center;justify-content:center;font-size:64px;position:absolute;top:0;left:0'"
+                 [attr.data-fallback]="true">
+              {{ getEmojiCategoria(p.categoria) }}
+            </div>
           </div>
           <div style="padding:16px">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
@@ -499,8 +508,17 @@
 
           <!-- Imagen / Emoji con corazón superpuesto -->
           <div style="position:relative">
-            <div [style]="'height:220px;display:flex;align-items:center;justify-content:center;font-size:88px;background:' + getColorCategoria(fav.categoria)">
-              {{ getEmojiCategoria(fav.categoria) }}
+            <!-- Imagen del favorito con fallback a emoji -->
+            <div style="height:220px;position:relative;overflow:hidden"
+                 [style.background]="getColorCategoria(fav.categoria)">
+              <img *ngIf="fav.imagen"
+                   [src]="fav.imagen"
+                   [alt]="fav.nombre"
+                   style="width:100%;height:100%;object-fit:cover;display:block"
+                   (error)="$any($event.target).style.display='none'; $any($event.target).nextElementSibling.style.display='flex'">
+              <div [style]="'width:100%;height:100%;display:' + (fav.imagen ? 'none' : 'flex') + ';align-items:center;justify-content:center;font-size:88px;position:absolute;top:0;left:0'">
+                {{ getEmojiCategoria(fav.categoria) }}
+              </div>
             </div>
 
             <!-- Botón corazón superpuesto (esquina superior derecha) -->
