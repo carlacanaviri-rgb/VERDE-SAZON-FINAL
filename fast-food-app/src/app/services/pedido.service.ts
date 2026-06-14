@@ -1,8 +1,17 @@
 import { Injectable } from '@angular/core';
 import { inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { getFirestore, collection, doc, onSnapshot } from 'firebase/firestore';
-import { Observable, firstValueFrom, timeout, retry } from 'rxjs';
+import {
+  getFirestore,
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  where,
+  orderBy,
+  getDocs,
+} from 'firebase/firestore';
+import { Observable, firstValueFrom, timeout, retry, from } from 'rxjs';
 import {
   CrearPedidoRequest,
   CrearPedidoResponse,
@@ -146,11 +155,40 @@ export class PedidoService {
   }
 
   getPedidosPorCliente(clienteId: string): Observable<PedidoHistorialItem[]> {
-    return this.http
-      .get<PedidoHistorialItem[]>(`${API}/pedidos/cliente/${clienteId}`)
-      .pipe(
-        timeout(PEDIDO_TIMEOUT_MS),
-        retry({ count: 2, delay: 3000 }) // 2 reintentos con 3s de espera
-      );
+    return this.http.get<PedidoHistorialItem[]>(`${API}/pedidos/cliente/${clienteId}`).pipe(
+      timeout(PEDIDO_TIMEOUT_MS),
+      retry({ count: 2, delay: 3000 }), // 2 reintentos con 3s de espera
+    );
+  }
+
+  /**
+   * Obtiene el historial de pedidos del cliente directamente desde Firestore.
+   * Sin orderBy para evitar requerir índice compuesto — se ordena en el cliente.
+   */
+  getPedidosPorClienteFirestore(clienteId: string): Observable<PedidoHistorialItem[]> {
+    return from(
+      (async (): Promise<PedidoHistorialItem[]> => {
+        const db = getFirestore(getFirebaseApp());
+        const ref = collection(db, 'pedidos');
+        // Solo where, sin orderBy → no necesita índice compuesto
+        const q = query(ref, where('clienteId', '==', clienteId));
+        console.log('[PedidoService] Consultando pedidos de clienteId:', clienteId);
+        const snapshot = await getDocs(q);
+        console.log('[PedidoService] Pedidos encontrados:', snapshot.docs.length);
+        const pedidos = snapshot.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            numero: data['numero'] ?? '',
+            estado: data['estado'] ?? 'pendiente',
+            hora: data['hora'] ?? '',
+            total: data['total'] ?? 0,
+            creadoEn: data['creadoEn'] ?? '',
+          } as PedidoHistorialItem;
+        });
+        // Ordenar por fecha descendente en el cliente
+        return pedidos.sort((a, b) => (b.creadoEn ?? '').localeCompare(a.creadoEn ?? ''));
+      })(),
+    );
   }
 }

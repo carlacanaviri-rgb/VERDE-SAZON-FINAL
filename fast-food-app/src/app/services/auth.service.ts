@@ -47,15 +47,24 @@ export class AuthService {
     });
   }
 
-  private async obtenerRol(uid: string): Promise<string> {
-    try {
-      const snap = await getDoc(doc(db, 'usuarios', uid));
-      if (snap.exists()) return snap.data()['rol'];
-      return 'cliente';
-    } catch (e) {
-      console.error('Error obteniendo rol:', e);
-      return 'cliente';
+  private async obtenerRol(uid: string, intentos = 3): Promise<string> {
+    for (let i = 0; i < intentos; i++) {
+      try {
+        const snap = await getDoc(doc(db, 'usuarios', uid));
+        if (snap.exists()) return snap.data()['rol'];
+        return 'cliente';
+      } catch (e: any) {
+        const esPermisos = e?.code === 'permission-denied';
+        if (esPermisos && i < intentos - 1) {
+          // Espera un poco y reintenta — el token de Auth puede no haberse propagado aún
+          await new Promise((r) => setTimeout(r, 800 * (i + 1)));
+          continue;
+        }
+        console.error('Error obteniendo rol:', e);
+        return 'cliente';
+      }
     }
+    return 'cliente';
   }
 
   async login(email: string, password: string) {

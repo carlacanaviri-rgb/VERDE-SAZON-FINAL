@@ -530,18 +530,21 @@ export class MenuComponent implements OnInit, OnDestroy {
   cargarHistorialPedidos(clienteId: string): void {
     this.cargandoHistorial = true;
     this.errorHistorial = '';
-    this.pedidoSvc.getPedidosPorCliente(clienteId).subscribe({
+    this.pedidoSvc.getPedidosPorClienteFirestore(clienteId).subscribe({
       next: (pedidos) => {
         this.historialPedidos = pedidos.slice(0, 5);
         this.cargandoHistorial = false;
+        this.cdr.detectChanges();
       },
-      error: () => {
+      error: (err) => {
+        console.error('[Menu] Error cargando historial de pedidos:', err);
         this.errorHistorial = this.t(
           'MENU_CART.ERROR_HISTORY',
           undefined,
           'No se pudo cargar tu historial de pedidos.',
         );
         this.cargandoHistorial = false;
+        this.cdr.detectChanges();
       },
     });
   }
