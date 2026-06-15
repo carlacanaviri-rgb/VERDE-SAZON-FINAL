@@ -77,6 +77,7 @@ export class MenuComponent implements OnInit, OnDestroy {
   errorCobertura = '';
   mostrarMisPedidos = false;
   mostrarFavoritos = false;
+  mostrarOfertas = false;
   favoritosIds: Set<string> = new Set();
   favoritosItems: FavoritoItem[] = [];
 
@@ -123,6 +124,30 @@ export class MenuComponent implements OnInit, OnDestroy {
   /** Si hay al menos un pedido en curso */
   get hayPedidoActivo(): boolean {
     return this.pedidosActivosVisibles.length > 0;
+  }
+
+  get productosEnOferta(): Producto[] {
+    return this.productos.filter((p) => p.disponible && p.enPromocion && p.precioPromocion != null);
+  }
+
+  calcularDescuento(p: Producto): number {
+    if (!p.precioPromocion || !p.precio) return 0;
+    return Math.round(((p.precio - p.precioPromocion) / p.precio) * 100);
+  }
+
+  toggleOfertas(): void {
+    this.mostrarOfertas = !this.mostrarOfertas;
+    this.mostrarCarrito = false;
+    this.mostrarMisPedidos = false;
+    this.mostrarFavoritos = false;
+  }
+
+  agregarOfertaAlCarrito(p: Producto): void {
+    const productoConPrecioPromo = { ...p, precio: p.precioPromocion ?? p.precio };
+    this.cartSvc.addProducto(productoConPrecioPromo as any);
+    this.mensajeCarrito = `${p.nombre} (oferta) agregado al carrito`;
+    this.mostrarOfertas = false;
+    this.mostrarCarrito = true;
   }
 
   esEntregado(estado: string): boolean {

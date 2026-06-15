@@ -9,4 +9,6 @@ export interface Producto {
   ingredientes?: string[];
   calorias?: number;
   etiquetas?: string[];
+  enPromocion?: boolean;
+  precioPromocion?: number;
 }

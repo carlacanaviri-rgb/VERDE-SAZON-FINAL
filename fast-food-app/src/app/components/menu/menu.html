@@ -300,8 +300,20 @@
               {{ p.descripcion }}
             </p>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <span style="font-size:20px;font-weight:700;color:#1D9E75">{{ p.precio | bolivianos }}</span>
-              <span style="font-size:12px;background:#f0f7f0;color:#0F6E56;padding:4px 10px;border-radius:6px">{{ p.categoria }}</span>
+              <div style="display:flex;align-items:baseline;gap:8px">
+                <span style="font-size:20px;font-weight:700;color:#1D9E75">
+                  {{ p.enPromocion && p.precioPromocion ? (p.precioPromocion | bolivianos) : (p.precio | bolivianos) }}
+                </span>
+                <span *ngIf="p.enPromocion && p.precioPromocion"
+                      style="font-size:13px;color:#aaa;text-decoration:line-through">{{ p.precio | bolivianos }}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span *ngIf="p.enPromocion && p.precioPromocion"
+                      style="font-size:10px;font-weight:700;background:#fef2f2;color:#dc2626;padding:2px 7px;border-radius:20px">
+                  -{{ calcularDescuento(p) }}%
+                </span>
+                <span style="font-size:12px;background:#f0f7f0;color:#0F6E56;padding:4px 10px;border-radius:6px">{{ p.categoria }}</span>
+              </div>
             </div>
             <button type="button" (click)="agregarAlCarrito(p)" style="width:100%;padding:10px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">
               {{ 'MENU_PAGE.AGREGAR' | translate }}
@@ -320,15 +332,89 @@
       <h2 style="margin:0 0 20px;font-size:20px;font-weight:700;color:#111">{{ 'MENU_PAGE.OFERTAS' | translate }}</h2>
       <div style="background:linear-gradient(135deg,#1D9E75,#0F6E56);border-radius:16px;padding:32px;color:white;display:flex;align-items:center;justify-content:space-between">
         <div>
-          <h3 style="margin:0 0 8px;font-size:22px;font-weight:700">2x1 en hamburguesas</h3>
-          <p style="margin:0 0 20px;opacity:0.9;font-size:14px">Todos los miércoles • Válido hasta agotar existencias</p>
-          <button style="background:white;color:#1D9E75;border:none;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer">
-            Ver oferta
+          <h3 style="margin:0 0 8px;font-size:22px;font-weight:700">
+            {{ productosEnOferta.length > 0 ? productosEnOferta.length + ' platos en promoción' : 'Ofertas especiales' }}
+          </h3>
+          <p style="margin:0 0 20px;opacity:0.9;font-size:14px">
+            {{ productosEnOferta.length > 0 ? 'Precios reducidos por tiempo limitado' : 'Próximamente nuevas ofertas' }}
+          </p>
+          <button (click)="toggleOfertas()"
+                  [disabled]="productosEnOferta.length === 0"
+                  style="background:white;color:#1D9E75;border:none;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;opacity:1"
+                  [style.opacity]="productosEnOferta.length === 0 ? '0.5' : '1'"
+                  [style.cursor]="productosEnOferta.length === 0 ? 'not-allowed' : 'pointer'">
+            {{ productosEnOferta.length > 0 ? 'Ver ofertas (' + productosEnOferta.length + ')' : 'Sin ofertas activas' }}
           </button>
         </div>
-        <div style="font-size:80px">🍔</div>
+        <div style="font-size:80px">🏷️</div>
       </div>
     </section>
+
+    <!-- OVERLAY ofertas -->
+    <div *ngIf="mostrarOfertas" (click)="mostrarOfertas=false"
+         style="position:fixed;inset:0;background:rgba(15,23,42,0.35);z-index:150"></div>
+
+    <!-- PANEL OFERTAS -->
+    <aside *ngIf="mostrarOfertas"
+           style="position:fixed;top:0;right:0;width:min(480px,95vw);height:100vh;background:white;
+              box-shadow:-12px 0 32px rgba(15,23,42,0.18);z-index:160;display:flex;flex-direction:column;overflow:hidden">
+
+      <!-- Header -->
+      <div style="padding:24px 24px 18px;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:space-between;
+                  background:linear-gradient(135deg,#1D9E75,#0F6E56)">
+        <div>
+          <h2 style="margin:0;font-size:20px;font-weight:700;color:white">🏷️ Ofertas especiales</h2>
+          <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8)">{{ productosEnOferta.length }} platos en promoción</p>
+        </div>
+        <button (click)="mostrarOfertas=false"
+                style="width:36px;height:36px;border:none;border-radius:10px;background:rgba(255,255,255,0.2);color:white;font-size:18px;cursor:pointer">×</button>
+      </div>
+
+      <!-- Lista de ofertas -->
+      <div style="flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px">
+        <div *ngFor="let p of productosEnOferta"
+             style="background:white;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+
+          <!-- Imagen -->
+          <div style="position:relative">
+            <img *ngIf="p.imagen" [src]="p.imagen" [alt]="p.nombre"
+                 style="width:100%;height:160px;object-fit:cover;display:block">
+            <div *ngIf="!p.imagen"
+                 style="width:100%;height:120px;background:#f0faf5;display:flex;align-items:center;justify-content:center;font-size:48px">🍽️</div>
+            <!-- Badge descuento -->
+            <div style="position:absolute;top:10px;left:10px;background:#dc2626;color:white;
+                        font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px">
+              -{{ calcularDescuento(p) }}%
+            </div>
+            <div style="position:absolute;top:10px;right:10px;background:#fef3c7;color:#b45309;
+                        font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px">
+              {{ p.categoria }}
+            </div>
+          </div>
+
+          <!-- Info -->
+          <div style="padding:14px 16px">
+            <h3 style="margin:0 0 4px;font-size:16px;font-weight:700;color:#111">{{ p.nombre }}</h3>
+            <p style="margin:0 0 12px;font-size:13px;color:#666;line-height:1.4">{{ p.descripcion }}</p>
+
+            <!-- Precios -->
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+              <span style="font-size:22px;font-weight:800;color:#1D9E75">Bs {{ p.precioPromocion }}</span>
+              <span style="font-size:15px;color:#aaa;text-decoration:line-through">Bs {{ p.precio }}</span>
+              <span style="background:#fef2f2;color:#dc2626;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px">
+                Ahorras Bs {{ p.precio - p.precioPromocion! }}
+              </span>
+            </div>
+
+            <button (click)="agregarOfertaAlCarrito(p)"
+                    style="width:100%;padding:11px;background:#1D9E75;color:white;border:none;border-radius:10px;
+                           font-size:14px;font-weight:600;cursor:pointer">
+              🛒 Agregar al carrito — Bs {{ p.precioPromocion }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
     <!-- OVERLAY mis pedidos -->
     <div *ngIf="mostrarMisPedidos" (click)="mostrarMisPedidos=false"
          style="position:fixed;inset:0;background:rgba(15,23,42,0.35);z-index:150"></div>

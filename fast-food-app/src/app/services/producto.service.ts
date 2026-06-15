@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Producto } from '../models/producto.model';
 import { environment } from '../../environments/environment';
+import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
+import { getFirebaseApp } from './firebase-app';
 
 const API = environment.apiUrl;
 
@@ -15,7 +17,30 @@ export class ProductoService {
   }
 
   getProductos(): Observable<Producto[]> {
-    return this.http.get<Producto[]>(`${API}/productos`);
+    return new Observable((observer) => {
+      const db = getFirestore(getFirebaseApp());
+      const ref = collection(db, 'productos');
+      const unsub = onSnapshot(
+        ref,
+        (snapshot) => {
+          const productos = snapshot.docs.map((d) => ({
+            id: d.id,
+            ...d.data(),
+          })) as Producto[];
+          observer.next(productos);
+        },
+        (error) => {
+          console.error('Error leyendo productos desde Firestore:', error);
+          // Fallback al backend HTTP si Firestore falla
+          this.http.get<Producto[]>(`${API}/productos`).subscribe({
+            next: (data) => observer.next(data),
+            error: (e) => observer.error(e),
+          });
+        },
+      );
+      // Devuelve función de limpieza para cuando se haga unsubscribe
+      return () => unsub();
+    });
   }
 
   addProducto(p: Producto): Promise<any> {
@@ -25,7 +50,9 @@ export class ProductoService {
       precio: Number(p.precio),
       categoria: p.categoria,
       disponible: p.disponible ?? true,
+      enPromocion: p.enPromocion ?? false,
     };
+    if (p.precioPromocion != null) payload['precioPromocion'] = Number(p.precioPromocion);
     if (p.imagen?.trim()) payload['imagen'] = p.imagen.trim();
     if (p.ingredientes && p.ingredientes.length > 0) payload['ingredientes'] = p.ingredientes;
     if (p.etiquetas && p.etiquetas.length > 0) payload['etiquetas'] = p.etiquetas;
