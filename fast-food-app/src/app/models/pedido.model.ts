@@ -20,6 +20,7 @@ export interface Pedido {
   tiempoEstimado?: number;
   items: ItemPedido[];
   total?: number;
+  clienteId?: string;
   clienteNombre?: string;
   clienteEmail?: string;
   direccionEntrega?: string;

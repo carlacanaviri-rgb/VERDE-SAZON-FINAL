@@ -67,11 +67,13 @@
         <div class="card-body">
           <div class="info-col">
             <div class="info-label">
-              <span class="info-icon">📍</span>
+              <span class="info-icon">👤</span>
               <span>Cliente</span>
             </div>
-            <p class="info-name">{{ pedido.clienteNombre || 'Cliente' }}</p>
-            <p class="info-address">{{ pedido.direccionEntrega || pedido.zonaCobertura || '—' }}</p>
+            <p class="info-name">{{ pedido.clienteNombre || 'Sin nombre' }}</p>
+            <p style="margin:0 0 4px;font-size:12px;color:#64748b">✉ {{ pedido.clienteEmail || '—' }}</p>
+            <p style="margin:0 0 6px;font-size:10px;color:#94a3b8;font-family:monospace">ID: {{ pedido.clienteId || '—' }}</p>
+            <p class="info-address">📍 {{ pedido.direccionEntrega || pedido.zonaCobertura || '—' }}</p>
             <p *ngIf="pedido.referenciaEntrega" class="info-ref">Ref: {{ pedido.referenciaEntrega }}</p>
           </div>
 
@@ -116,7 +118,9 @@
         <div class="completado-row">
           <div class="completado-info">
             <span class="pedido-numero">Pedido #{{ pedido.numero }}</span>
-            <span class="completado-cliente">{{ pedido.clienteNombre || 'Cliente' }}</span>
+            <span class="completado-cliente">{{ pedido.clienteNombre || 'Sin nombre' }}</span>
+            <span style="font-size:11px;color:#64748b">✉ {{ pedido.clienteEmail || '—' }}</span>
+            <span style="font-size:10px;color:#94a3b8;font-family:monospace">ID: {{ pedido.clienteId || '—' }}</span>
             <span class="completado-detalle">{{ getItemsResumen(pedido) }} · {{ pedido.total | bolivianos }} · 🕐 {{ pedido.hora }}</span>
           </div>
           <span class="completado-check">✅</span>
