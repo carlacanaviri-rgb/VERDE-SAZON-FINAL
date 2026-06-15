@@ -147,7 +147,10 @@ export class MenuComponent implements OnInit, OnDestroy {
     this.cartSvc.addProducto(productoConPrecioPromo as any);
     this.mensajeCarrito = `${p.nombre} (oferta) agregado al carrito`;
     this.mostrarOfertas = false;
-    this.mostrarCarrito = true;
+    this.carritoAnimado = true;
+    setTimeout(() => {
+      this.carritoAnimado = false;
+    }, 600);
   }
 
   esEntregado(estado: string): boolean {
@@ -312,6 +315,8 @@ export class MenuComponent implements OnInit, OnDestroy {
   }
   // ───────────────────────────────────────────────────────────────────────────
 
+  carritoAnimado = false;
+
   agregarAlCarrito(producto: Producto): void {
     this.cartSvc.addProducto(producto);
     this.mensajeCarrito = this.t(
@@ -321,7 +326,11 @@ export class MenuComponent implements OnInit, OnDestroy {
     );
     this.errorPedido = '';
     this.exitoPedido = '';
-    this.mostrarCarrito = true;
+    // Animar el ícono del carrito sin abrir el panel
+    this.carritoAnimado = true;
+    setTimeout(() => {
+      this.carritoAnimado = false;
+    }, 600);
   }
 
   toggleCarrito(): void {
@@ -624,7 +633,10 @@ export class MenuComponent implements OnInit, OnDestroy {
     this.cartSvc.addProducto(prod as any);
     this.mensajeCarrito = `${fav.nombre} agregado al carrito`;
     this.mostrarFavoritos = false;
-    this.mostrarCarrito = true;
+    this.carritoAnimado = true;
+    setTimeout(() => {
+      this.carritoAnimado = false;
+    }, 600);
   }
 
   irASeccion(id: string): void {
