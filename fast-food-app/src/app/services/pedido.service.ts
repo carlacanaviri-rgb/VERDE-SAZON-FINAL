@@ -52,13 +52,55 @@ export class PedidoService {
     return new Observable((observer) => {
       const db = getFirestore(getFirebaseApp());
       const ref = collection(db, 'pedidos');
+
+      // Cache de nombres para no releer usuarios en cada snapshot
+      const nombresCache = new Map<string, string>();
+
+      const enricher = async (pedidos: Pedido[]): Promise<Pedido[]> => {
+        const idsSinNombre = [
+          ...new Set(
+            pedidos
+              .map((p) => (p as any).clienteId as string | undefined)
+              .filter((id): id is string => !!id && !nombresCache.has(id)),
+          ),
+        ];
+
+        await Promise.all(
+          idsSinNombre.map(async (uid) => {
+            try {
+              const { getDoc, doc: firestoreDoc } = await import('firebase/firestore');
+              const snap = await getDoc(firestoreDoc(db, 'usuarios', uid));
+              if (snap.exists()) {
+                const data = snap.data() as any;
+                nombresCache.set(uid, data['nombre'] ?? data['clienteNombre'] ?? uid);
+              } else {
+                nombresCache.set(uid, uid);
+              }
+            } catch {
+              nombresCache.set(uid, uid);
+            }
+          }),
+        );
+
+        return pedidos.map((p) => {
+          const cid = (p as any).clienteId as string | undefined;
+          if (cid && nombresCache.has(cid)) {
+            return {
+              ...p,
+              clienteId: cid,
+              clienteNombre: nombresCache.get(cid) ?? p.clienteNombre,
+            };
+          }
+          return p;
+        });
+      };
+
       return onSnapshot(
         ref,
-        (snapshot) => {
-          console.log('Pedidos encontrados:', snapshot.docs.length);
+        async (snapshot) => {
           const pedidos = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Pedido);
-          console.log('Pedidos:', pedidos);
-          observer.next(pedidos);
+          const enriched = await enricher(pedidos);
+          observer.next(enriched);
         },
         (error) => {
           console.error('Error leyendo pedidos:', error);
