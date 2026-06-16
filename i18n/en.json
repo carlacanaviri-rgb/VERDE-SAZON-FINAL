@@ -143,7 +143,8 @@
     "PERFIL": "Profile",
     "FAVORITOS": "Favorites",
     "HISTORIAL": "History",
-    "SUSCRIPCIONES": "Subscriptions"
+    "SUSCRIPCIONES": "Subscriptions",
+    "PERFIL_NUTRICIONAL": "Nutritional Profile"
   },
   "LANDING": {
     "SUBTITULO": "Healthy, fast and personalized food for busy professionals",
@@ -312,5 +313,32 @@
       "USUARIOS": "Users",
       "REPORTES": "Reports"
     }
+  },
+  "PERFIL_NUTRICIONAL": {
+    "TITULO": "Your Nutritional Profile",
+    "SUBTITULO": "Customize your dietary recommendations",
+    "PASO_DIETA": "Diet",
+    "PASO_RESTRICCIONES": "Restrictions",
+    "PASO_DATOS": "Physical data",
+    "TIPO_DIETA": "Diet type",
+    "OBJETIVO": "Nutritional goal",
+    "RESTRICCIONES": "Dietary restrictions",
+    "ALERGIAS": "Food allergies",
+    "PESO": "Weight (kg)",
+    "ALTURA": "Height (cm)",
+    "EDAD": "Age",
+    "RESUMEN": "Profile summary",
+    "GUARDAR": "Save profile",
+    "GUARDANDO": "Saving...",
+    "GUARDADO_OK": "Profile saved!",
+    "GUARDADO_MSG": "Your nutritional preferences are ready.",
+    "ERROR_GUARDAR": "Could not save profile. Please try again.",
+    "SIGUIENTE": "Next →",
+    "ANTERIOR": "← Back",
+    "VOLVER": "← Back to menu",
+    "ALERTA_ALERGIAS": "We will automatically filter dishes containing:",
+    "CARGANDO": "Loading your profile...",
+    "COMPLETADO_BADGE": "✓ Complete",
+    "PENDIENTE_BADGE": "Pending"
   }
 }
