@@ -143,7 +143,8 @@
     "PERFIL": "Perfil",
     "FAVORITOS": "Favoritos",
     "HISTORIAL": "Historial",
-    "SUSCRIPCIONES": "Suscripciones"
+    "SUSCRIPCIONES": "Suscripciones",
+    "PERFIL_NUTRICIONAL": "Perfil Nutricional"
   },
   "LANDING": {
     "SUBTITULO": "Comida saludable, rápida y personalizada para profesionales ocupados",
@@ -312,5 +313,32 @@
       "USUARIOS": "Usuarios",
       "REPORTES": "Reportes"
     }
+  },
+  "PERFIL_NUTRICIONAL": {
+    "TITULO": "Tu Perfil Nutricional",
+    "SUBTITULO": "Personaliza tus recomendaciones alimenticias",
+    "PASO_DIETA": "Dieta",
+    "PASO_RESTRICCIONES": "Restricciones",
+    "PASO_DATOS": "Datos físicos",
+    "TIPO_DIETA": "Tipo de dieta",
+    "OBJETIVO": "Objetivo nutricional",
+    "RESTRICCIONES": "Restricciones dietéticas",
+    "ALERGIAS": "Alergias alimentarias",
+    "PESO": "Peso (kg)",
+    "ALTURA": "Altura (cm)",
+    "EDAD": "Edad",
+    "RESUMEN": "Resumen de tu perfil",
+    "GUARDAR": "Guardar perfil",
+    "GUARDANDO": "Guardando...",
+    "GUARDADO_OK": "¡Perfil guardado!",
+    "GUARDADO_MSG": "Tus preferencias nutricionales están listas.",
+    "ERROR_GUARDAR": "No se pudo guardar el perfil. Intenta de nuevo.",
+    "SIGUIENTE": "Siguiente →",
+    "ANTERIOR": "← Anterior",
+    "VOLVER": "← Volver al menú",
+    "ALERTA_ALERGIAS": "Filtraremos automáticamente los platos que contengan:",
+    "CARGANDO": "Cargando tu perfil...",
+    "COMPLETADO_BADGE": "✓ Listo",
+    "PENDIENTE_BADGE": "Pendiente"
   }
 }

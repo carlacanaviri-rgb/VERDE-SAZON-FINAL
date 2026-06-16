@@ -1,0 +1,268 @@
+<div style="min-height:100vh;background:#f8faf9;display:flex;flex-direction:column">
+
+  <!-- NAVBAR -->
+  <nav style="background:white;border-bottom:1px solid #e5e5e5;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:32px;height:32px;background:#1D9E75;border-radius:50%;display:flex;align-items:center;justify-content:center">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M7 13l3 3 7-7"/></svg>
+      </div>
+      <span style="font-weight:700;font-size:16px;color:#111">Perfil Nutricional</span>
+    </div>
+    <button (click)="volver()" style="background:none;border:1px solid #ddd;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer;color:#555">
+      ← Volver al menú
+    </button>
+  </nav>
+
+  <!-- LOADING -->
+  <div *ngIf="cargando" style="flex:1;display:flex;align-items:center;justify-content:center">
+    <div style="text-align:center">
+      <div style="width:40px;height:40px;border:3px solid #e5e5e5;border-top-color:#1D9E75;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px"></div>
+      <p style="color:#888;font-size:14px">Cargando tu perfil...</p>
+    </div>
+  </div>
+
+  <!-- ÉXITO -->
+  <div *ngIf="guardadoOk" style="flex:1;display:flex;align-items:center;justify-content:center">
+    <div style="text-align:center;padding:32px">
+      <div style="width:72px;height:72px;background:#ecfdf5;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:36px">✅</div>
+      <h2 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#111">¡Perfil guardado!</h2>
+      <p style="margin:0;color:#666;font-size:15px">Tus preferencias nutricionales están listas.<br>Redirigiendo al menú...</p>
+    </div>
+  </div>
+
+  <!-- FORMULARIO WIZARD -->
+  <div *ngIf="!cargando && !guardadoOk" style="flex:1;display:flex;justify-content:center;padding:32px 16px">
+    <div style="width:100%;max-width:600px">
+
+      <!-- HEADER -->
+      <div style="text-align:center;margin-bottom:32px">
+        <div style="font-size:48px;margin-bottom:12px">🥗</div>
+        <h1 style="margin:0 0 6px;font-size:26px;font-weight:800;color:#111">Tu Perfil Nutricional</h1>
+        <p style="margin:0;color:#666;font-size:15px">Hola <strong>{{ nombreUsuario }}</strong>, cuéntanos sobre tus preferencias alimenticias para darte recomendaciones personalizadas.</p>
+      </div>
+
+      <!-- BARRA DE PROGRESO -->
+      <div style="margin-bottom:28px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:12px;font-weight:600;color:#1D9E75">Paso {{ paso }} de {{ totalPasos }}</span>
+          <span style="font-size:12px;color:#888">{{ progreso | number:'1.0-0' }}% completado</span>
+        </div>
+        <div style="height:6px;background:#e5e5e5;border-radius:10px;overflow:hidden">
+          <div [style.width]="progreso + '%'" style="height:100%;background:linear-gradient(90deg,#1D9E75,#0F6E56);border-radius:10px;transition:width 0.4s ease"></div>
+        </div>
+        <!-- Indicadores de paso -->
+        <div style="display:flex;justify-content:space-between;margin-top:10px">
+          <div *ngFor="let p of [1,2,3]; let i = index"
+               style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div [style]="'width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;transition:all 0.3s;' +
+              (paso > p ? 'background:#1D9E75;color:white;' :
+               paso === p ? 'background:#1D9E75;color:white;box-shadow:0 0 0 4px #d1fae5;' :
+               'background:#e5e5e5;color:#999;')">
+              {{ paso > p ? '✓' : p }}
+            </div>
+            <span style="font-size:10px;color:#888;text-align:center">
+              {{ p === 1 ? 'Dieta' : p === 2 ? 'Restricciones' : 'Datos físicos' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TARJETA PRINCIPAL -->
+      <div style="background:white;border-radius:20px;border:1px solid #e5e5e5;padding:32px;box-shadow:0 2px 16px rgba(0,0,0,0.06)">
+
+        <!-- PASO 1: Tipo de dieta y objetivo -->
+        <div *ngIf="paso === 1">
+          <h2 style="margin:0 0 6px;font-size:20px;font-weight:700;color:#111">🥦 Preferencias alimenticias</h2>
+          <p style="margin:0 0 24px;font-size:14px;color:#666">Selecciona tu tipo de dieta y objetivo principal.</p>
+
+          <!-- Tipo de dieta -->
+          <div style="margin-bottom:28px">
+            <label style="display:block;font-size:14px;font-weight:600;color:#333;margin-bottom:12px">Tipo de dieta</label>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+              <button *ngFor="let d of tiposDieta" (click)="perfil.tipoDieta = d" type="button"
+                      [style]="'padding:12px 16px;border-radius:12px;border:2px solid;font-size:13px;font-weight:500;cursor:pointer;text-align:left;transition:all 0.2s;' +
+                        (perfil.tipoDieta === d ?
+                          'border-color:#1D9E75;background:#ecfdf5;color:#0F6E56;' :
+                          'border-color:#e5e5e5;background:white;color:#444;')">
+                {{ d === 'Sin restricción' ? '🍽️' :
+                d === 'Vegetariana' ? '🥕' :
+                  d === 'Vegana' ? '🌱' :
+                    d === 'Keto' ? '🥑' :
+                      d === 'Alta en proteína' ? '💪' : '🍬' }} {{ d }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Objetivo nutricional -->
+          <div>
+            <label style="display:block;font-size:14px;font-weight:600;color:#333;margin-bottom:12px">Objetivo nutricional</label>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button *ngFor="let o of objetivos" (click)="perfil.objetivoNutricional = o" type="button"
+                      [style]="'padding:12px 16px;border-radius:12px;border:2px solid;font-size:13px;font-weight:500;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;transition:all 0.2s;' +
+                        (perfil.objetivoNutricional === o ?
+                          'border-color:#1D9E75;background:#ecfdf5;color:#0F6E56;' :
+                          'border-color:#e5e5e5;background:white;color:#444;')">
+                <span>{{ o === 'Alimentación saludable' ? '🌿' :
+                  o === 'Perder peso' ? '⚖️' :
+                    o === 'Mantener peso' ? '🎯' :
+                      o === 'Ganar masa muscular' ? '🏋️' : '⚡' }}</span>
+                <span>{{ o }}</span>
+                <span *ngIf="perfil.objetivoNutricional === o" style="margin-left:auto">✓</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PASO 2: Restricciones y alergias -->
+        <div *ngIf="paso === 2">
+          <h2 style="margin:0 0 6px;font-size:20px;font-weight:700;color:#111">⚠️ Restricciones y alergias</h2>
+          <p style="margin:0 0 24px;font-size:14px;color:#666">Marca todo lo que aplique. Esto nos ayuda a filtrarte los platos seguros para ti.</p>
+
+          <!-- Restricciones dietéticas -->
+          <div style="margin-bottom:28px">
+            <label style="display:block;font-size:14px;font-weight:600;color:#333;margin-bottom:12px">
+              Restricciones dietéticas
+              <span *ngIf="perfil.restriccionesDieteticas.length > 0"
+                    style="margin-left:8px;background:#1D9E75;color:white;font-size:11px;padding:2px 7px;border-radius:20px">
+                {{ perfil.restriccionesDieteticas.length }}
+              </span>
+            </label>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+              <button *ngFor="let r of restriccionesOpciones" (click)="toggleRestriccion(r)" type="button"
+                      [style]="'padding:10px 14px;border-radius:10px;border:2px solid;font-size:13px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;transition:all 0.2s;' +
+                        (tieneRestriccion(r) ?
+                          'border-color:#1D9E75;background:#ecfdf5;color:#0F6E56;font-weight:600;' :
+                          'border-color:#e5e5e5;background:white;color:#555;')">
+                <span style="width:16px;height:16px;border-radius:4px;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;"
+                      [style.border-color]="tieneRestriccion(r) ? '#1D9E75' : '#ccc'"
+                      [style.background]="tieneRestriccion(r) ? '#1D9E75' : 'white'"
+                      [style.color]="tieneRestriccion(r) ? 'white' : ''">
+                  {{ tieneRestriccion(r) ? '✓' : '' }}
+                </span>
+                {{ r }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Alergias -->
+          <div>
+            <label style="display:block;font-size:14px;font-weight:600;color:#333;margin-bottom:12px">
+              Alergias alimentarias
+              <span *ngIf="perfil.alergias.length > 0"
+                    style="margin-left:8px;background:#dc2626;color:white;font-size:11px;padding:2px 7px;border-radius:20px">
+                {{ perfil.alergias.length }}
+              </span>
+            </label>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+              <button *ngFor="let a of alergiasOpciones" (click)="toggleAlergia(a)" type="button"
+                      [style]="'padding:10px 14px;border-radius:10px;border:2px solid;font-size:13px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;transition:all 0.2s;' +
+                        (tieneAlergia(a) ?
+                          'border-color:#dc2626;background:#fef2f2;color:#dc2626;font-weight:600;' :
+                          'border-color:#e5e5e5;background:white;color:#555;')">
+                <span style="width:16px;height:16px;border-radius:4px;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;"
+                      [style.border-color]="tieneAlergia(a) ? '#dc2626' : '#ccc'"
+                      [style.background]="tieneAlergia(a) ? '#dc2626' : 'white'"
+                      [style.color]="tieneAlergia(a) ? 'white' : ''">
+                  {{ tieneAlergia(a) ? '✓' : '' }}
+                </span>
+                {{ a }}
+              </button>
+            </div>
+            <p *ngIf="perfil.alergias.length > 0" style="margin:12px 0 0;font-size:12px;color:#dc2626;background:#fef2f2;padding:8px 12px;border-radius:8px">
+              ⚠️ Filtraremos automáticamente los platos que contengan: {{ perfil.alergias.join(', ') }}
+            </p>
+          </div>
+        </div>
+
+        <!-- PASO 3: Datos físicos opcionales -->
+        <div *ngIf="paso === 3">
+          <h2 style="margin:0 0 6px;font-size:20px;font-weight:700;color:#111">📊 Datos físicos <span style="font-size:13px;color:#888;font-weight:400">(opcional)</span></h2>
+          <p style="margin:0 0 24px;font-size:14px;color:#666">Estos datos nos permiten darte recomendaciones más precisas de calorías y porciones.</p>
+
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
+            <div>
+              <label style="display:block;font-size:13px;font-weight:600;color:#333;margin-bottom:6px">Peso (kg)</label>
+              <input type="number" [(ngModel)]="perfil.pesoKg" min="30" max="200" placeholder="ej: 70"
+                     style="width:100%;padding:10px 12px;border:2px solid #e5e5e5;border-radius:10px;font-size:15px;box-sizing:border-box;outline:none"
+                     (focus)="$event.target.style.borderColor='#1D9E75'"
+                     (blur)="$event.target.style.borderColor='#e5e5e5'">
+            </div>
+            <div>
+              <label style="display:block;font-size:13px;font-weight:600;color:#333;margin-bottom:6px">Altura (cm)</label>
+              <input type="number" [(ngModel)]="perfil.alturasCm" min="100" max="220" placeholder="ej: 170"
+                     style="width:100%;padding:10px 12px;border:2px solid #e5e5e5;border-radius:10px;font-size:15px;box-sizing:border-box;outline:none"
+                     (focus)="$event.target.style.borderColor='#1D9E75'"
+                     (blur)="$event.target.style.borderColor='#e5e5e5'">
+            </div>
+            <div>
+              <label style="display:block;font-size:13px;font-weight:600;color:#333;margin-bottom:6px">Edad</label>
+              <input type="number" [(ngModel)]="perfil.edadAnios" min="10" max="100" placeholder="ej: 28"
+                     style="width:100%;padding:10px 12px;border:2px solid #e5e5e5;border-radius:10px;font-size:15px;box-sizing:border-box;outline:none"
+                     (focus)="$event.target.style.borderColor='#1D9E75'"
+                     (blur)="$event.target.style.borderColor='#e5e5e5'">
+            </div>
+          </div>
+
+          <!-- Resumen del perfil -->
+          <div style="background:#f8faf9;border-radius:14px;padding:20px;border:1px solid #e5f0ea">
+            <h3 style="margin:0 0 14px;font-size:14px;font-weight:700;color:#0F6E56">📋 Resumen de tu perfil</h3>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;font-size:13px">
+                <span style="color:#666">Tipo de dieta</span>
+                <span style="font-weight:600;color:#111">{{ perfil.tipoDieta }}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px">
+                <span style="color:#666">Objetivo</span>
+                <span style="font-weight:600;color:#111">{{ perfil.objetivoNutricional }}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px">
+                <span style="color:#666">Restricciones</span>
+                <span style="font-weight:600;color:#111">
+                  {{ perfil.restriccionesDieteticas.length > 0 ? perfil.restriccionesDieteticas.length + ' seleccionadas' : 'Ninguna' }}
+                </span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px">
+                <span style="color:#666">Alergias</span>
+                <span style="font-weight:600;color:#dc2626">
+                  {{ perfil.alergias.length > 0 ? perfil.alergias.join(', ') : 'Ninguna' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ERROR -->
+        <div *ngIf="error" style="margin-top:16px;padding:12px 16px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;color:#dc2626;font-size:13px">
+          ⚠️ {{ error }}
+        </div>
+      </div>
+
+      <!-- BOTONES NAVEGACIÓN -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px">
+        <button *ngIf="paso > 1" (click)="pasoAnterior()" type="button"
+                style="padding:12px 24px;background:white;border:2px solid #e5e5e5;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;color:#555">
+          ← Anterior
+        </button>
+        <div *ngIf="paso === 1"></div>
+
+        <button *ngIf="paso < totalPasos" (click)="siguientePaso()" type="button"
+                style="padding:12px 32px;background:#1D9E75;color:white;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-left:auto">
+          Siguiente →
+        </button>
+
+        <button *ngIf="paso === totalPasos" (click)="guardar()" type="button"
+                [disabled]="guardando"
+                style="padding:12px 32px;background:#1D9E75;color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;margin-left:auto;display:flex;align-items:center;gap:8px"
+                [style.opacity]="guardando ? '0.7' : '1'">
+          <span *ngIf="guardando">Guardando...</span>
+          <span *ngIf="!guardando">✅ Guardar perfil</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>

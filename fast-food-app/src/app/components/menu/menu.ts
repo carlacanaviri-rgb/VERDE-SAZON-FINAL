@@ -4,7 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ProductoService } from '../../services/producto.service';
 import { Producto } from '../../models/producto.model';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LangSwitchComponent } from '../lang-switch/lang-switch';
@@ -21,6 +21,8 @@ import { BolivianoCurrencyPipe } from '../../shared/pipes/boliviano-currency.pip
 import { normalizarCategoriaProducto } from '../../shared/catalogs/producto-categorias';
 import { getFirestore, doc, onSnapshot } from 'firebase/firestore';
 import { getFirebaseApp } from '../../services/firebase-app';
+import { PerfilNutricionalService } from '../../services/perfil-nutricional.service';
+import { PerfilNutricional } from '../../models/perfil-nutricional.model';
 
 interface PedidoActivoTracked {
   id: string;
@@ -32,7 +34,14 @@ interface PedidoActivoTracked {
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, LangSwitchComponent, BolivianoCurrencyPipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslateModule,
+    LangSwitchComponent,
+    BolivianoCurrencyPipe,
+    RouterModule,
+  ],
   templateUrl: './menu.html',
 })
 export class MenuComponent implements OnInit, OnDestroy {
@@ -46,6 +55,7 @@ export class MenuComponent implements OnInit, OnDestroy {
   private coberturaSvc = inject(CoberturaService);
   private translate = inject(TranslateService);
   private cdr = inject(ChangeDetectorRef);
+  private perfilNutricionalSvc = inject(PerfilNutricionalService);
 
   productos: Producto[] = [];
   categoriaActiva = 'Todas';
@@ -78,6 +88,8 @@ export class MenuComponent implements OnInit, OnDestroy {
   mostrarMisPedidos = false;
   mostrarFavoritos = false;
   mostrarOfertas = false;
+  perfilNutricionalCompletado = false;
+  perfilNutricional: PerfilNutricional | null = null;
   favoritosIds: Set<string> = new Set();
   favoritosItems: FavoritoItem[] = [];
 
@@ -96,8 +108,62 @@ export class MenuComponent implements OnInit, OnDestroy {
 
   get productosFiltrados(): Producto[] {
     const disponibles = this.productos.filter((p) => p.disponible);
-    if (this.categoriaActiva === 'Todas') return disponibles;
-    return disponibles.filter((p) => p.categoria === this.categoriaActiva);
+    const base =
+      this.categoriaActiva === 'Todas'
+        ? disponibles
+        : disponibles.filter((p) => p.categoria === this.categoriaActiva);
+
+    if (!this.perfilNutricional?.completado) return base;
+
+    const perfil = this.perfilNutricional;
+    const dieta = perfil.tipoDieta?.toLowerCase() ?? '';
+    const restricciones = (perfil.restriccionesDieteticas ?? []).map((r) => r.toLowerCase());
+    const alergias = (perfil.alergias ?? []).map((a) => a.toLowerCase());
+
+    // Mapeo de tipo de dieta → palabras clave que deben aparecer en etiquetas/categoría
+    const dietaKeywords: Record<string, string[]> = {
+      vegetariana: ['vegetariano', 'vegetariana', 'ensalada', 'vegetal', 'verdura'],
+      vegana: ['vegano', 'vegana', 'plant', 'ensalada', 'vegetal'],
+      keto: ['keto', 'proteína', 'protein', 'bowl', 'wrap'],
+      'alta en proteína': ['proteína', 'protein', 'pollo', 'bowl', 'wrap'],
+      'baja en azúcar': ['sin azúcar', 'low sugar', 'ensalada', 'bowl'],
+      'sin restricción': [],
+    };
+    const palabrasDieta = dietaKeywords[dieta] ?? [];
+
+    /** Puntaje de cada producto: mayor = primero en lista */
+    const puntaje = (p: Producto): number => {
+      const tags = [
+        ...(p.etiquetas ?? []).map((t) => t.toLowerCase()),
+        p.categoria.toLowerCase(),
+        p.nombre.toLowerCase(),
+        p.descripcion.toLowerCase(),
+      ].join(' ');
+
+      const ingredientesStr = (p.ingredientes ?? []).map((i) => i.toLowerCase()).join(' ');
+
+      // Penalización fuerte si tiene alguna alergia del usuario
+      const tieneAlergia = alergias.some((a) => ingredientesStr.includes(a) || tags.includes(a));
+      if (tieneAlergia) return -2;
+
+      // Penalización media si va contra las restricciones dietéticas
+      const tieneRestriccion = restricciones.some((r) => {
+        // "sin gluten" → buscar "gluten" en ingredientes
+        const termino = r.replace(/^sin\s+|^bajo en\s+/i, '');
+        return ingredientesStr.includes(termino) || tags.includes(termino);
+      });
+      if (tieneRestriccion) return -1;
+
+      // Bonus si coincide con la dieta preferida
+      if (palabrasDieta.length > 0) {
+        const coincide = palabrasDieta.some((k) => tags.includes(k));
+        if (coincide) return 2;
+      }
+
+      return 0; // neutro
+    };
+
+    return [...base].sort((a, b) => puntaje(b) - puntaje(a));
   }
 
   get totalDisponibles(): number {
@@ -140,6 +206,58 @@ export class MenuComponent implements OnInit, OnDestroy {
     this.mostrarCarrito = false;
     this.mostrarMisPedidos = false;
     this.mostrarFavoritos = false;
+  }
+
+  irAPerfilNutricional(): void {
+    this.mostrarDropdown = false;
+    this.router.navigate(['/perfil-nutricional']);
+  }
+
+  /** Devuelve true si el producto coincide con la dieta preferida del usuario */
+  esRecomendadoParaDieta(p: Producto): boolean {
+    if (!this.perfilNutricional?.completado) return false;
+    if (this.tieneConflictoNutricional(p)) return false;
+
+    const dieta = this.perfilNutricional.tipoDieta?.toLowerCase() ?? '';
+    if (dieta === 'sin restricción') return false;
+
+    const dietaKeywords: Record<string, string[]> = {
+      vegetariana: ['vegetariano', 'vegetariana', 'ensalada', 'vegetal', 'verdura'],
+      vegana: ['vegano', 'vegana', 'plant', 'ensalada', 'vegetal'],
+      keto: ['keto', 'proteína', 'protein', 'bowl', 'wrap'],
+      'alta en proteína': ['proteína', 'protein', 'pollo', 'bowl', 'wrap'],
+      'baja en azúcar': ['sin azúcar', 'low sugar', 'ensalada', 'bowl'],
+    };
+
+    const palabras = dietaKeywords[dieta] ?? [];
+    const tags = [
+      ...(p.etiquetas ?? []).map((t) => t.toLowerCase()),
+      p.categoria.toLowerCase(),
+      p.nombre.toLowerCase(),
+    ].join(' ');
+
+    return palabras.some((k) => tags.includes(k));
+  }
+
+  /** Devuelve true si el producto tiene ingredientes que conflictúan con alergias/restricciones */
+  tieneConflictoNutricional(p: Producto): boolean {
+    if (!this.perfilNutricional?.completado) return false;
+
+    const alergias = (this.perfilNutricional.alergias ?? []).map((a) => a.toLowerCase());
+    const restricciones = (this.perfilNutricional.restriccionesDieteticas ?? []).map((r) =>
+      r.toLowerCase(),
+    );
+    const ingredientesStr = (p.ingredientes ?? []).map((i) => i.toLowerCase()).join(' ');
+    const tags = [p.nombre, p.descripcion, ...(p.etiquetas ?? [])].join(' ').toLowerCase();
+
+    const tieneAlergia = alergias.some((a) => ingredientesStr.includes(a) || tags.includes(a));
+    if (tieneAlergia) return true;
+
+    const tieneRestriccion = restricciones.some((r) => {
+      const termino = r.replace(/^sin\s+|^bajo en\s+/i, '');
+      return ingredientesStr.includes(termino) || tags.includes(termino);
+    });
+    return tieneRestriccion;
   }
 
   agregarOfertaAlCarrito(p: Producto): void {
@@ -228,6 +346,12 @@ export class MenuComponent implements OnInit, OnDestroy {
               this.cdr.detectChanges();
             }),
           );
+          // Cargar perfil nutricional completo para ordenar productos
+          this.perfilNutricionalSvc.getPerfil(user.uid).then((perfil) => {
+            this.perfilNutricional = perfil;
+            this.perfilNutricionalCompletado = perfil?.completado === true;
+            this.cdr.detectChanges();
+          });
         }
         this.cdr.detectChanges();
       }),

@@ -46,9 +46,14 @@
             <span style="font-size:11px;background:#e1f5ee;color:#0F6E56;padding:3px 8px;border-radius:20px">{{ clasificacionUsuario }}</span>
             <p style="margin:8px 0 0;font-size:11px;color:#666">{{ 'MENU_CART.COMPLETED_SUMMARY' | translate:{ count: pedidosCompletados, total: (montoTotalCompletado | bolivianos) } }}</p>
           </div>
-          <div style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer;background:#f0f7f0">
+          <div (click)="irAPerfilNutricional()"
+               style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background 0.15s">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span style="font-size:14px;color:#111">{{ 'COMUN.PERFIL' | translate }}</span>
+            <span style="font-size:14px;color:#111;flex:1">{{ 'COMUN.PERFIL_NUTRICIONAL' | translate }}</span>
+            <span *ngIf="perfilNutricionalCompletado"
+                  style="font-size:10px;background:#ecfdf5;color:#0F6E56;padding:2px 7px;border-radius:20px;font-weight:600">✓ Listo</span>
+            <span *ngIf="!perfilNutricionalCompletado"
+                  style="font-size:10px;background:#fef3c7;color:#b45309;padding:2px 7px;border-radius:20px;font-weight:600">Pendiente</span>
           </div>
           <div (click)="toggleFavoritos()"
                style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
@@ -267,7 +272,26 @@
         </button>
       </div>
 
-      <!-- A PARTIR DE AQUÍ SE COMPLETA TU CAMBIO -->
+      <!-- Banner perfil nutricional activo -->
+      <div *ngIf="perfilNutricionalCompletado && perfilNutricional"
+           style="margin-bottom:16px;padding:10px 16px;background:linear-gradient(90deg,#ecfdf5,#d1fae5);border:1px solid #6ee7b7;border-radius:12px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">🥗</span>
+        <div style="flex:1">
+          <p style="margin:0;font-size:13px;font-weight:600;color:#0F6E56">Ordenado según tu perfil nutricional</p>
+          <p style="margin:0;font-size:12px;color:#065f46">Dieta: <strong>{{ perfilNutricional.tipoDieta }}</strong> · Objetivo: <strong>{{ perfilNutricional.objetivoNutricional }}</strong></p>
+        </div>
+        <button (click)="irAPerfilNutricional()"
+                style="font-size:11px;color:#0F6E56;background:white;border:1px solid #6ee7b7;border-radius:8px;padding:4px 10px;cursor:pointer">Editar</button>
+      </div>
+
+      <div *ngIf="!perfilNutricionalCompletado && !!emailUsuario"
+           style="margin-bottom:16px;padding:10px 16px;background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">💡</span>
+        <p style="margin:0;font-size:13px;color:#92400e;flex:1">Completa tu <strong>perfil nutricional</strong> para ver primero los platos que se adaptan a ti.</p>
+        <button (click)="irAPerfilNutricional()"
+                style="font-size:11px;color:#92400e;background:white;border:1px solid #fcd34d;border-radius:8px;padding:4px 10px;cursor:pointer;white-space:nowrap">Completar</button>
+      </div>
+
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px">
         <div *ngFor="let p of productosFiltrados"
              style="background:white;border-radius:12px;border:1px solid #e5e5e5;overflow:hidden;transition:transform 0.2s;display:flex;flex-direction:column;height:100%"
@@ -277,6 +301,16 @@
           <!-- Imagen del producto con fallback a emoji -->
           <div style="height:200px;position:relative;overflow:hidden"
                [style.background]="getColorCategoria(p.categoria)">
+            <!-- Badge dieta recomendada -->
+            <div *ngIf="esRecomendadoParaDieta(p)"
+                 style="position:absolute;top:8px;left:8px;z-index:2;background:rgba(15,110,86,0.92);color:white;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;backdrop-filter:blur(4px)">
+              ✓ Para ti
+            </div>
+            <!-- Badge alergia/restricción -->
+            <div *ngIf="tieneConflictoNutricional(p)"
+                 style="position:absolute;top:8px;left:8px;z-index:2;background:rgba(220,38,38,0.92);color:white;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;backdrop-filter:blur(4px)">
+              ⚠ Revisa ingredientes
+            </div>
             <img *ngIf="p.imagen"
                  [src]="p.imagen"
                  [alt]="p.nombre"

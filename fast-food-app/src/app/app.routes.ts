@@ -8,14 +8,15 @@ import { CocinaComponent } from './components/cocina/cocina';
 import { CheckoutComponent } from './components/checkout/checkout';
 import { DeliveryComponent } from './components/delivery/delivery';
 import { SeguimientoComponent } from './components/seguimiento/seguimiento';
-
 import { RegisterComponent } from './components/register/register';
+import { PerfilNutricionalComponent } from './components/perfil-nutricional/perfil-nutricional';
 
 export const routes: Routes = [
   { path: '', component: LandingComponent },
   { path: 'login', component: LoginComponent },
   { path: 'registro', component: RegisterComponent },
   { path: 'menu', component: MenuComponent },
+  { path: 'perfil-nutricional', component: PerfilNutricionalComponent, canActivate: [authGuard] },
   { path: 'checkout/qr', component: CheckoutComponent, canActivate: [authGuard] },
   { path: 'checkout', component: CheckoutComponent, canActivate: [authGuard] },
   { path: 'seguimiento/:id', component: SeguimientoComponent, canActivate: [authGuard] },
