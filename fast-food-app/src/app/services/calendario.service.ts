@@ -9,7 +9,6 @@ import {
   query,
   where,
   onSnapshot,
-  orderBy,
   getDocs,
   Timestamp,
 } from 'firebase/firestore';
@@ -25,11 +24,19 @@ export class CalendarioService {
   getEventos(uid: string): Observable<EventoCalendario[]> {
     return new Observable((observer) => {
       const ref = collection(db, 'calendario_pedidos');
-      const q = query(ref, where('uid', '==', uid), orderBy('fecha', 'asc'));
+      // Solo where, SIN orderBy → no requiere índice compuesto en Firestore.
+      // El orden por fecha/hora se hace en el cliente.
+      const q = query(ref, where('uid', '==', uid));
       const unsub = onSnapshot(
         q,
         (snap) => {
-          const eventos = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as EventoCalendario);
+          const eventos = snap.docs
+            .map((d) => ({ id: d.id, ...d.data() }) as EventoCalendario)
+            .sort((a, b) =>
+              (a.fecha + 'T' + (a.hora || '00:00')).localeCompare(
+                b.fecha + 'T' + (b.hora || '00:00'),
+              ),
+            );
           observer.next(eventos);
         },
         (err) => {

@@ -216,6 +216,10 @@ export class MenuComponent implements OnInit, OnDestroy {
     this.mostrarDropdown = false;
     this.router.navigate(['/calendario']);
   }
+  irAPlanificador(): void {
+    this.mostrarDropdown = false;
+    this.router.navigate(['/planificador']);
+  }
 
   /** Devuelve true si el producto coincide con la dieta preferida del usuario */
   esRecomendadoParaDieta(p: Producto): boolean {
