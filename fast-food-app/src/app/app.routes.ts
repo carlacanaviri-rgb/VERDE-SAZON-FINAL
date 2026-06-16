@@ -10,6 +10,8 @@ import { DeliveryComponent } from './components/delivery/delivery';
 import { SeguimientoComponent } from './components/seguimiento/seguimiento';
 import { RegisterComponent } from './components/register/register';
 import { PerfilNutricionalComponent } from './components/perfil-nutricional/perfil-nutricional';
+import { Calendario } from './components/calendario/calendario';
+
 
 export const routes: Routes = [
   { path: '', component: LandingComponent },
@@ -24,4 +26,6 @@ export const routes: Routes = [
   { path: 'admin', component: ProductosComponent, canActivate: [adminGuard] },
   { path: 'cocina', component: CocinaComponent, canActivate: [cocinaGuard] },
   { path: 'delivery', component: DeliveryComponent, canActivate: [deliveryGuard] },
+  { path: 'perfil-nutricional', component: PerfilNutricionalComponent, canActivate: [authGuard] },
+  { path: 'calendario', component: Calendario, canActivate: [authGuard] }, // ← AÑADIR
 ];

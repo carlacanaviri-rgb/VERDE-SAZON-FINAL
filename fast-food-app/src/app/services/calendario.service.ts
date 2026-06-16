@@ -96,7 +96,9 @@ export class CalendarioService {
       // Extraer fecha de creadoEn (ISO string) o pagadoEn
       const fechaRaw: string = p['creadoEn'] ?? p['pagadoEn'] ?? ahora;
       const fechaDate = new Date(fechaRaw);
-      const fecha = fechaDate.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+      // Fecha LOCAL 'YYYY-MM-DD' (no toISOString, que la pasa a UTC y puede
+      // correr el día en husos negativos como UTC-4).
+      const fecha = `${fechaDate.getFullYear()}-${String(fechaDate.getMonth() + 1).padStart(2, '0')}-${String(fechaDate.getDate()).padStart(2, '0')}`;
       const hora = p['hora'] ?? fechaDate.toTimeString().slice(0, 5);
 
       const items: ItemCalendario[] = (p['items'] ?? []).map((it: any) => ({

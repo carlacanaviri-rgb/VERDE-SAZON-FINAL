@@ -1,1 +1,454 @@
-<p>calendario works!</p>
+<div style="min-height:100vh;background:#f8faf9;display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+
+  <!-- ══════════════ NAVBAR ══════════════ -->
+  <nav style="background:white;border-bottom:1px solid #e5e5e5;padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:34px;height:34px;background:#1D9E75;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px">📅</div>
+      <span style="font-weight:700;font-size:16px;color:#111">Calendario de Pedidos</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <!-- Importar historial -->
+      <button (click)="importarHistorial()" [disabled]="importando"
+              style="background:#f0fdf4;border:1px solid #6ee7b7;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;color:#065f46;display:flex;align-items:center;gap:5px">
+        <span *ngIf="!importando">📋 Importar historial</span>
+        <span *ngIf="importando">⏳ Importando...</span>
+      </button>
+      <button (click)="volver()" style="background:none;border:1px solid #ddd;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer;color:#555">
+        ← Menú
+      </button>
+    </div>
+  </nav>
+
+  <!-- Notificación importación -->
+  <div *ngIf="importadosOk !== null" style="background:#ecfdf5;border-bottom:1px solid #6ee7b7;padding:10px 20px;text-align:center;font-size:13px;color:#065f46">
+    ✅ {{importadosOk === 0 ? 'Ya estaban todos importados' : importadosOk + ' pedidos importados al historial'}}
+  </div>
+  <div *ngIf="errorMsg" style="background:#fef2f2;border-bottom:1px solid #fca5a5;padding:10px 20px;text-align:center;font-size:13px;color:#991b1b">
+    ⚠️ {{errorMsg}} <button (click)="errorMsg=''" style="background:none;border:none;cursor:pointer;color:#991b1b;font-weight:600;margin-left:8px">×</button>
+  </div>
+
+  <!-- ══════════════ CARGANDO ══════════════ -->
+  <div *ngIf="cargando" style="flex:1;display:flex;align-items:center;justify-content:center">
+    <div style="text-align:center">
+      <div style="width:40px;height:40px;border:3px solid #e5e5e5;border-top-color:#1D9E75;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px"></div>
+      <p style="color:#888;font-size:14px">Cargando calendario...</p>
+    </div>
+  </div>
+
+  <!-- ══════════════ CONTENIDO PRINCIPAL ══════════════ -->
+  <div *ngIf="!cargando" style="flex:1;display:flex;flex-direction:column">
+
+    <!-- ─── STATS RÁPIDAS ─── -->
+    <div style="background:white;border-bottom:1px solid #f0f0f0;padding:12px 20px;display:flex;gap:20px;overflow-x:auto">
+      <div style="min-width:120px;background:#f0fdf4;border-radius:10px;padding:10px 14px;border-left:3px solid #1D9E75">
+        <div style="font-size:11px;color:#6b7280;margin-bottom:2px">Este mes</div>
+        <div style="font-size:20px;font-weight:700;color:#111">{{totalEventosMes}}</div>
+        <div style="font-size:11px;color:#6b7280">eventos</div>
+      </div>
+      <div style="min-width:130px;background:#eff6ff;border-radius:10px;padding:10px 14px;border-left:3px solid #3b82f6">
+        <div style="font-size:11px;color:#6b7280;margin-bottom:2px">Gastado mes</div>
+        <div style="font-size:18px;font-weight:700;color:#111">Bs {{totalGastadoMes | number:'1.2-2'}}</div>
+        <div style="font-size:11px;color:#6b7280">historial</div>
+      </div>
+      <div *ngIf="proximoPedido" style="min-width:160px;background:#f5f3ff;border-radius:10px;padding:10px 14px;border-left:3px solid #8b5cf6">
+        <div style="font-size:11px;color:#6b7280;margin-bottom:2px">Próximo pedido</div>
+        <div style="font-size:13px;font-weight:600;color:#111">{{proximoPedido.titulo}}</div>
+        <div style="font-size:11px;color:#6b7280">{{formatFechaCorta(proximoPedido.fecha)}} {{proximoPedido.hora}}</div>
+      </div>
+      <div *ngIf="!proximoPedido" style="min-width:160px;background:#fafafa;border-radius:10px;padding:10px 14px;border-left:3px solid #e5e5e5">
+        <div style="font-size:11px;color:#aaa">Sin pedidos programados</div>
+      </div>
+    </div>
+
+    <!-- ─── TOOLBAR ─── -->
+    <div style="background:white;border-bottom:1px solid #f0f0f0;padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+
+      <!-- Navegación fecha -->
+      <div style="display:flex;align-items:center;gap:8px">
+        <button (click)="navAnterior()" style="width:32px;height:32px;border-radius:50%;border:1px solid #e5e5e5;background:white;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">‹</button>
+        <span style="font-weight:600;font-size:14px;min-width:160px;text-align:center;color:#111">
+          {{vista === 'mes' ? mesActualLabel : (vista === 'semana' ? semanaActualLabel : 'Todos los eventos')}}
+        </span>
+        <button (click)="navSiguiente()" style="width:32px;height:32px;border-radius:50%;border:1px solid #e5e5e5;background:white;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">›</button>
+        <button (click)="irAHoy()" style="background:none;border:1px solid #1D9E75;color:#1D9E75;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-weight:500">Hoy</button>
+      </div>
+
+      <div style="flex:1"></div>
+
+      <!-- Filtro tipo -->
+      <select [(ngModel)]="filtroTipo" style="border:1px solid #e5e5e5;border-radius:8px;padding:5px 10px;font-size:12px;background:white;color:#555;cursor:pointer">
+        <option value="todos">Todos los tipos</option>
+        <option value="programado">📅 Programado</option>
+        <option value="pendiente">⏳ Pendiente</option>
+        <option value="historial">📋 Historial</option>
+        <option value="planificacion">🗓️ Planificación</option>
+      </select>
+
+      <!-- Selector de vista -->
+      <div style="display:flex;border:1px solid #e5e5e5;border-radius:8px;overflow:hidden">
+        <button (click)="vista='mes'" [style.background]="vista==='mes'?'#1D9E75':'white'" [style.color]="vista==='mes'?'white':'#555'"
+                style="border:none;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:500">Mes</button>
+        <button (click)="vista='semana'" [style.background]="vista==='semana'?'#1D9E75':'white'" [style.color]="vista==='semana'?'white':'#555'"
+                style="border:none;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:500;border-left:1px solid #e5e5e5;border-right:1px solid #e5e5e5">Semana</button>
+        <button (click)="vista='lista'" [style.background]="vista==='lista'?'#1D9E75':'white'" [style.color]="vista==='lista'?'white':'#555'"
+                style="border:none;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:500">Lista</button>
+      </div>
+
+      <!-- Nuevo evento -->
+      <button (click)="abrirNuevo()" style="background:#1D9E75;color:white;border:none;border-radius:8px;padding:7px 16px;font-size:13px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:5px">
+        + Nuevo evento
+      </button>
+    </div>
+
+    <!-- ══════════════ VISTA MES ══════════════ -->
+    <div *ngIf="vista==='mes'" style="flex:1;padding:16px 20px;overflow:auto">
+
+      <!-- Cabecera días -->
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;margin-bottom:4px">
+        <div *ngFor="let d of diasSemana" style="text-align:center;font-size:11px;font-weight:600;color:#9ca3af;padding:4px 0">{{d}}</div>
+      </div>
+
+      <!-- Celdas del mes -->
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#e5e5e5;border-radius:12px;overflow:hidden">
+        <div *ngFor="let celda of celdaMes"
+             (click)="abrirNuevo(celda.fecha)"
+             [style.background]="esHoy(celda.fecha) ? '#ecfdf5' : 'white'"
+             [style.opacity]="celda.fuera ? '0.4' : '1'"
+             style="min-height:90px;padding:6px;cursor:pointer;position:relative;transition:background 0.15s"
+             (mouseenter)="setBg($event, esHoy(celda.fecha)?'#d1fae5':'#fafafa')"
+             (mouseleave)="setBg($event, esHoy(celda.fecha)?'#ecfdf5':'white')">
+
+          <!-- Número de día -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <span [style.background]="esHoy(celda.fecha)?'#1D9E75':'transparent'"
+                  [style.color]="esHoy(celda.fecha)?'white':'#374151'"
+                  style="font-size:12px;font-weight:600;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center">
+              {{celda.fecha.getDate()}}
+            </span>
+          </div>
+
+          <!-- Eventos del día -->
+          <div (click)="$event.stopPropagation()">
+            <div *ngFor="let ev of eventosDeFecha(celda.fecha).slice(0,3)"
+                 (click)="verDetalle(ev)"
+                 [style.background]="tipoColores[ev.tipo].bg"
+                 [style.color]="tipoColores[ev.tipo].text"
+                 [style.border-left]="'3px solid ' + tipoColores[ev.tipo].border"
+                 style="font-size:10px;padding:2px 5px;border-radius:3px;margin-bottom:2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500">
+              {{tipoColores[ev.tipo].emoji}} {{ev.titulo}}
+            </div>
+            <div *ngIf="eventosDeFecha(celda.fecha).length > 3"
+                 style="font-size:10px;color:#9ca3af;text-align:right">
+              +{{eventosDeFecha(celda.fecha).length - 3}} más
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ VISTA SEMANA ══════════════ -->
+    <div *ngIf="vista==='semana'" style="flex:1;padding:16px 20px;overflow:auto">
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">
+        <div *ngFor="let dia of diasSemanaActual"
+             [style.border]="esHoy(dia) ? '2px solid #1D9E75' : '1px solid #e5e5e5'"
+             [style.background]="esHoy(dia) ? '#f0fdf4' : 'white'"
+             style="border-radius:10px;padding:10px;min-height:200px">
+
+          <!-- Cabecera día -->
+          <div style="text-align:center;margin-bottom:10px">
+            <div style="font-size:11px;color:#9ca3af;font-weight:500">{{diasSemana[dia.getDay()]}}</div>
+            <div [style.background]="esHoy(dia)?'#1D9E75':'transparent'"
+                 [style.color]="esHoy(dia)?'white':'#111'"
+                 style="font-size:18px;font-weight:700;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:4px auto">
+              {{dia.getDate()}}
+            </div>
+          </div>
+
+          <!-- Botón agregar -->
+          <button (click)="abrirNuevo(dia)"
+                  style="width:100%;background:#f9fafb;border:1px dashed #d1d5db;border-radius:6px;padding:4px;font-size:11px;color:#9ca3af;cursor:pointer;margin-bottom:6px">
+            + agregar
+          </button>
+
+          <!-- Eventos -->
+          <div *ngFor="let ev of eventosDeFecha(dia)"
+               (click)="verDetalle(ev)"
+               [style.background]="tipoColores[ev.tipo].bg"
+               [style.color]="tipoColores[ev.tipo].text"
+               [style.border-left]="'3px solid ' + tipoColores[ev.tipo].border"
+               style="font-size:11px;padding:4px 6px;border-radius:4px;margin-bottom:4px;cursor:pointer">
+            <div style="font-weight:600">{{tipoColores[ev.tipo].emoji}} {{ev.titulo}}</div>
+            <div style="opacity:0.8">{{ev.hora}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ VISTA LISTA ══════════════ -->
+    <div *ngIf="vista==='lista'" style="flex:1;padding:16px 20px;max-width:800px;margin:0 auto;width:100%">
+
+      <div *ngIf="eventosOrdenados.length === 0"
+           style="text-align:center;padding:60px 20px;color:#9ca3af">
+        <div style="font-size:48px;margin-bottom:12px">📋</div>
+        <div style="font-size:16px;font-weight:600;margin-bottom:6px">Sin eventos</div>
+        <div style="font-size:14px">Crea tu primer evento o importa tu historial de pedidos</div>
+      </div>
+
+      <!-- Agrupar por fecha -->
+      <ng-container *ngFor="let ev of eventosOrdenados; let i=index">
+        <!-- Separador de fecha -->
+        <div *ngIf="i === 0 || eventosOrdenados[i-1].fecha !== ev.fecha"
+             style="font-size:12px;font-weight:700;color:#6b7280;margin:16px 0 8px;text-transform:uppercase;letter-spacing:0.05em">
+          {{formatFechaCorta(ev.fecha)}}
+          <span *ngIf="ev.fecha === toYMD(hoy)" style="background:#1D9E75;color:white;border-radius:4px;padding:1px 6px;font-size:10px;margin-left:6px">HOY</span>
+        </div>
+
+        <!-- Tarjeta evento -->
+        <div (click)="verDetalle(ev)"
+             [style.border-left]="'4px solid ' + tipoColores[ev.tipo].border"
+             style="background:white;border-radius:10px;padding:14px 16px;margin-bottom:8px;cursor:pointer;border:1px solid #e5e5e5;transition:box-shadow 0.15s"
+             (mouseenter)="setShadow($event, '0 2px 8px rgba(0,0,0,0.08)')"
+             (mouseleave)="setShadow($event, 'none')">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between">
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+                <span [style.background]="tipoColores[ev.tipo].bg"
+                      [style.color]="tipoColores[ev.tipo].text"
+                      style="font-size:11px;padding:2px 7px;border-radius:10px;font-weight:600">
+                  {{tipoColores[ev.tipo].emoji}} {{tipoColores[ev.tipo].label}}
+                </span>
+                <span [style.background]="estadoColores[ev.estado].bg"
+                      [style.color]="estadoColores[ev.estado].text"
+                      style="font-size:11px;padding:2px 7px;border-radius:10px;font-weight:500">
+                  {{ev.estado}}
+                </span>
+              </div>
+              <div style="font-size:15px;font-weight:600;color:#111;margin-bottom:2px">{{ev.titulo}}</div>
+              <div style="font-size:12px;color:#6b7280">🕐 {{ev.hora}} &nbsp;|&nbsp; {{ev.items.length}} items</div>
+              <div *ngIf="ev.nota" style="font-size:12px;color:#9ca3af;margin-top:4px">📝 {{ev.nota}}</div>
+            </div>
+            <div style="text-align:right;margin-left:12px">
+              <div style="font-size:16px;font-weight:700;color:#1D9E75">Bs {{ev.total | number:'1.2-2'}}</div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+  </div><!-- fin contenido principal -->
+
+
+  <!-- ══════════════ MODAL DETALLE ══════════════ -->
+  <div *ngIf="detalleEvento"
+       (click)="cerrarDetalle()"
+       style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px">
+    <div (click)="$event.stopPropagation()"
+         style="background:white;border-radius:16px;width:100%;max-width:440px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
+
+      <!-- Header del detalle -->
+      <div [style.background]="tipoColores[detalleEvento.tipo].bg"
+           style="padding:20px 20px 16px;border-radius:16px 16px 0 0;border-bottom:1px solid #f0f0f0">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div>
+            <div style="font-size:22px;margin-bottom:6px">{{tipoColores[detalleEvento.tipo].emoji}}</div>
+            <h3 style="margin:0 0 4px;font-size:18px;font-weight:700;color:#111">{{detalleEvento.titulo}}</h3>
+            <div style="font-size:13px;color:#6b7280">{{formatFechaCorta(detalleEvento.fecha)}} a las {{detalleEvento.hora}}</div>
+          </div>
+          <button (click)="cerrarDetalle()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#9ca3af;line-height:1">×</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:10px">
+          <span [style.background]="tipoColores[detalleEvento.tipo].bg"
+                [style.color]="tipoColores[detalleEvento.tipo].text"
+                style="font-size:11px;padding:3px 8px;border-radius:10px;font-weight:600;border:1px solid currentColor">
+            {{tipoColores[detalleEvento.tipo].label}}
+          </span>
+          <span [style.background]="estadoColores[detalleEvento.estado].bg"
+                [style.color]="estadoColores[detalleEvento.estado].text"
+                style="font-size:11px;padding:3px 8px;border-radius:10px;font-weight:600;border:1px solid currentColor">
+            {{detalleEvento.estado}}
+          </span>
+        </div>
+      </div>
+
+      <div style="padding:16px 20px">
+        <!-- Items -->
+        <div *ngIf="detalleEvento.items.length > 0" style="margin-bottom:14px">
+          <div style="font-size:12px;font-weight:600;color:#9ca3af;margin-bottom:8px;text-transform:uppercase">Items del pedido</div>
+          <div *ngFor="let it of detalleEvento.items"
+               style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f5f5f5;font-size:13px">
+            <span style="color:#374151">{{it.cantidad}}× {{it.nombre}}</span>
+            <span style="color:#111;font-weight:500">Bs {{(it.precio * it.cantidad) | number:'1.2-2'}}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0 0;font-weight:700;font-size:15px">
+            <span style="color:#111">Total</span>
+            <span style="color:#1D9E75">Bs {{detalleEvento.total | number:'1.2-2'}}</span>
+          </div>
+        </div>
+
+        <!-- Dirección -->
+        <div *ngIf="detalleEvento.direccionEntrega"
+             style="background:#f9fafb;border-radius:8px;padding:10px;font-size:13px;color:#374151;margin-bottom:10px">
+          📍 {{detalleEvento.direccionEntrega}}
+        </div>
+
+        <!-- Nota -->
+        <div *ngIf="detalleEvento.nota"
+             style="background:#fefce8;border-radius:8px;padding:10px;font-size:13px;color:#713f12;margin-bottom:10px">
+          📝 {{detalleEvento.nota}}
+        </div>
+
+        <!-- Pedido referencia -->
+        <div *ngIf="detalleEvento.pedidoNumero"
+             style="font-size:12px;color:#9ca3af;margin-bottom:14px">
+          Pedido ref: #{{detalleEvento.pedidoNumero}}
+        </div>
+
+        <!-- Acciones -->
+        <div style="display:flex;gap:8px">
+          <button (click)="abrirEditar(detalleEvento)"
+                  style="flex:1;background:#f9fafb;border:1px solid #e5e5e5;border-radius:8px;padding:9px;font-size:13px;cursor:pointer;font-weight:500;color:#374151">
+            ✏️ Editar
+          </button>
+          <button (click)="eliminarEvento(detalleEvento.id)"
+                  style="flex:1;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:9px;font-size:13px;cursor:pointer;font-weight:500;color:#dc2626">
+            🗑️ Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════ MODAL NUEVO/EDITAR EVENTO ══════════════ -->
+  <div *ngIf="modalAbierto"
+       (click)="cerrarModal()"
+       style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px">
+    <div (click)="$event.stopPropagation()"
+         style="background:white;border-radius:16px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
+
+      <!-- Header modal -->
+      <div style="padding:20px 20px 16px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between">
+        <h3 style="margin:0;font-size:17px;font-weight:700;color:#111">
+          {{editando ? '✏️ Editar evento' : '➕ Nuevo evento'}}
+        </h3>
+        <button (click)="cerrarModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#9ca3af">×</button>
+      </div>
+
+      <div style="padding:20px">
+
+        <!-- Tipo -->
+        <div style="margin-bottom:14px">
+          <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px">TIPO DE EVENTO</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <button *ngFor="let t of tiposEvento"
+                    (click)="form.tipo = t"
+                    [style.background]="form.tipo===t ? tipoColores[t].bg : '#f9fafb'"
+                    [style.border]="form.tipo===t ? '2px solid ' + tipoColores[t].border : '1px solid #e5e5e5'"
+                    [style.color]="form.tipo===t ? tipoColores[t].text : '#6b7280'"
+                    style="padding:8px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;text-align:left">
+              {{tipoColores[t].emoji}} {{tipoColores[t].label}}
+            </button>
+          </div>
+        </div>
+
+        <!-- Título -->
+        <div style="margin-bottom:14px">
+          <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px">TÍTULO *</label>
+          <input [(ngModel)]="form.titulo" placeholder="Ej: Almuerzo semanal, Pedido familiar..."
+                 style="width:100%;box-sizing:border-box;border:1px solid #e5e5e5;border-radius:8px;padding:10px 12px;font-size:14px;outline:none"
+                 (focus)="setBorderColor($event, '#1D9E75')"
+                 (blur)="setBorderColor($event, '#e5e5e5')">
+        </div>
+
+        <!-- Fecha y Hora -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px">FECHA *</label>
+            <input type="date" [(ngModel)]="form.fecha"
+                   style="width:100%;box-sizing:border-box;border:1px solid #e5e5e5;border-radius:8px;padding:10px 12px;font-size:14px;outline:none">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px">HORA</label>
+            <input type="time" [(ngModel)]="form.hora"
+                   style="width:100%;box-sizing:border-box;border:1px solid #e5e5e5;border-radius:8px;padding:10px 12px;font-size:14px;outline:none">
+          </div>
+        </div>
+
+        <!-- Estado -->
+        <div style="margin-bottom:14px">
+          <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px">ESTADO</label>
+          <select [(ngModel)]="form.estado"
+                  style="width:100%;border:1px solid #e5e5e5;border-radius:8px;padding:10px 12px;font-size:14px;background:white;outline:none">
+            <option value="pendiente">⏳ Pendiente</option>
+            <option value="confirmado">✅ Confirmado</option>
+            <option value="entregado">📦 Entregado</option>
+            <option value="cancelado">❌ Cancelado</option>
+          </select>
+        </div>
+
+        <!-- Items -->
+        <div style="margin-bottom:14px">
+          <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px">ITEMS DEL PEDIDO</label>
+
+          <div *ngFor="let it of form.items; let i=index"
+               style="display:flex;align-items:center;gap:8px;background:#f9fafb;border-radius:8px;padding:8px 10px;margin-bottom:6px">
+            <div style="flex:1;font-size:13px;color:#374151">{{it.cantidad}}× {{it.nombre}}</div>
+            <div style="font-size:12px;color:#6b7280">Bs {{it.precio | number:'1.2-2'}}</div>
+            <button (click)="quitarItem(i)" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;line-height:1">×</button>
+          </div>
+
+          <!-- Agregar item -->
+          <div style="display:grid;grid-template-columns:1fr 60px 70px auto;gap:6px;align-items:center">
+            <input [(ngModel)]="nuevoItemNombre" placeholder="Nombre del ítem"
+                   style="border:1px solid #e5e5e5;border-radius:8px;padding:8px 10px;font-size:13px;outline:none">
+            <input type="number" [(ngModel)]="nuevoItemCantidad" min="1" placeholder="Cant"
+                   style="border:1px solid #e5e5e5;border-radius:8px;padding:8px 6px;font-size:13px;text-align:center;outline:none">
+            <input type="number" [(ngModel)]="nuevoItemPrecio" min="0" step="0.5" placeholder="Precio"
+                   style="border:1px solid #e5e5e5;border-radius:8px;padding:8px 6px;font-size:13px;outline:none">
+            <button (click)="agregarItem()"
+                    style="background:#1D9E75;color:white;border:none;border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;white-space:nowrap">
+              + Add
+            </button>
+          </div>
+
+          <div *ngIf="form.items.length > 0"
+               style="text-align:right;font-size:13px;font-weight:600;color:#1D9E75;margin-top:8px">
+            Total: Bs {{form.total | number:'1.2-2'}}
+          </div>
+        </div>
+
+        <!-- Dirección -->
+        <div style="margin-bottom:14px">
+          <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px">DIRECCIÓN DE ENTREGA</label>
+          <input [(ngModel)]="form.direccionEntrega" placeholder="Ej: Av. Principal #123..."
+                 style="width:100%;box-sizing:border-box;border:1px solid #e5e5e5;border-radius:8px;padding:10px 12px;font-size:14px;outline:none">
+        </div>
+
+        <!-- Nota -->
+        <div style="margin-bottom:20px">
+          <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px">NOTA</label>
+          <textarea [(ngModel)]="form.nota" rows="2" placeholder="Instrucciones especiales, recordatorios..."
+                    style="width:100%;box-sizing:border-box;border:1px solid #e5e5e5;border-radius:8px;padding:10px 12px;font-size:14px;outline:none;resize:vertical"></textarea>
+        </div>
+
+        <!-- Botones -->
+        <div style="display:flex;gap:8px">
+          <button (click)="cerrarModal()"
+                  style="flex:1;background:#f9fafb;border:1px solid #e5e5e5;border-radius:10px;padding:12px;font-size:14px;cursor:pointer;font-weight:500;color:#374151">
+            Cancelar
+          </button>
+          <button (click)="guardarEvento()" [disabled]="!form.titulo.trim() || !form.fecha"
+                  style="flex:2;background:#1D9E75;color:white;border:none;border-radius:10px;padding:12px;font-size:14px;cursor:pointer;font-weight:600"
+                  [style.opacity]="!form.titulo.trim() || !form.fecha ? '0.5' : '1'">
+            {{editando ? 'Guardar cambios' : 'Crear evento'}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
