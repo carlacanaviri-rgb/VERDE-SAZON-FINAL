@@ -37,6 +37,11 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         {{ 'ADMIN.SIDEBAR.REPORTES' | translate }}
       </div>
+      <div (click)="router.navigate(['/admin/dashboard'])"
+           style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#1D9E75;cursor:pointer;border-radius:8px;font-weight:600">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Dashboard operativo
+      </div>
     </nav>
     <app-lang-switch style="margin-bottom:12px"></app-lang-switch>
     <div (click)="logout()" style="padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;color:#e74c3c;cursor:pointer;border-radius:8px">

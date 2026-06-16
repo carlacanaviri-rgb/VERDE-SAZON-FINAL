@@ -1,0 +1,136 @@
+<div class="dash-wrap">
+
+  <!-- ══════════ NAVBAR ══════════ -->
+  <nav class="dash-nav">
+    <div class="brand">
+      <div class="brand-ic">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      </div>
+      <span>Dashboard Operativo</span>
+    </div>
+    <div class="nav-actions">
+      <button class="btn-ghost" (click)="cargar()" [disabled]="cargando">
+        {{ cargando ? 'Actualizando…' : '🔄 Actualizar' }}
+      </button>
+      <button class="btn-ghost" (click)="volverAdmin()">← Admin</button>
+    </div>
+  </nav>
+
+  <div *ngIf="errorMsg" class="banner err">⚠️ {{ errorMsg }}</div>
+
+  <!-- ══════════ CARGANDO ══════════ -->
+  <div *ngIf="cargando" class="center">
+    <div class="spinner"></div>
+    <p>Cargando métricas…</p>
+  </div>
+
+  <div class="dash-body" *ngIf="!cargando && data">
+
+    <!-- ── KPIs ── -->
+    <div class="kpis">
+      <div class="kpi">
+        <div class="kpi-label">Clientes</div>
+        <div class="kpi-value">{{ data.totalClientes }}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Pedidos totales</div>
+        <div class="kpi-value">{{ data.totalPedidos }}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Ingresos</div>
+        <div class="kpi-value">{{ data.ingresosTotales | bolivianos }}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Programados</div>
+        <div class="kpi-value">{{ data.totalProgramados }}</div>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <!-- ── Planes / segmentos ── -->
+      <section class="card">
+        <h2>Planes de suscripción activos</h2>
+        <p class="sub">Distribución de clientes por clasificación.</p>
+        <div class="bars" *ngIf="data.segmentos.length; else vacioSeg">
+          <div class="bar-row" *ngFor="let s of data.segmentos">
+            <span class="bar-label">{{ s.nombre }}</span>
+            <div class="bar-track">
+              <div class="bar-fill"
+                   [style.width.%]="pct(s.cantidad, maxSegmento())"
+                   [style.background]="colorSegmento(s.nombre)"></div>
+            </div>
+            <span class="bar-val">{{ s.cantidad }}</span>
+          </div>
+        </div>
+        <ng-template #vacioSeg><div class="empty">Sin datos de clientes.</div></ng-template>
+      </section>
+
+      <!-- ── Platos más solicitados ── -->
+      <section class="card">
+        <h2>Platos más solicitados</h2>
+        <p class="sub">Según el historial de pedidos.</p>
+        <div class="bars" *ngIf="data.platosTop.length; else vacioPlatos">
+          <div class="bar-row" *ngFor="let p of data.platosTop">
+            <span class="bar-label" [title]="p.nombre">{{ p.nombre }}</span>
+            <div class="bar-track">
+              <div class="bar-fill green" [style.width.%]="pct(p.cantidad, maxPlato())"></div>
+            </div>
+            <span class="bar-val">{{ p.cantidad }}</span>
+          </div>
+        </div>
+        <ng-template #vacioPlatos><div class="empty">Aún no hay pedidos.</div></ng-template>
+      </section>
+
+      <!-- ── Usuarios recurrentes ── -->
+      <section class="card">
+        <h2>Usuarios recurrentes</h2>
+        <p class="sub">Clientes con 2 o más pedidos.</p>
+        <table class="tabla" *ngIf="data.usuariosRecurrentes.length; else vacioUsers">
+          <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Clasif.</th>
+            <th class="num">Pedidos</th>
+            <th class="num">Total</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let u of data.usuariosRecurrentes">
+            <td>
+              <div class="u-name">{{ u.nombre }}</div>
+              <div class="u-mail">{{ u.email }}</div>
+            </td>
+            <td>
+                <span class="tag" [style.background]="colorSegmento(u.clasificacion)">
+                  {{ u.clasificacion }}
+                </span>
+            </td>
+            <td class="num">{{ u.pedidosCompletados }}</td>
+            <td class="num">{{ u.montoTotalCompletado | bolivianos }}</td>
+          </tr>
+          </tbody>
+        </table>
+        <ng-template #vacioUsers><div class="empty">Sin clientes recurrentes todavía.</div></ng-template>
+      </section>
+
+      <!-- ── Pedidos programados por día ── -->
+      <section class="card">
+        <h2>Pedidos programados por día</h2>
+        <p class="sub">Provenientes del planificador / calendario.</p>
+        <div class="dias" *ngIf="data.programadosPorDia.length; else vacioProg">
+          <div class="dia-row" *ngFor="let d of data.programadosPorDia">
+            <span class="dia-fecha">{{ formatFecha(d.fecha) }}</span>
+            <div class="bar-track">
+              <div class="bar-fill amber" [style.width.%]="pct(d.cantidad, maxProgramado())"></div>
+            </div>
+            <span class="dia-cant">{{ d.cantidad }} pedido(s)</span>
+            <span class="dia-total">{{ d.total | bolivianos }}</span>
+          </div>
+        </div>
+        <ng-template #vacioProg><div class="empty">No hay pedidos programados.</div></ng-template>
+      </section>
+
+    </div>
+  </div>
+</div>

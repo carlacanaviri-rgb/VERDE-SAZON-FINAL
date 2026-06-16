@@ -12,6 +12,7 @@ import { RegisterComponent } from './components/register/register';
 import { PerfilNutricionalComponent } from './components/perfil-nutricional/perfil-nutricional';
 import { Calendario } from './components/calendario/calendario';
 import { Planificador } from './components/planificador/planificador';
+import { DashboardAdmin } from './components/dashboard-admin/dashboard-admin';
 
 
 
@@ -31,4 +32,5 @@ export const routes: Routes = [
   { path: 'perfil-nutricional', component: PerfilNutricionalComponent, canActivate: [authGuard] },
   { path: 'calendario', component: Calendario, canActivate: [authGuard] },
   { path: 'planificador', component: Planificador, canActivate: [authGuard] },
+  { path: 'admin/dashboard', component: DashboardAdmin, canActivate: [adminGuard] },
 ];
