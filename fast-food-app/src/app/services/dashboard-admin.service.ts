@@ -15,30 +15,26 @@ const db = getFirestore(getFirebaseApp());
 export class DashboardAdminService {
   /** Construye todo el resumen del panel administrativo desde Firestore. */
   async getResumen(): Promise<ResumenAdmin> {
-    const [usuarios, pedidos, programados] = await Promise.all([
+    const [usuarios, pedidos, programados, suscripciones] = await Promise.all([
       this.leerColeccion('usuarios'),
       this.leerColeccion('pedidos'),
       this.leerProgramados(),
+      this.leerColeccion('suscripciones'),
     ]);
 
     // Solo clientes (no admin/cocina/delivery)
     const clientes = usuarios.filter((u) => (u['rol'] ?? 'cliente') === 'cliente');
 
-    // ── Planes / segmentos por clasificacionCliente ───────────────
-    const segMap = new Map<string, number>();
-    clientes.forEach((u) => {
-      const c = (u['clasificacionCliente'] ?? 'Sin clasificar') as string;
-      segMap.set(c, (segMap.get(c) ?? 0) + 1);
+    // ── Planes de suscripción activos (por tipo de dieta) ─────────
+    const activas = suscripciones.filter((s) => s['activa'] === true);
+    const planMap = new Map<string, number>();
+    activas.forEach((s) => {
+      const dieta = String(s['tipoDieta'] ?? 'Sin restricción');
+      planMap.set(dieta, (planMap.get(dieta) ?? 0) + 1);
     });
-    const orden = ['Nuevo', 'Recurrente', 'VIP'];
-    const segmentos: SegmentoPlan[] = [...segMap.entries()]
+    const segmentos: SegmentoPlan[] = [...planMap.entries()]
       .map(([nombre, cantidad]) => ({ nombre, cantidad }))
-      .sort((a, b) => {
-        const ia = orden.indexOf(a.nombre);
-        const ib = orden.indexOf(b.nombre);
-        if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-        return b.cantidad - a.cantidad;
-      });
+      .sort((a, b) => b.cantidad - a.cantidad);
 
     // ── Platos más solicitados (agrega items de todos los pedidos) ─
     const platoMap = new Map<string, { cantidad: number; ingresos: number }>();
@@ -99,6 +95,7 @@ export class DashboardAdminService {
       totalPedidos: pedidos.length,
       ingresosTotales,
       totalProgramados: programados.length,
+      suscripcionesActivas: activas.length,
       segmentos,
       platosTop,
       usuariosRecurrentes,

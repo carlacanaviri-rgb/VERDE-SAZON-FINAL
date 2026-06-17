@@ -220,6 +220,10 @@ export class MenuComponent implements OnInit, OnDestroy {
     this.mostrarDropdown = false;
     this.router.navigate(['/planificador']);
   }
+  irASuscripcion(): void {
+    this.mostrarDropdown = false;
+    this.router.navigate(['/suscripcion']);
+  }
 
   /** Devuelve true si el producto coincide con la dieta preferida del usuario */
   esRecomendadoParaDieta(p: Producto): boolean {

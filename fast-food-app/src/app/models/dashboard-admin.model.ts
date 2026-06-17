@@ -33,6 +33,7 @@ export interface ResumenAdmin {
   totalPedidos: number;
   ingresosTotales: number;
   totalProgramados: number;
+  suscripcionesActivas: number;
   segmentos: SegmentoPlan[];
   platosTop: PlatoTop[];
   usuariosRecurrentes: UsuarioRecurrente[];

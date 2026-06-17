@@ -62,6 +62,11 @@ export class DashboardAdmin implements OnInit {
     if (nombre === 'Nuevo') return '#3b82f6';
     return '#9ca3af';
   }
+  /** Paleta para los planes/segmentos de suscripción (por índice). */
+  colorPlan(i: number): string {
+    const palette = ['#1d9e75', '#3b82f6', '#7c3aed', '#f59e0b', '#ec4899', '#14b8a6'];
+    return palette[i % palette.length];
+  }
 
   formatFecha(ymd: string): string {
     const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];

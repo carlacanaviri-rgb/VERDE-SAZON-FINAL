@@ -1,0 +1,159 @@
+<div class="sub-wrap">
+
+  <!-- ══════════ NAVBAR ══════════ -->
+  <nav class="sub-nav">
+    <div class="brand">
+      <div class="brand-ic">🍱</div>
+      <span>Mi Suscripción</span>
+    </div>
+    <button class="btn-ghost" (click)="volver()">← Menú</button>
+  </nav>
+
+  <div *ngIf="okMsg" class="banner ok">✅ {{ okMsg }}</div>
+  <div *ngIf="errorMsg" class="banner err">⚠️ {{ errorMsg }}</div>
+
+  <!-- ══════════ CARGANDO ══════════ -->
+  <div *ngIf="cargando" class="center">
+    <div class="spinner"></div>
+    <p>Cargando tu suscripción…</p>
+  </div>
+
+  <div class="sub-body" *ngIf="!cargando">
+
+    <!-- Estado del plan -->
+    <section class="card estado">
+      <div>
+        <h2>Plan de comidas</h2>
+        <p class="sub">Configura tu plan semanal. Sin pagos: solo tus preferencias de entrega.</p>
+      </div>
+      <div class="estado-acciones">
+        <span class="estado-pill" [class.on]="estadoClase()==='on'"
+              [class.paused]="estadoClase()==='paused'">
+          <span class="dot"></span>{{ estadoTexto() }}
+        </span>
+        <button class="toggle" [class.on]="sub.activa" (click)="sub.activa = !sub.activa">
+          {{ sub.activa ? 'Activa' : 'Inactiva' }}
+        </button>
+      </div>
+    </section>
+
+    <!-- Pausar suscripción -->
+    <section class="card" *ngIf="sub.activa">
+      <h3>Pausar suscripción</h3>
+      <div class="pausa-row">
+        <button class="btn-pausa" [class.activa]="sub.pausada" (click)="togglePausa()">
+          {{ sub.pausada ? '▶ Reanudar' : '⏸ Pausar entregas' }}
+        </button>
+        <div class="pausa-fecha" *ngIf="sub.pausada">
+          <label>Reanudar el (opcional)</label>
+          <input type="date" [(ngModel)]="sub.pausaHasta" />
+        </div>
+      </div>
+      <p class="hint" *ngIf="sub.pausada">
+        Mientras esté en pausa no se generarán entregas.
+      </p>
+    </section>
+
+    <!-- Cambiar de plan -->
+    <section class="card">
+      <h3>Cambiar de plan</h3>
+      <div class="planes">
+        <button class="plan-card" *ngFor="let p of planes"
+                [class.active]="sub.plan === p.nombre" (click)="seleccionarPlan(p)">
+          <span class="plan-nombre">{{ p.nombre }}</span>
+          <span class="plan-desc">{{ p.descripcion }}</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Comidas por semana -->
+    <section class="card">
+      <h3>Cantidad de comidas por semana</h3>
+      <div class="stepper">
+        <button (click)="ajustarComidas(-1)" [disabled]="sub.comidasPorSemana <= 1">−</button>
+        <div class="stepper-val">
+          <span class="num">{{ sub.comidasPorSemana }}</span>
+          <span class="lbl">comidas / semana</span>
+        </div>
+        <button (click)="ajustarComidas(1)" [disabled]="sub.comidasPorSemana >= 14">+</button>
+      </div>
+    </section>
+
+    <!-- Comidas por semana -->
+    <section class="card">
+      <h3>Cantidad de comidas por semana</h3>
+      <div class="stepper">
+        <button (click)="ajustarComidas(-1)" [disabled]="sub.comidasPorSemana <= 1">−</button>
+        <div class="stepper-val">
+          <span class="num">{{ sub.comidasPorSemana }}</span>
+          <span class="lbl">comidas / semana</span>
+        </div>
+        <button (click)="ajustarComidas(1)" [disabled]="sub.comidasPorSemana >= 14">+</button>
+      </div>
+    </section>
+
+    <!-- Días preferidos -->
+    <section class="card">
+      <h3>Días preferidos de entrega</h3>
+      <div class="chips">
+        <button class="chip" *ngFor="let d of dias"
+                [class.active]="tieneDia(d)" (click)="toggleDia(d)">
+          {{ d }}
+        </button>
+      </div>
+    </section>
+
+    <!-- Horarios preferidos -->
+    <section class="card">
+      <h3>Horarios preferidos de entrega</h3>
+      <div class="chips">
+        <button class="chip" *ngFor="let h of franjas"
+                [class.active]="tieneHorario(h)" (click)="toggleHorario(h)">
+          {{ h }}
+        </button>
+      </div>
+    </section>
+
+    <!-- Tipo de dieta -->
+    <section class="card">
+      <h3>Tipo de dieta del plan</h3>
+      <div class="chips">
+        <button class="chip" *ngFor="let d of tiposDieta"
+                [class.active]="sub.tipoDieta === d" (click)="setDieta(d)">
+          {{ d }}
+        </button>
+      </div>
+    </section>
+    <!-- Reprogramar entregas -->
+    <section class="card">
+      <h3>Reprogramar entregas</h3>
+      <p class="sub" style="margin-bottom:14px">Entregas programadas próximas (desde el planificador).</p>
+      <div class="entregas" *ngIf="entregas.length; else sinEntregas">
+        <div class="entrega-row" *ngFor="let ev of entregas">
+          <div class="entrega-info">
+            <span class="entrega-titulo">{{ ev.titulo }}</span>
+            <span class="entrega-hora">{{ ev.hora }}</span>
+          </div>
+          <input type="date" [value]="ev.fecha" (change)="reprogramar(ev, $event)" />
+        </div>
+      </div>
+      <ng-template #sinEntregas>
+        <div class="empty">No tienes entregas programadas. Crea algunas desde el planificador semanal.</div>
+      </ng-template>
+    </section>
+    <!-- Notas -->
+    <section class="card">
+      <h3>Notas para la cocina (opcional)</h3>
+      <textarea [(ngModel)]="sub.notas" rows="3"
+                placeholder="Ej: sin cebolla, entregar en portería, etc."></textarea>
+    </section>
+
+    <!-- Guardar -->
+    <div class="acciones">
+      <button class="btn-primary" (click)="guardar()" [disabled]="guardando">
+        {{ guardando ? 'Guardando…' : 'Guardar suscripción' }}
+      </button>
+    </div>
+
+  </div>
+</div>

@@ -41,6 +41,14 @@
         <div class="kpi-value">{{ data.ingresosTotales | bolivianos }}</div>
       </div>
       <div class="kpi">
+        <div class="kpi-label">Suscrip. activas</div>
+        <div class="kpi-value">{{ data.suscripcionesActivas }}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Programados</div>
+        <div class="kpi-value">{{ data.totalProgramados }}</div>
+      </div>
+      <div class="kpi">
         <div class="kpi-label">Programados</div>
         <div class="kpi-value">{{ data.totalProgramados }}</div>
       </div>
@@ -51,19 +59,19 @@
       <!-- ── Planes / segmentos ── -->
       <section class="card">
         <h2>Planes de suscripción activos</h2>
-        <p class="sub">Distribución de clientes por clasificación.</p>
+        <p class="sub">Suscripciones activas por tipo de dieta.</p>
         <div class="bars" *ngIf="data.segmentos.length; else vacioSeg">
-          <div class="bar-row" *ngFor="let s of data.segmentos">
+          <div class="bar-row" *ngFor="let s of data.segmentos; let i = index">
             <span class="bar-label">{{ s.nombre }}</span>
             <div class="bar-track">
               <div class="bar-fill"
                    [style.width.%]="pct(s.cantidad, maxSegmento())"
-                   [style.background]="colorSegmento(s.nombre)"></div>
+                   [style.background]="colorPlan(i)"></div>
             </div>
             <span class="bar-val">{{ s.cantidad }}</span>
           </div>
         </div>
-        <ng-template #vacioSeg><div class="empty">Sin datos de clientes.</div></ng-template>
+        <ng-template #vacioSeg><div class="empty">Aún no hay suscripciones activas.</div></ng-template>
       </section>
 
       <!-- ── Platos más solicitados ── -->

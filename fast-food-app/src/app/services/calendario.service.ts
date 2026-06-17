@@ -74,6 +74,22 @@ export class CalendarioService {
   async eliminarEvento(id: string): Promise<void> {
     await deleteDoc(doc(db, 'calendario_pedidos', id));
   }
+  /**
+   * Lectura puntual de las entregas programadas (tipo 'programado') del usuario,
+   * de hoy en adelante, ordenadas por fecha. Filtra el tipo en el cliente para
+   * no requerir índice compuesto.
+   */
+  async getEntregasProgramadas(uid: string): Promise<EventoCalendario[]> {
+    const hoy = new Date();
+    const ymdHoy = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    const ref = collection(db, 'calendario_pedidos');
+    const q = query(ref, where('uid', '==', uid));
+    const snap = await getDocs(q);
+    return snap.docs
+      .map((d) => ({ id: d.id, ...d.data() }) as EventoCalendario)
+      .filter((e) => e.tipo === 'programado' && e.fecha >= ymdHoy)
+      .sort((a, b) => a.fecha.localeCompare(b.fecha));
+  }
 
   /**
    * Importa el historial de pedidos reales del usuario como eventos de tipo 'historial'.
