@@ -14,9 +14,10 @@ import { CarritoItem } from '../../models/carrito-item.model';
 import { CrearPedidoRequest, CrearPedidoResponse } from '../../models/pedido.model';
 import { ZonaCobertura } from '../../models/zona-cobertura.model';
 import { BolivianoCurrencyPipe } from '../../shared/pipes/boliviano-currency.pipe';
-
 import { MapPickerComponent, MapLocation } from '../map-picker/map-picker';
 
+// Importación corregida idéntica a tu menu.ts
+import { LangSwitchComponent } from '../lang-switch/lang-switch';
 
 const CHECKOUT_QR_SESSION_KEY = 'verde-sazon-checkout-qr';
 
@@ -29,7 +30,14 @@ interface CheckoutQrSession {
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, BolivianoCurrencyPipe, MapPickerComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslateModule,
+    BolivianoCurrencyPipe,
+    MapPickerComponent,
+    LangSwitchComponent // Agregado al arreglo de imports
+  ],
   templateUrl: './checkout.html'
 })
 export class CheckoutComponent implements OnInit, OnDestroy {
@@ -73,7 +81,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.latEntrega = String(loc.lat);
     this.lngEntrega = String(loc.lng);
     this.mostrarMapa = false;
-    this.validarCoberturaDireccion(); // ya tienes este método ✅
+    this.validarCoberturaDireccion();
   }
 
   private seguimientoPagoSub: Subscription | null = null;
@@ -108,13 +116,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       || `${this.pedidoCreado.numero}|BOB|${this.pedidoCreado.total}|${this.nombreUsuario || this.emailUsuario || 'cliente'}`;
   }
 
-  // URLs inválidas o de entornos de prueba — nunca abrir en el navegador
   private readonly URL_INVALIDAS = ['checkout.verdesazon.local', 'localhost', '127.0.0.1', '.local'];
 
   get pagoUrl(): string {
     const url = this.pedidoCreado?.pago?.paymentUrl ?? '';
     if (!url) return '';
-    // Si la URL contiene un dominio ficticio/local, la descartamos
     const invalida = this.URL_INVALIDAS.some(patron => url.includes(patron));
     return invalida ? '' : url;
   }
@@ -358,7 +364,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.errorCheckout = '';
 
     try {
-      // Si el pago aún no está confirmado, confirmarlo antes de navegar
       if (!this.pagoConfirmado) {
         await this.pedidoSvc.confirmarPago(this.pedidoCreado.id);
         this.pagoConfirmado = true;
@@ -476,11 +481,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // 👇 Pasa lat/lng al servicio
     const validacion = this.coberturaSvc.validarDireccion(
       direccion,
       this.zonasCobertura,
-      lat,   // undefined si no hay mapa
+      lat,
       lng
     );
 

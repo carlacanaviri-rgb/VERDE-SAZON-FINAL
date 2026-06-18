@@ -18,10 +18,15 @@ import {
 } from '../../models/suscripcion.model';
 import { TipoDieta } from '../../models/perfil-nutricional.model';
 
+// 👇 Importaciones necesarias para la traducción y el selector de idioma
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { LangSwitchComponent } from '../lang-switch/lang-switch';
+
 @Component({
   selector: 'app-suscripcion',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  // 👇 Añadido TranslateModule y LangSwitchComponent
+  imports: [CommonModule, FormsModule, TranslateModule, LangSwitchComponent],
   templateUrl: './suscripcion.html',
   styleUrl: './suscripcion.css',
 })
@@ -32,6 +37,7 @@ export class SuscripcionComponent implements OnInit {
   private calSvc = inject(CalendarioService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private translate = inject(TranslateService); // Inyectamos el servicio de traducción
 
   readonly franjas = FRANJAS_HORARIAS;
   readonly dias = DIAS_SEMANA;
@@ -60,7 +66,7 @@ export class SuscripcionComponent implements OnInit {
       activa: false,
       pausada: false,
       pausaHasta: '',
-      plan: 'Estándar',
+      plan: 'Estándar', // Esto podría ser traducido dependiendo de cómo lo maneje tu backend
       comidasPorSemana: 5,
       diasPreferidos: [],
       horariosPreferidos: [],
@@ -116,7 +122,6 @@ export class SuscripcionComponent implements OnInit {
   }
 
   // ── Comidas por semana ──────────────────────────────────────────
-  // ── Comidas por semana ──────────────────────────────────────────
   ajustarComidas(delta: number) {
     const v = this.sub.comidasPorSemana + delta;
     this.sub.comidasPorSemana = Math.min(14, Math.max(1, v));
@@ -138,8 +143,8 @@ export class SuscripcionComponent implements OnInit {
   }
 
   estadoTexto(): string {
-    if (!this.sub.activa) return 'Inactiva';
-    return this.sub.pausada ? 'En pausa' : 'Activa';
+    if (!this.sub.activa) return this.translate.instant('SUSCRIPCION.ESTADO_INACTIVA') || 'Inactiva';
+    return this.sub.pausada ? (this.translate.instant('SUSCRIPCION.ESTADO_PAUSADA') || 'En pausa') : (this.translate.instant('SUSCRIPCION.ESTADO_ACTIVA') || 'Activa');
   }
 
   estadoClase(): string {
@@ -155,10 +160,10 @@ export class SuscripcionComponent implements OnInit {
       await this.calSvc.actualizarEvento(ev.id, { fecha: nuevaFecha });
       ev.fecha = nuevaFecha;
       this.entregas = [...this.entregas].sort((a, b) => a.fecha.localeCompare(b.fecha));
-      this.flash('Entrega reprogramada.');
+      this.flash(this.translate.instant('SUSCRIPCION.MSG_REPROGRAMADA') || 'Entrega reprogramada.');
     } catch (err) {
       console.error('[Suscripcion] error reprogramando:', err);
-      this.errorMsg = 'No se pudo reprogramar la entrega.';
+      this.errorMsg = this.translate.instant('SUSCRIPCION.ERR_REPROGRAMAR') || 'No se pudo reprogramar la entrega.';
     }
   }
 
@@ -175,11 +180,11 @@ export class SuscripcionComponent implements OnInit {
     this.okMsg = '';
     try {
       await this.svc.saveSuscripcion(uid, this.sub);
-      this.okMsg = 'Suscripción guardada correctamente.';
+      this.okMsg = this.translate.instant('SUSCRIPCION.MSG_GUARDADA') || 'Suscripción guardada correctamente.';
       setTimeout(() => (this.okMsg = ''), 3500);
     } catch (e) {
       console.error('[Suscripcion] error guardando:', e);
-      this.errorMsg = 'No se pudo guardar. Revisa tu conexión.';
+      this.errorMsg = this.translate.instant('SUSCRIPCION.ERR_GUARDAR') || 'No se pudo guardar. Revisa tu conexión.';
     } finally {
       this.guardando = false;
       this.cdr.detectChanges();

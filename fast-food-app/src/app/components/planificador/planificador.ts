@@ -6,10 +6,15 @@ import { PlanificadorService } from '../../services/planificador.service';
 import { CalendarioService } from '../../services/calendario.service';
 import { DiaPlan, PlanSemanal, SugerenciaPlato } from '../../models/planificador.model';
 
+// 👇 Importaciones necesarias para la traducción y el selector de idioma
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { LangSwitchComponent } from '../lang-switch/lang-switch';
+
 @Component({
   selector: 'app-planificador',
   standalone: true,
-  imports: [CommonModule],
+  // 👇 Añadido TranslateModule y LangSwitchComponent
+  imports: [CommonModule, TranslateModule, LangSwitchComponent],
   templateUrl: './planificador.html',
   styleUrl: './planificador.css',
 })
@@ -19,6 +24,7 @@ export class Planificador implements OnInit {
   private calSvc = inject(CalendarioService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private translate = inject(TranslateService); // Inyectamos el servicio de traducción
 
   cargando = true;
   generando = false;
@@ -47,11 +53,11 @@ export class Planificador implements OnInit {
       this.plan = await this.planSvc.generarPlan(uid, 7);
       console.log('[Planificador] plan generado, opciones =', this.totalOpciones);
       if (this.totalOpciones === 0) {
-        this.errorMsg = 'No hay platos disponibles para sugerir todavía.';
+        this.errorMsg = this.translate.instant('PLANIFICADOR.ERR_SIN_OPCIONES') || 'No hay platos disponibles para sugerir todavía.';
       }
     } catch (e) {
       console.error('[Planificador] error generando plan:', e);
-      this.errorMsg = 'No se pudo generar el plan. Revisa tu conexión.';
+      this.errorMsg = this.translate.instant('PLANIFICADOR.ERR_GENERAR') || 'No se pudo generar el plan. Revisa tu conexión.';
     } finally {
       this.generando = false;
       this.cargando = false;
@@ -100,15 +106,18 @@ export class Planificador implements OnInit {
         items: [{ nombre: plato.producto.nombre, cantidad: 1, precio: plato.producto.precio }],
         total: plato.producto.precio,
         estado: 'pendiente',
-        nota: 'Sugerido por el planificador semanal',
+        nota: this.translate.instant('PLANIFICADOR.NOTA_PEDIDO') || 'Sugerido por el planificador semanal',
         direccionEntrega: '',
       });
       dia.aceptado = true;
       dia.programado = true;
-      this.flash(`${plato.producto.nombre} programado para el ${dia.nombreDia}`);
+
+      const msg = this.translate.instant('PLANIFICADOR.MSG_DIA_PROGRAMADO', { nombre: plato.producto.nombre, dia: dia.nombreDia })
+        || `${plato.producto.nombre} programado para el ${dia.nombreDia}`;
+      this.flash(msg);
     } catch (e) {
       console.error(e);
-      this.errorMsg = 'No se pudo programar el día.';
+      this.errorMsg = this.translate.instant('PLANIFICADOR.ERR_PROGRAMAR_DIA') || 'No se pudo programar el día.';
     }
   }
 
@@ -131,18 +140,19 @@ export class Planificador implements OnInit {
           items: [{ nombre: plato.producto.nombre, cantidad: 1, precio: plato.producto.precio }],
           total: plato.producto.precio,
           estado: 'pendiente',
-          nota: 'Sugerido por el planificador semanal',
+          nota: this.translate.instant('PLANIFICADOR.NOTA_PEDIDO') || 'Sugerido por el planificador semanal',
           direccionEntrega: '',
         });
         dia.programado = true;
         n++;
       }
-      this.flash(
-        n > 0 ? `${n} pedidos programados en el calendario` : 'Acepta al menos un día primero',
-      );
+      const msg = n > 0
+        ? (this.translate.instant('PLANIFICADOR.MSG_SEMANA_PROGRAMADA', { count: n }) || `${n} pedidos programados en el calendario`)
+        : (this.translate.instant('PLANIFICADOR.MSG_ACEPTA_PRIMERO') || 'Acepta al menos un día primero');
+      this.flash(msg);
     } catch (e) {
       console.error(e);
-      this.errorMsg = 'No se pudieron programar todos los días.';
+      this.errorMsg = this.translate.instant('PLANIFICADOR.ERR_PROGRAMAR_SEMANA') || 'No se pudieron programar todos los días.';
     } finally {
       this.programandoTodo = false;
     }

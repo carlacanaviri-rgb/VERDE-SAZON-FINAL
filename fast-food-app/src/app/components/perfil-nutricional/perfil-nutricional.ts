@@ -12,10 +12,15 @@ import {
   ALERGIAS_OPCIONES,
 } from '../../models/perfil-nutricional.model';
 
+// 👇 Importaciones necesarias para la traducción y el selector de idioma
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { LangSwitchComponent } from '../lang-switch/lang-switch';
+
 @Component({
   selector: 'app-perfil-nutricional',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  // 👇 Añadido TranslateModule y LangSwitchComponent
+  imports: [CommonModule, FormsModule, TranslateModule, LangSwitchComponent],
   templateUrl: './perfil-nutricional.html',
 })
 export class PerfilNutricionalComponent implements OnInit {
@@ -23,6 +28,7 @@ export class PerfilNutricionalComponent implements OnInit {
   private svc = inject(PerfilNutricionalService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private translate = inject(TranslateService); // Inyectamos el servicio de traducción
 
   // Estado
   cargando = true;
@@ -132,7 +138,8 @@ export class PerfilNutricionalComponent implements OnInit {
         this.router.navigate(['/menu']);
       }, 1800);
     } catch (e: any) {
-      this.error = 'No se pudo guardar el perfil. Intenta de nuevo.';
+      // Usamos el servicio de traducción para el mensaje de error
+      this.error = this.translate.instant('PERFIL_NUTRICIONAL.ERROR_GUARDAR') || 'No se pudo guardar el perfil. Intenta de nuevo.';
     } finally {
       this.guardando = false;
       this.cdr.detectChanges();

@@ -1,51 +1,50 @@
 <div class="plan-wrap">
 
-  <!-- ══════════ NAVBAR ══════════ -->
   <nav class="plan-nav">
     <div class="brand">
       <div class="brand-ic">🍽️</div>
-      <span>Planificador Semanal</span>
+      <span>{{ 'PLANIFICADOR.TITULO_NAV' | translate }}</span>
     </div>
-    <div class="nav-actions">
-      <button class="btn-ghost" (click)="irACalendario()">📅 Ver calendario</button>
-      <button class="btn-ghost" (click)="volver()">← Menú</button>
+    <div class="nav-actions" style="display:flex;align-items:center;gap:14px">
+      <app-lang-switch></app-lang-switch>
+
+      <button class="btn-ghost" (click)="irACalendario()">📅 {{ 'PLANIFICADOR.BTN_CALENDARIO' | translate }}</button>
+      <button class="btn-ghost" (click)="volver()">← {{ 'COMUN.MENU' | translate }}</button>
     </div>
   </nav>
 
-  <!-- Banners -->
   <div *ngIf="okMsg" class="banner ok">✅ {{ okMsg }}</div>
   <div *ngIf="errorMsg" class="banner err">
     ⚠️ {{ errorMsg }}
     <button class="x" (click)="errorMsg=''">×</button>
   </div>
 
-  <!-- ══════════ CARGANDO ══════════ -->
   <div *ngIf="cargando" class="center">
     <div class="spinner"></div>
-    <p>Generando tu plan semanal…</p>
+    <p>{{ 'PLANIFICADOR.CARGANDO' | translate }}</p>
   </div>
 
   <ng-container *ngIf="!cargando">
 
-    <!-- ══════════ ENCABEZADO / CONTROLES ══════════ -->
     <header class="plan-head">
       <div class="head-text">
-        <h1>Tu semana sugerida</h1>
-        <p>Recomendaciones según tus preferencias, tu historial de pedidos y tus objetivos nutricionales.</p>
+        <h1>{{ 'PLANIFICADOR.TITULO' | translate }}</h1>
+        <p>{{ 'PLANIFICADOR.SUBTITULO' | translate }}</p>
       </div>
       <div class="head-actions">
-        <span class="chip-count">{{ diasAceptados }}/7 aceptados</span>
+        <span class="chip-count">{{ 'PLANIFICADOR.ACEPTADOS' | translate:{ count: diasAceptados, total: 7 } }}</span>
         <button class="btn-soft" (click)="generar()" [disabled]="generando">
-          {{ generando ? 'Generando…' : '🔄 Regenerar' }}
+          <span *ngIf="generando">{{ 'PLANIFICADOR.GENERANDO' | translate }}</span>
+          <span *ngIf="!generando">🔄 {{ 'PLANIFICADOR.REGENERAR' | translate }}</span>
         </button>
         <button class="btn-primary" (click)="programarSemana()"
                 [disabled]="programandoTodo || diasAceptados === 0">
-          {{ programandoTodo ? 'Programando…' : '📅 Programar semana' }}
+          <span *ngIf="programandoTodo">{{ 'PLANIFICADOR.PROGRAMANDO' | translate }}</span>
+          <span *ngIf="!programandoTodo">📅 {{ 'PLANIFICADOR.PROGRAMAR_SEMANA' | translate }}</span>
         </button>
       </div>
     </header>
 
-    <!-- ══════════ GRID DE DÍAS ══════════ -->
     <div class="grid" *ngIf="plan">
       <div class="day-card" *ngFor="let dia of plan.dias" [class.accepted]="dia.aceptado">
 
@@ -60,7 +59,7 @@
             <img *ngIf="plato.producto.imagen" [src]="plato.producto.imagen"
                  [alt]="plato.producto.nombre" />
             <span *ngIf="!plato.producto.imagen" class="ph-emoji">🍲</span>
-            <span class="badge-ok" *ngIf="dia.programado">En calendario</span>
+            <span class="badge-ok" *ngIf="dia.programado">{{ 'PLANIFICADOR.EN_CALENDARIO' | translate }}</span>
           </div>
 
           <div class="dish-body">
@@ -76,24 +75,24 @@
 
           <div class="actions">
             <button class="btn-replace" (click)="reemplazar(dia)"
-                    [disabled]="dia.opciones.length <= 1" title="Sugerir otro plato">🔁</button>
+                    [disabled]="dia.opciones.length <= 1" [title]="'PLANIFICADOR.BTN_SUGERIR_OTRO' | translate">🔁</button>
 
             <button class="btn-accept" *ngIf="!dia.aceptado" (click)="aceptar(dia)">
-              Aceptar
+              {{ 'PLANIFICADOR.BTN_ACEPTAR' | translate }}
             </button>
             <button class="btn-schedule" *ngIf="dia.aceptado && !dia.programado"
                     (click)="programarDia(dia)">
-              📅 Programar
+              📅 {{ 'PLANIFICADOR.BTN_PROGRAMAR' | translate }}
             </button>
             <button class="btn-done" *ngIf="dia.programado" disabled>
-              ✓ Programado
+              ✓ {{ 'PLANIFICADOR.BTN_PROGRAMADO' | translate }}
             </button>
           </div>
 
         </ng-container>
 
         <ng-template #sinPlato>
-          <div class="empty">Sin sugerencias disponibles</div>
+          <div class="empty">{{ 'PLANIFICADOR.SIN_SUGERENCIAS' | translate }}</div>
         </ng-template>
 
       </div>

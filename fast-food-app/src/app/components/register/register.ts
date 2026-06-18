@@ -1,14 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+
+// 👇 Importamos el componente del selector de idioma
+import { LangSwitchComponent } from '../lang-switch/lang-switch';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  // 👇 Añadido el LangSwitchComponent a los imports
+  imports: [CommonModule, FormsModule, TranslateModule, LangSwitchComponent],
   templateUrl: './register.html',
 })
 export class RegisterComponent {
@@ -20,6 +24,8 @@ export class RegisterComponent {
   cargando = false;
   mostrarPassword = false;
   mostrarConfirmar = false;
+
+  private translate = inject(TranslateService);
 
   constructor(
     private auth: AuthService,
@@ -55,12 +61,12 @@ export class RegisterComponent {
 
   private traducirError(code: string): string {
     const map: Record<string, string> = {
-      'auth/email-already-in-use': 'Este correo ya está registrado. ¿Querés iniciar sesión?',
-      'auth/invalid-email': 'El formato del correo no es válido.',
-      'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
-      'auth/network-request-failed': 'Sin conexión a internet. Intentá de nuevo.',
+      'auth/email-already-in-use': this.translate.instant('REGISTRO.ERR_EMAIL_IN_USE'),
+      'auth/invalid-email': this.translate.instant('REGISTRO.ERR_INVALID_EMAIL'),
+      'auth/weak-password': this.translate.instant('REGISTRO.ERR_WEAK_PWD'),
+      'auth/network-request-failed': this.translate.instant('REGISTRO.ERR_NETWORK'),
     };
-    return map[code] ?? 'Ocurrió un error al crear la cuenta. Intentá de nuevo.';
+    return map[code] ?? this.translate.instant('REGISTRO.ERR_DEFAULT');
   }
 
   irLogin() {

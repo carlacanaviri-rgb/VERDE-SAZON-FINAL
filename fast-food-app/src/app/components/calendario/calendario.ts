@@ -15,6 +15,10 @@ import {
   ItemCalendario,
 } from '../../models/calendario.model';
 
+// 👇 Importaciones necesarias para la traducción y el selector de idioma
+import { TranslateModule } from '@ngx-translate/core';
+import { LangSwitchComponent } from '../lang-switch/lang-switch';
+
 type VistaCalendario = 'mes' | 'semana' | 'lista';
 
 const DIAS_SEMANA = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -36,7 +40,8 @@ const MESES = [
 @Component({
   selector: 'app-calendario',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  // 👇 Añadido TranslateModule y LangSwitchComponent
+  imports: [CommonModule, FormsModule, RouterModule, TranslateModule, LangSwitchComponent],
   templateUrl: './calendario.html',
   styleUrl: './calendario.css',
 })
@@ -108,8 +113,6 @@ export class Calendario implements OnInit, OnDestroy {
 
     this.sub = this.calSvc.getEventos(uid).subscribe({
       next: (evs) => {
-        // El callback de Firestore puede llegar fuera de la zona de Angular;
-        // run() asegura que la vista se actualice dinámicamente en cada cambio.
         this.zone.run(() => {
           this.eventos = evs;
           this.cargando = false;
@@ -158,17 +161,14 @@ export class Calendario implements OnInit, OnDestroy {
     const ultimoDia = new Date(año, mes + 1, 0);
     const celdas: { fecha: Date; fuera: boolean }[] = [];
 
-    // Días del mes anterior para completar la primera semana
-    const inicioSemana = primerDia.getDay(); // 0=dom
+    const inicioSemana = primerDia.getDay();
     for (let i = inicioSemana - 1; i >= 0; i--) {
       const d = new Date(año, mes, -i);
       celdas.push({ fecha: d, fuera: true });
     }
-    // Días del mes
     for (let d = 1; d <= ultimoDia.getDate(); d++) {
       celdas.push({ fecha: new Date(año, mes, d), fuera: false });
     }
-    // Días del siguiente mes para completar la última semana
     const restantes = 7 - (celdas.length % 7 || 7);
     for (let i = 1; i <= restantes; i++) {
       celdas.push({ fecha: new Date(año, mes + 1, i), fuera: true });
@@ -389,10 +389,6 @@ export class Calendario implements OnInit, OnDestroy {
     this.router.navigate(['/menu']);
   }
 
-  // ↓↓↓ AÑADIR ESTOS TRES MÉTODOS ↓↓↓
-  // ─── Helpers de hover/foco ───────────────────────────────────
-  // Evitan acceder a `.style` sobre EventTarget (que puede ser null) en la
-  // plantilla, lo cual rompe strictTemplates. El cast se hace aquí en TS.
   setBg(e: Event, color: string) {
     const el = e.currentTarget as HTMLElement | null;
     if (el) el.style.background = color;

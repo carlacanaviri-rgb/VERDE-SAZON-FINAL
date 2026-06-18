@@ -1,12 +1,11 @@
 <div style="min-height:100vh;background:#f8faf8;font-family:'Segoe UI',sans-serif">
 
-  <!-- Navbar -->
   <header style="background:white;border-bottom:1px solid #e5e5e5;padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100">
     <div style="display:flex;align-items:center;gap:10px">
       <div style="width:36px;height:36px;background:#1D9E75;border-radius:50%;display:flex;align-items:center;justify-content:center">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12c0-2.2 1.8-4 4-4s4 1.8 4 4"/></svg>
       </div>
-      <span style="font-weight:700;font-size:18px;color:#111">Verde Sazón</span>
+      <span style="font-weight:700;font-size:18px;color:#111">{{ 'LOGIN.TITULO' | translate }}</span>
     </div>
     <nav style="display:flex;gap:32px">
       <button type="button" (click)="irASeccion('inicio')" style="font-size:14px;color:#555;text-decoration:none;background:none;border:none;padding:0;cursor:pointer">{{ 'NAV.INICIO' | translate }}</button>
@@ -51,9 +50,9 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <span style="font-size:14px;color:#111;flex:1">{{ 'COMUN.PERFIL_NUTRICIONAL' | translate }}</span>
             <span *ngIf="perfilNutricionalCompletado"
-                  style="font-size:10px;background:#ecfdf5;color:#0F6E56;padding:2px 7px;border-radius:20px;font-weight:600">✓ Listo</span>
+                  style="font-size:10px;background:#ecfdf5;color:#0F6E56;padding:2px 7px;border-radius:20px;font-weight:600">{{ 'PERFIL_NUTRICIONAL.COMPLETADO_BADGE' | translate }}</span>
             <span *ngIf="!perfilNutricionalCompletado"
-                  style="font-size:10px;background:#fef3c7;color:#b45309;padding:2px 7px;border-radius:20px;font-weight:600">Pendiente</span>
+                  style="font-size:10px;background:#fef3c7;color:#b45309;padding:2px 7px;border-radius:20px;font-weight:600">{{ 'PERFIL_NUTRICIONAL.PENDIENTE_BADGE' | translate }}</span>
           </div>
           <div (click)="toggleFavoritos()"
                style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
@@ -75,14 +74,14 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2">
               <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
             </svg>
-            <span style="font-size:14px;color:#555">Mis pedidos</span>
+            <span style="font-size:14px;color:#555">{{ 'MENU_PAGE.MIS_PEDIDOS' | translate }}</span>
             <span *ngIf="hayPedidoActivo"
                   style="margin-left:auto;width:8px;height:8px;background:#1D9E75;border-radius:50%"></span>
           </div>
           <div (click)="irACalendario()"
                style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <span style="font-size:14px;color:#555">Calendario de pedidos</span>
+            <span style="font-size:14px;color:#555">{{ 'CALENDARIO.TITULO' | translate }}</span>
           </div>
           <div (click)="irAPlanificador()"
                style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
@@ -92,13 +91,9 @@
           <div (click)="irASuscripcion()"
                style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v8a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
-            <span style="font-size:14px;color:#555">Mi suscripción</span>
-          </div>
-
-          <div style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
             <span style="font-size:14px;color:#555">{{ 'COMUN.SUSCRIPCIONES' | translate }}</span>
           </div>
+
           <div style="border-top:1px solid #f0f0f0;margin-top:8px;padding-top:8px">
             <div (click)="cerrarSesion()"
                  style="padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
@@ -142,9 +137,8 @@
             </div>
             <button type="button" (click)="quitarDelCarrito(item)" style="padding:6px 10px;border:none;background:#fef2f2;color:#b91c1c;border-radius:10px;cursor:pointer">{{ 'MENU_CART.REMOVE' | translate }}</button>
           </div>
-          <!-- Ingredientes -->
           <div *ngIf="item.ingredientes.length" style="margin-bottom:12px">
-            <p style="margin:0 0 7px;font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em">Ingredientes · toca para quitar</p>
+            <p style="margin:0 0 7px;font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em">{{ 'MENU_PAGE.INGREDIENTES_LABEL' | translate }}</p>
             <div style="display:flex;flex-wrap:wrap;gap:6px">
               <button
                 *ngFor="let ing of item.ingredientes"
@@ -159,7 +153,7 @@
               </button>
             </div>
             <p *ngIf="item.ingredientesQuitados.length" style="margin:7px 0 0;font-size:11px;color:#b91c1c">
-              Sin: {{ item.ingredientesQuitados.join(', ') }}
+              {{ 'MENU_PAGE.SIN_INGREDIENTE' | translate }} {{ item.ingredientesQuitados.join(', ') }}
             </p>
           </div>
 
@@ -216,19 +210,18 @@
         <h3 style="margin:0 0 6px;font-size:22px;font-weight:700;color:#0f172a">{{ 'MENU_CART.ORDER_CONFIRMED_TITLE' | translate }}</h3>
         <p style="margin:0;font-size:14px;color:#475569">{{ exitoPedido }}</p>
       </div>
-      <!-- Aviso de seguimiento en tiempo real -->
       <div style="background:#f0faf5;border:1px solid #a7f3d0;border-radius:12px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
         <span style="font-size:22px">🚚</span>
         <div>
-          <p style="margin:0 0 2px;font-size:13px;font-weight:600;color:#065f46">Seguimiento en tiempo real activado</p>
-          <p style="margin:0;font-size:12px;color:#047857">Puedes volver al menú y retomar el seguimiento desde la barra de pedido activo.</p>
+          <p style="margin:0 0 2px;font-size:13px;font-weight:600;color:#065f46">{{ 'MENU_PAGE.TRACKING_TITULO' | translate }}</p>
+          <p style="margin:0;font-size:12px;color:#047857">{{ 'MENU_PAGE.TRACKING_DESC' | translate }}</p>
         </div>
       </div>
       <div style="display:flex;gap:10px">
-        <button type="button" (click)="cerrarModalExito()" style="flex:1;padding:11px 14px;border:1px solid #d1d5db;border-radius:10px;background:white;color:#475569;font-size:13px;font-weight:600;cursor:pointer">Seguir comprando</button>
+        <button type="button" (click)="cerrarModalExito()" style="flex:1;padding:11px 14px;border:1px solid #d1d5db;border-radius:10px;background:white;color:#475569;font-size:13px;font-weight:600;cursor:pointer">{{ 'MENU_PAGE.SEGUIR_COMPRANDO' | translate }}</button>
         <button type="button" (click)="irASeguimientoDesdeModal()" style="flex:1;padding:11px 14px;border:none;border-radius:10px;background:#1D9E75;color:white;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Ver seguimiento
+          {{ 'MENU_PAGE.VER_SEGUIMIENTO' | translate }}
         </button>
       </div>
     </div>
@@ -249,7 +242,6 @@
 
   <div style="max-width:1200px;margin:0 auto;padding:40px">
 
-    <!-- Categorías -->
     <section id="categorias" style="margin-bottom:40px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <h2 style="margin:0;font-size:20px;font-weight:700;color:#111">{{ 'MENU_PAGE.CATEGORIAS' | translate }}</h2>
@@ -269,7 +261,6 @@
       </div>
     </section>
 
-    <!-- Platillos -->
     <section id="menu" style="margin-bottom:40px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <h2 style="margin:0;font-size:20px;font-weight:700;color:#111">{{ 'MENU_PAGE.DESTACADOS' | translate }}</h2>
@@ -286,24 +277,23 @@
         </button>
       </div>
 
-      <!-- Banner perfil nutricional activo -->
       <div *ngIf="perfilNutricionalCompletado && perfilNutricional"
            style="margin-bottom:16px;padding:10px 16px;background:linear-gradient(90deg,#ecfdf5,#d1fae5);border:1px solid #6ee7b7;border-radius:12px;display:flex;align-items:center;gap:10px">
         <span style="font-size:18px">🥗</span>
         <div style="flex:1">
-          <p style="margin:0;font-size:13px;font-weight:600;color:#0F6E56">Ordenado según tu perfil nutricional</p>
-          <p style="margin:0;font-size:12px;color:#065f46">Dieta: <strong>{{ perfilNutricional.tipoDieta }}</strong> · Objetivo: <strong>{{ perfilNutricional.objetivoNutricional }}</strong></p>
+          <p style="margin:0;font-size:13px;font-weight:600;color:#0F6E56">{{ 'MENU_PAGE.ORDENADO_PERFIL' | translate }}</p>
+          <p style="margin:0;font-size:12px;color:#065f46">{{ 'MENU_PAGE.DIETA_LABEL' | translate }} <strong>{{ perfilNutricional.tipoDieta }}</strong> · {{ 'MENU_PAGE.OBJETIVO_LABEL' | translate }} <strong>{{ perfilNutricional.objetivoNutricional }}</strong></p>
         </div>
         <button (click)="irAPerfilNutricional()"
-                style="font-size:11px;color:#0F6E56;background:white;border:1px solid #6ee7b7;border-radius:8px;padding:4px 10px;cursor:pointer">Editar</button>
+                style="font-size:11px;color:#0F6E56;background:white;border:1px solid #6ee7b7;border-radius:8px;padding:4px 10px;cursor:pointer">{{ 'MENU_PAGE.EDITAR' | translate }}</button>
       </div>
 
       <div *ngIf="!perfilNutricionalCompletado && !!emailUsuario"
            style="margin-bottom:16px;padding:10px 16px;background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;display:flex;align-items:center;gap:10px">
         <span style="font-size:18px">💡</span>
-        <p style="margin:0;font-size:13px;color:#92400e;flex:1">Completa tu <strong>perfil nutricional</strong> para ver primero los platos que se adaptan a ti.</p>
+        <p style="margin:0;font-size:13px;color:#92400e;flex:1" [innerHTML]="'MENU_PAGE.COMPLETA_PERFIL' | translate"></p>
         <button (click)="irAPerfilNutricional()"
-                style="font-size:11px;color:#92400e;background:white;border:1px solid #fcd34d;border-radius:8px;padding:4px 10px;cursor:pointer;white-space:nowrap">Completar</button>
+                style="font-size:11px;color:#92400e;background:white;border:1px solid #fcd34d;border-radius:8px;padding:4px 10px;cursor:pointer;white-space:nowrap">{{ 'MENU_PAGE.COMPLETAR' | translate }}</button>
       </div>
 
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px">
@@ -312,18 +302,15 @@
              onmouseover="this.style.transform='translateY(-4px)'"
              onmouseout="this.style.transform='translateY(0)'">
 
-          <!-- Imagen del producto con fallback a emoji -->
           <div style="height:200px;position:relative;overflow:hidden"
                [style.background]="getColorCategoria(p.categoria)">
-            <!-- Badge dieta recomendada -->
             <div *ngIf="esRecomendadoParaDieta(p)"
                  style="position:absolute;top:8px;left:8px;z-index:2;background:rgba(15,110,86,0.92);color:white;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;backdrop-filter:blur(4px)">
-              ✓ Para ti
+              {{ 'MENU_PAGE.BADGE_PARA_TI' | translate }}
             </div>
-            <!-- Badge alergia/restricción -->
             <div *ngIf="tieneConflictoNutricional(p)"
                  style="position:absolute;top:8px;left:8px;z-index:2;background:rgba(220,38,38,0.92);color:white;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;backdrop-filter:blur(4px)">
-              ⚠ Revisa ingredientes
+              {{ 'MENU_PAGE.BADGE_REVISAR' | translate }}
             </div>
             <img *ngIf="p.imagen"
                  [src]="p.imagen"
@@ -336,7 +323,6 @@
             </div>
           </div>
 
-          <!-- Contenedor de información con Flexbox activo -->
           <div style="padding:16px;display:flex;flex-direction:column;justify-content:space-between;flex:1">
             <div>
               <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
@@ -357,7 +343,6 @@
                 </div>
               </div>
 
-              <!-- Párrafo corregido con puntos suspensivos y alto reservado de 2 líneas -->
               <p style="margin:0 0 12px;font-size:13px;color:#888;line-height:1.5;height:39px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis">
                 {{ p.descripcion }}
               </p>
@@ -393,13 +378,12 @@
       </div>
     </section>
 
-    <!-- Ofertas -->
     <section style="margin-bottom:40px">
       <h2 style="margin:0 0 20px;font-size:20px;font-weight:700;color:#111">{{ 'MENU_PAGE.OFERTAS' | translate }}</h2>
       <div style="background:linear-gradient(135deg,#1D9E75,#0F6E56);border-radius:16px;padding:32px;color:white;display:flex;align-items:center;justify-content:space-between">
         <div>
           <h3 style="margin:0 0 8px;font-size:22px;font-weight:700">
-            {{ productosEnOferta.length > 0 ? productosEnOferta.length + ' platos en promoción' : 'Ofertas especiales' }}
+            {{ productosEnOferta.length > 0 ? productosEnOferta.length + ' platos en promoción' : ('MENU_PAGE.OFERTAS' | translate) }}
           </h3>
           <p style="margin:0 0 20px;opacity:0.9;font-size:14px">
             {{ productosEnOferta.length > 0 ? 'Precios reducidos por tiempo limitado' : 'Próximamente nuevas ofertas' }}
@@ -416,38 +400,32 @@
       </div>
     </section>
 
-    <!-- OVERLAY ofertas -->
     <div *ngIf="mostrarOfertas" (click)="mostrarOfertas=false"
          style="position:fixed;inset:0;background:rgba(15,23,42,0.35);z-index:150"></div>
 
-    <!-- PANEL OFERTAS -->
     <aside *ngIf="mostrarOfertas"
            style="position:fixed;top:0;right:0;width:min(480px,95vw);height:100vh;background:white;
               box-shadow:-12px 0 32px rgba(15,23,42,0.18);z-index:160;display:flex;flex-direction:column;overflow:hidden">
 
-      <!-- Header -->
       <div style="padding:24px 24px 18px;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:space-between;
                   background:linear-gradient(135deg,#1D9E75,#0F6E56)">
         <div>
-          <h2 style="margin:0;font-size:20px;font-weight:700;color:white">🏷️ Ofertas especiales</h2>
+          <h2 style="margin:0;font-size:20px;font-weight:700;color:white">🏷️ {{ 'MENU_PAGE.OFERTAS' | translate }}</h2>
           <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8)">{{ productosEnOferta.length }} platos en promoción</p>
         </div>
         <button (click)="mostrarOfertas=false"
                 style="width:36px;height:36px;border:none;border-radius:10px;background:rgba(255,255,255,0.2);color:white;font-size:18px;cursor:pointer">×</button>
       </div>
 
-      <!-- Lista de ofertas -->
       <div style="flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px">
         <div *ngFor="let p of productosEnOferta"
              style="background:white;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
 
-          <!-- Imagen -->
           <div style="position:relative">
             <img *ngIf="p.imagen" [src]="p.imagen" [alt]="p.nombre"
                  style="width:100%;height:160px;object-fit:cover;display:block">
             <div *ngIf="!p.imagen"
                  style="width:100%;height:120px;background:#f0faf5;display:flex;align-items:center;justify-content:center;font-size:48px">🍽️</div>
-            <!-- Badge descuento -->
             <div style="position:absolute;top:10px;left:10px;background:#dc2626;color:white;
                         font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px">
               -{{ calcularDescuento(p) }}%
@@ -458,12 +436,10 @@
             </div>
           </div>
 
-          <!-- Info -->
           <div style="padding:14px 16px">
             <h3 style="margin:0 0 4px;font-size:16px;font-weight:700;color:#111">{{ p.nombre }}</h3>
             <p style="margin:0 0 12px;font-size:13px;color:#666;line-height:1.4">{{ p.descripcion }}</p>
 
-            <!-- Precios -->
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
               <span style="font-size:22px;font-weight:800;color:#1D9E75">Bs {{ p.precioPromocion }}</span>
               <span style="font-size:15px;color:#aaa;text-decoration:line-through">Bs {{ p.precio }}</span>
@@ -481,20 +457,17 @@
         </div>
       </div>
     </aside>
-    <!-- OVERLAY mis pedidos -->
     <div *ngIf="mostrarMisPedidos" (click)="mostrarMisPedidos=false"
          style="position:fixed;inset:0;background:rgba(15,23,42,0.35);z-index:150"></div>
 
-    <!-- PANEL MIS PEDIDOS -->
     <aside *ngIf="mostrarMisPedidos"
            style="position:fixed;top:0;right:0;width:min(440px,95vw);height:100vh;background:white;
               box-shadow:-12px 0 32px rgba(15,23,42,0.18);z-index:160;display:flex;flex-direction:column">
 
-      <!-- Header -->
       <div style="padding:24px 24px 18px;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:space-between">
         <div>
-          <h2 style="margin:0;font-size:20px;font-weight:700;color:#111">Mis pedidos</h2>
-          <p style="margin:4px 0 0;font-size:13px;color:#888">Seguimiento e historial</p>
+          <h2 style="margin:0;font-size:20px;font-weight:700;color:#111">{{ 'MENU_PAGE.MIS_PEDIDOS' | translate }}</h2>
+          <p style="margin:4px 0 0;font-size:13px;color:#888">{{ 'MENU_PAGE.SEGUIMIENTO_HISTORIAL' | translate }}</p>
         </div>
         <button (click)="mostrarMisPedidos=false"
                 style="width:36px;height:36px;border:none;border-radius:10px;background:#f1f5f9;color:#334155;font-size:18px;cursor:pointer">×</button>
@@ -502,10 +475,9 @@
 
       <div style="flex:1;overflow-y:auto;padding:20px 24px">
 
-        <!-- PEDIDOS ACTIVOS (multi-pedido) -->
         <div *ngIf="pedidosActivosVisibles.length > 0" style="margin-bottom:24px">
           <p style="margin:0 0 10px;font-size:12px;font-weight:700;color:#1D9E75;text-transform:uppercase;letter-spacing:0.6px">
-            🟢 Pedidos en curso ({{ pedidosActivosVisibles.length }})
+            🟢 {{ 'MENU_PAGE.PEDIDOS_EN_CURSO' | translate:{count: pedidosActivosVisibles.length} }}
           </p>
           <div style="display:flex;flex-direction:column;gap:10px">
             <div *ngFor="let pa of pedidosActivosVisibles"
@@ -522,37 +494,32 @@
               <button (click)="irASeguimiento(pa.id)"
                       style="width:100%;padding:9px;background:#1D9E75;color:white;border:none;border-radius:10px;
                          font-size:13px;font-weight:600;cursor:pointer">
-                Ver seguimiento →
+                {{ 'MENU_PAGE.VER_SEGUIMIENTO' | translate }} →
               </button>
             </div>
           </div>
         </div>
 
-        <!-- HISTORIAL -->
         <div>
           <p style="margin:0 0 10px;font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.6px">
-            Historial de pedidos
+            {{ 'MENU_PAGE.HISTORIAL_PEDIDOS' | translate }}
           </p>
 
-          <!-- Cargando -->
           <div *ngIf="cargandoHistorial" style="display:flex;justify-content:center;padding:32px 0">
             <div style="width:28px;height:28px;border:2px solid #e5e5e5;border-top-color:#1D9E75;border-radius:50%;animation:spin 0.8s linear infinite"></div>
           </div>
 
-          <!-- Error -->
           <div *ngIf="!cargandoHistorial && errorHistorial"
                style="padding:16px;background:#fef2f2;border-radius:12px;color:#b91c1c;font-size:13px;text-align:center">
             {{ errorHistorial }}
           </div>
 
-          <!-- Sin pedidos -->
           <div *ngIf="!cargandoHistorial && !errorHistorial && historialPedidos.length === 0"
                style="padding:32px 16px;text-align:center">
             <span style="font-size:36px">🍽️</span>
-            <p style="margin:10px 0 0;font-size:14px;color:#888">Aún no tienes pedidos</p>
+            <p style="margin:10px 0 0;font-size:14px;color:#888">{{ 'MENU_PAGE.AUN_NO_PEDIDOS' | translate }}</p>
           </div>
 
-          <!-- Lista -->
           <div *ngIf="!cargandoHistorial && historialPedidos.length > 0"
                style="display:flex;flex-direction:column;gap:10px">
             <div *ngFor="let p of historialPedidos"
@@ -582,12 +549,10 @@
   </div>
 
 
-  <!-- ═══ PÁGINA COMPLETA MIS FAVORITOS ══════════════════════════════════════ -->
   <div *ngIf="mostrarFavoritos"
        style="position:fixed;inset:0;z-index:200;background:#f4f6f4;overflow-y:auto;
               font-family:'Segoe UI',sans-serif">
 
-    <!-- Navbar de la página favoritos -->
     <header style="background:white;border-bottom:1px solid #e5e5e5;padding:0 40px;
                    display:flex;align-items:center;justify-content:space-between;height:64px;
                    position:sticky;top:0;z-index:10">
@@ -595,15 +560,15 @@
         <div style="width:36px;height:36px;background:#1D9E75;border-radius:50%;display:flex;align-items:center;justify-content:center">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12c0-2.2 1.8-4 4-4s4 1.8 4 4"/></svg>
         </div>
-        <span style="font-weight:700;font-size:18px;color:#111">Verde Sazón</span>
+        <span style="font-weight:700;font-size:18px;color:#111">{{ 'LOGIN.TITULO' | translate }}</span>
       </div>
       <nav style="display:flex;gap:32px">
         <button type="button" (click)="mostrarFavoritos=false; irASeccion('inicio')"
-                style="font-size:14px;color:#555;background:none;border:none;padding:0;cursor:pointer">Inicio</button>
+                style="font-size:14px;color:#555;background:none;border:none;padding:0;cursor:pointer">{{ 'COMUN.INICIO' | translate }}</button>
         <button type="button" (click)="mostrarFavoritos=false; irASeccion('categorias')"
-                style="font-size:14px;color:#555;background:none;border:none;padding:0;cursor:pointer">Categorías</button>
+                style="font-size:14px;color:#555;background:none;border:none;padding:0;cursor:pointer">{{ 'COMUN.CATEGORIAS_NAV' | translate }}</button>
         <button type="button" (click)="mostrarFavoritos=false; irASeccion('menu')"
-                style="font-size:14px;color:#555;background:none;border:none;padding:0;cursor:pointer">Menú</button>
+                style="font-size:14px;color:#555;background:none;border:none;padding:0;cursor:pointer">{{ 'COMUN.MENU' | translate }}</button>
       </nav>
       <button (click)="mostrarFavoritos=false"
               style="display:flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid #e5e5e5;
@@ -611,24 +576,21 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="15 18 9 12 15 6"/>
         </svg>
-        Volver al menú
+        {{ 'COMUN.VOLVER_MENU' | translate }}
       </button>
     </header>
 
-    <!-- Contenido principal -->
     <div style="max-width:1100px;margin:0 auto;padding:48px 32px">
 
-      <!-- Título -->
       <div style="margin-bottom:36px">
-        <h1 style="margin:0 0 6px;font-size:32px;font-weight:800;color:#111">Mis Favoritos</h1>
+        <h1 style="margin:0 0 6px;font-size:32px;font-weight:800;color:#111">{{ 'FAVORITOS.TITULO' | translate }}</h1>
         <p style="margin:0;font-size:15px;color:#888">
-          <ng-container *ngIf="favoritosItems.length === 0">Aún no tienes platillos favoritos</ng-container>
-          <ng-container *ngIf="favoritosItems.length === 1">Tienes 1 platillo favorito</ng-container>
-          <ng-container *ngIf="favoritosItems.length > 1">Tienes {{ favoritosItems.length }} platillos favoritos</ng-container>
+          <ng-container *ngIf="favoritosItems.length === 0">{{ 'FAVORITOS.CERO' | translate }}</ng-container>
+          <ng-container *ngIf="favoritosItems.length === 1">{{ 'FAVORITOS.UNO' | translate }}</ng-container>
+          <ng-container *ngIf="favoritosItems.length > 1">{{ 'FAVORITOS.VARIOS' | translate:{count: favoritosItems.length} }}</ng-container>
         </p>
       </div>
 
-      <!-- Empty state -->
       <div *ngIf="favoritosItems.length === 0"
            style="display:flex;flex-direction:column;align-items:center;justify-content:center;
                   padding:80px 0;gap:18px;text-align:center">
@@ -638,16 +600,15 @@
             <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
           </svg>
         </div>
-        <p style="margin:0;font-size:18px;font-weight:700;color:#333">Aún no tienes favoritos</p>
-        <p style="margin:0;font-size:14px;color:#aaa;max-width:300px">Toca el corazón ❤️ en cualquier platillo del menú para guardarlo aquí</p>
+        <p style="margin:0;font-size:18px;font-weight:700;color:#333">{{ 'FAVORITOS.VACIO_TITULO' | translate }}</p>
+        <p style="margin:0;font-size:14px;color:#aaa;max-width:300px">{{ 'FAVORITOS.VACIO_DESC' | translate }}</p>
         <button (click)="mostrarFavoritos=false; irASeccion('menu')"
                 style="margin-top:8px;padding:12px 28px;background:#1D9E75;color:white;border:none;
                        border-radius:12px;font-size:14px;font-weight:600;cursor:pointer">
-          Explorar el menú
+          {{ 'FAVORITOS.EXPLORAR' | translate }}
         </button>
       </div>
 
-      <!-- Grid de cards -->
       <div *ngIf="favoritosItems.length > 0"
            style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px">
 
@@ -658,9 +619,7 @@
              onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 28px rgba(0,0,0,0.13)'"
              onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 12px rgba(0,0,0,0.07)'">
 
-          <!-- Imagen / Emoji con corazón superpuesto -->
           <div style="position:relative">
-            <!-- Imagen del favorito con fallback a emoji -->
             <div style="height:220px;position:relative;overflow:hidden"
                  [style.background]="getColorCategoria(fav.categoria)">
               <img *ngIf="fav.imagen"
@@ -673,7 +632,6 @@
               </div>
             </div>
 
-            <!-- Botón corazón superpuesto (esquina superior derecha) -->
             <button type="button"
                     (click)="toggleFavorito({id: fav.productoId, nombre: fav.nombre, descripcion: fav.descripcion, precio: fav.precio, categoria: fav.categoria})"
                     title="Quitar de favoritos"
@@ -691,7 +649,6 @@
             </button>
           </div>
 
-          <!-- Contenido de la card -->
           <div style="padding:20px">
             <h3 style="margin:0 0 6px;font-size:17px;font-weight:700;color:#111">{{ fav.nombre }}</h3>
             <p style="margin:0 0 16px;font-size:13px;color:#888;line-height:1.5;
@@ -699,7 +656,6 @@
               {{ fav.descripcion }}
             </p>
 
-            <!-- Precio -->
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
               <span style="font-size:20px;font-weight:800;color:#1D9E75">{{ fav.precio | bolivianos }}</span>
               <span style="font-size:12px;background:#f0f7f0;color:#0F6E56;padding:4px 10px;border-radius:8px;font-weight:500">
@@ -707,7 +663,6 @@
               </span>
             </div>
 
-            <!-- Acciones -->
             <div style="display:flex;gap:10px">
               <button type="button"
                       (click)="mostrarFavoritos=false; irASeccion('menu')"
@@ -716,7 +671,7 @@
                              transition:border-color 0.2s"
                       onmouseover="this.style.borderColor='#1D9E75'"
                       onmouseout="this.style.borderColor='#e5e5e5'">
-                Ver detalles
+                {{ 'FAVORITOS.VER_DETALLES' | translate }}
               </button>
               <button type="button"
                       (click)="agregarFavoritoAlCarrito(fav)"
@@ -739,8 +694,6 @@
       </div>
     </div>
   </div>
-  <!-- ═══════════════════════════════════════════════════════════════════════ -->
-
   <footer style="background:white;border-top:1px solid #e5e5e5;padding:24px 40px;text-align:center">
     <p style="margin:0;font-size:13px;color:#888">© 2026 Verde Sazón · Todos los derechos reservados</p>
   </footer>

@@ -5,10 +5,15 @@ import { DashboardAdminService } from '../../services/dashboard-admin.service';
 import { ResumenAdmin } from '../../models/dashboard-admin.model';
 import { BolivianoCurrencyPipe } from '../../shared/pipes/boliviano-currency.pipe';
 
+// 👇 Importaciones necesarias para la traducción y el selector de idioma
+import { TranslateModule } from '@ngx-translate/core';
+import { LangSwitchComponent } from '../lang-switch/lang-switch';
+
 @Component({
   selector: 'app-dashboard-admin',
   standalone: true,
-  imports: [CommonModule, BolivianoCurrencyPipe],
+  // 👇 Añadido TranslateModule y LangSwitchComponent
+  imports: [CommonModule, BolivianoCurrencyPipe, TranslateModule, LangSwitchComponent],
   templateUrl: './dashboard-admin.html',
   styleUrl: './dashboard-admin.css',
 })
