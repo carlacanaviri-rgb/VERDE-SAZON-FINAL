@@ -43,6 +43,7 @@ interface PedidoActivoTracked {
     RouterModule,
   ],
   templateUrl: './menu.html',
+  styleUrl: './menu.css',
 })
 export class MenuComponent implements OnInit, OnDestroy {
   private svc = inject(ProductoService);

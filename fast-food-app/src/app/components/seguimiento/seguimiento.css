@@ -1,0 +1,9 @@
+/* ===== Responsive del seguimiento (cliente) ===== */
+@media (max-width: 900px) {
+  .s-grid { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 640px) {
+  .s-nav { padding: 0 16px !important; }
+  .s-navlinks { display: none !important; }
+  .s-content { padding: 20px 14px !important; }
+}
