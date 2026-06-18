@@ -34,10 +34,25 @@
 
   <!-- MAIN CONTENT -->
   <main class="main-content">
-    <div class="page-header">
-      <h1 class="page-title">Panel de Delivery</h1>
-      <p class="page-subtitle">Gestiona tus entregas en tiempo real</p>
-    </div>
+    <header class="dash-header">
+      <div class="dash-header-main">
+        <div class="dash-header-icon">🚚</div>
+        <div>
+          <h1 class="page-title">Panel de Delivery</h1>
+          <p class="page-subtitle">Gestiona tus entregas en tiempo real</p>
+        </div>
+      </div>
+      <div class="dash-header-side">
+        <span class="dash-status"><span class="dash-status-dot"></span> En línea</span>
+        <div class="dash-user">
+          <div class="dash-user-info">
+            <span class="dash-user-name">{{ nombreRepartidor }}</span>
+            <span class="dash-user-date">{{ fechaHoy }}</span>
+          </div>
+          <div class="dash-user-avatar">{{ inicialRepartidor }}</div>
+        </div>
+      </div>
+    </header>
 
     <!-- ENTREGAS ACTIVAS -->
     <section class="section">

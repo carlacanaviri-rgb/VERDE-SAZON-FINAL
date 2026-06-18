@@ -53,7 +53,24 @@ export class DeliveryComponent implements OnInit, OnDestroy {
   get totalGanado(): number {
     return this.completados.reduce((acc, p) => acc + (p.total ?? 0), 0);
   }
+  get nombreRepartidor(): string {
+    const u = this.auth.usuarioLogueado;
+    return u?.displayName || u?.email?.split('@')[0] || 'Repartidor';
+  }
 
+  get inicialRepartidor(): string {
+    return (this.nombreRepartidor.trim()[0] || 'R').toUpperCase();
+  }
+
+  get fechaHoy(): string {
+    const d = new Date();
+    const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+    const meses = [
+      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+    ];
+    return `${dias[d.getDay()]}, ${d.getDate()} de ${meses[d.getMonth()]}`;
+  }
   ngOnInit(): void {
     this.svc.getPedidos().subscribe((data) => {
       this.pedidos = [...data];
