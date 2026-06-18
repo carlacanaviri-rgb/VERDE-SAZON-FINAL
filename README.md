@@ -92,6 +92,31 @@ bash scripts/start-backend.sh
 ```
 
 ---
+## 🌍 Internacionalización (i18n)
+
+Este proyecto cuenta con soporte bilingüe (Español e Inglés) utilizando la librería `@ngx-translate/core`.
+
+### 📂 Diccionarios de Traducción
+Todos los textos de la aplicación están centralizados en archivos JSON. Para modificar, corregir o agregar nuevos textos, debes editar los siguientes archivos:
+* 🇪🇸 **Español:** `src/assets/i18n/es.json`
+* 🇬🇧 **Inglés:** `src/assets/i18n/en.json`
+
+> ⚠️ **Importante:** Asegúrate de que las claves coincidan exactamente en ambos archivos para evitar que se muestren códigos (ej. `REGISTRO.TITULO`) en la pantalla.
+
+### ⚙️ Configuración en Componentes (Standalone)
+Para utilizar las traducciones en cualquier componente nuevo, es **obligatorio** importar `TranslateModule` en el decorador del componente:
+
+```typescript
+import { TranslateModule } from '@ngx-translate/core';
+
+@Component({
+  selector: 'app-mi-componente',
+  standalone: true,
+  imports: [TranslateModule], // <-- Añadir aquí
+  templateUrl: './mi-componente.html'
+})
+export class MiComponente { }
+---
 
 ## 📁 Estructura de Archivos Final
 
