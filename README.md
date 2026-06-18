@@ -106,7 +106,8 @@ Todos los textos de la aplicación están centralizados en archivos JSON. Para m
 ### ⚙️ Configuración en Componentes (Standalone)
 Para utilizar las traducciones en cualquier componente nuevo, es **obligatorio** importar `TranslateModule` en el decorador del componente:
 
-```typescript
+```
+typescript
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
@@ -116,6 +117,7 @@ import { TranslateModule } from '@ngx-translate/core';
   templateUrl: './mi-componente.html'
 })
 export class MiComponente { }
+```
 ---
 
 ## 📁 Estructura de Archivos Final
