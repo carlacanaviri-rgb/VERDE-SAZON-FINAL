@@ -22,6 +22,7 @@ import { LangSwitchComponent } from '../lang-switch/lang-switch';
   // 👇 Añadido TranslateModule y LangSwitchComponent
   imports: [CommonModule, FormsModule, TranslateModule, LangSwitchComponent],
   templateUrl: './perfil-nutricional.html',
+  styleUrl: './perfil-nutricional.css',
 })
 export class PerfilNutricionalComponent implements OnInit {
   private auth = inject(AuthService);
@@ -139,7 +140,9 @@ export class PerfilNutricionalComponent implements OnInit {
       }, 1800);
     } catch (e: any) {
       // Usamos el servicio de traducción para el mensaje de error
-      this.error = this.translate.instant('PERFIL_NUTRICIONAL.ERROR_GUARDAR') || 'No se pudo guardar el perfil. Intenta de nuevo.';
+      this.error =
+        this.translate.instant('PERFIL_NUTRICIONAL.ERROR_GUARDAR') ||
+        'No se pudo guardar el perfil. Intenta de nuevo.';
     } finally {
       this.guardando = false;
       this.cdr.detectChanges();
