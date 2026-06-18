@@ -244,4 +244,81 @@
       </div>
     </div>
   </div>
+  <!-- ══════════ Overlay animado: pago confirmado ══════════ -->
+  <div *ngIf="mostrarExitoPago" class="pago-exito-overlay">
+    <div class="pago-exito-card">
+      <div class="pago-exito-circulo">
+        <svg viewBox="0 0 52 52" class="pago-exito-check" xmlns="http://www.w3.org/2000/svg">
+          <circle class="pec-circle" cx="26" cy="26" r="24" fill="none" />
+          <path class="pec-tick" fill="none" d="M14 27l8 8 16-16" />
+        </svg>
+      </div>
+      <h2 class="pago-exito-titulo">¡Pago confirmado!</h2>
+      <p class="pago-exito-sub">Redirigiendo al menú…</p>
+      <div class="pago-exito-dots"><span></span><span></span><span></span></div>
+    </div>
+  </div>
+
+  <style>
+    .pago-exito-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(248, 250, 249, 0.92);
+      backdrop-filter: blur(4px);
+      animation: pe-fade 0.25s ease;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .pago-exito-card {
+      background: #fff; border-radius: 20px; padding: 40px 48px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12); text-align: center;
+      animation: pe-pop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .pago-exito-circulo {
+      width: 88px; height: 88px; margin: 0 auto 18px; border-radius: 50%;
+      background: #ecfdf5; display: flex; align-items: center; justify-content: center;
+    }
+    .pago-exito-check { width: 56px; height: 56px; }
+    .pec-circle {
+      stroke: #1d9e75; stroke-width: 3;
+      stroke-dasharray: 151; stroke-dashoffset: 151;
+      animation: pe-ring 0.5s ease forwards;
+    }
+    .pec-tick {
+      stroke: #1d9e75; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round;
+      stroke-dasharray: 48; stroke-dashoffset: 48;
+      animation: pe-tick 0.35s 0.45s ease forwards;
+    }
+    .pago-exito-titulo {
+      margin: 0 0 6px; font-size: 22px; font-weight: 800; color: #111;
+      animation: pe-rise 0.4s 0.25s both;
+    }
+    .pago-exito-sub {
+      margin: 0; font-size: 14px; color: #6b7280;
+      animation: pe-rise 0.4s 0.35s both;
+    }
+    .pago-exito-dots { display: flex; gap: 6px; justify-content: center; margin-top: 16px; }
+    .pago-exito-dots span {
+      width: 8px; height: 8px; border-radius: 50%; background: #1d9e75;
+      animation: pe-bounce 1s infinite;
+    }
+    .pago-exito-dots span:nth-child(2) { animation-delay: 0.15s; }
+    .pago-exito-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes pe-fade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pe-pop {
+      0% { transform: scale(0.85); opacity: 0; }
+      60% { transform: scale(1.03); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes pe-ring { to { stroke-dashoffset: 0; } }
+    @keyframes pe-tick { to { stroke-dashoffset: 0; } }
+    @keyframes pe-rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pe-bounce {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+  </style>
 </div>

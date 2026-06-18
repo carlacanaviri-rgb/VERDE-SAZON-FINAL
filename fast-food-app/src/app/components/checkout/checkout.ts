@@ -15,6 +15,8 @@ import { CrearPedidoRequest, CrearPedidoResponse } from '../../models/pedido.mod
 import { ZonaCobertura } from '../../models/zona-cobertura.model';
 import { BolivianoCurrencyPipe } from '../../shared/pipes/boliviano-currency.pipe';
 import { MapPickerComponent, MapLocation } from '../map-picker/map-picker';
+import { ChangeDetectorRef } from '@angular/core';
+
 
 // Importación corregida idéntica a tu menu.ts
 import { LangSwitchComponent } from '../lang-switch/lang-switch';
@@ -36,9 +38,10 @@ interface CheckoutQrSession {
     TranslateModule,
     BolivianoCurrencyPipe,
     MapPickerComponent,
-    LangSwitchComponent // Agregado al arreglo de imports
+    LangSwitchComponent, // Agregado al arreglo de imports
   ],
-  templateUrl: './checkout.html'
+  templateUrl: './checkout.html',
+  styleUrls: ['./checkout.css'],
 })
 export class CheckoutComponent implements OnInit, OnDestroy {
   private readonly cartSvc = inject(CartService);
@@ -47,12 +50,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   private readonly coberturaSvc = inject(CoberturaService);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   paso: 'resumen' | 'confirmacion' | 'resultado' = 'resumen';
   carritoItems: CarritoItem[] = [];
   notaPedido = '';
   procesandoPedido = false;
   confirmandoPago = false;
+  mostrarExitoPago = false;
   pagoConfirmado = false;
   esperandoConfirmacionPago = false;
   errorCheckout = '';
@@ -112,16 +117,23 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     if (!this.pedidoCreado) {
       return '';
     }
-    return this.pedidoCreado.pago?.referencia
-      || `${this.pedidoCreado.numero}|BOB|${this.pedidoCreado.total}|${this.nombreUsuario || this.emailUsuario || 'cliente'}`;
+    return (
+      this.pedidoCreado.pago?.referencia ||
+      `${this.pedidoCreado.numero}|BOB|${this.pedidoCreado.total}|${this.nombreUsuario || this.emailUsuario || 'cliente'}`
+    );
   }
 
-  private readonly URL_INVALIDAS = ['checkout.verdesazon.local', 'localhost', '127.0.0.1', '.local'];
+  private readonly URL_INVALIDAS = [
+    'checkout.verdesazon.local',
+    'localhost',
+    '127.0.0.1',
+    '.local',
+  ];
 
   get pagoUrl(): string {
     const url = this.pedidoCreado?.pago?.paymentUrl ?? '';
     if (!url) return '';
-    const invalida = this.URL_INVALIDAS.some(patron => url.includes(patron));
+    const invalida = this.URL_INVALIDAS.some((patron) => url.includes(patron));
     return invalida ? '' : url;
   }
 
@@ -145,17 +157,17 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.cartSvc.items$.subscribe(items => {
+    this.cartSvc.items$.subscribe((items) => {
       this.carritoItems = items;
     });
 
-    this.auth.usuario$.subscribe(user => {
+    this.auth.usuario$.subscribe((user) => {
       this.nombreUsuario = user?.displayName ?? 'Cliente';
       this.emailUsuario = user?.email ?? '';
     });
 
     this.coberturaSvc.getZonasCobertura().subscribe({
-      next: zonas => {
+      next: (zonas) => {
         this.zonasCobertura = zonas;
         this.errorCobertura = '';
         this.validarCoberturaDireccion();
@@ -168,9 +180,9 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         this.errorCobertura = this.t(
           'CHECKOUT.ERROR_COVERAGE_UNAVAILABLE',
           undefined,
-          'No se pudo cargar la cobertura en este momento.'
+          'No se pudo cargar la cobertura en este momento.',
         );
-      }
+      },
     });
 
     if (this.router.url.startsWith('/checkout/qr')) {
@@ -195,7 +207,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.errorCheckout = this.t(
         'CHECKOUT.ERROR_EMPTY_CART',
         undefined,
-        'Agrega productos en tu carrito para continuar.'
+        'Agrega productos en tu carrito para continuar.',
       );
       return;
     }
@@ -238,7 +250,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.errorCheckout = this.t(
         'CHECKOUT.ERROR_LOGIN_REQUIRED',
         undefined,
-        'Tu sesion expiro. Inicia sesion nuevamente para completar tu pedido.'
+        'Tu sesion expiro. Inicia sesion nuevamente para completar tu pedido.',
       );
       this.router.navigate(['/login']);
       return;
@@ -248,7 +260,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.errorCheckout = this.t(
         'CHECKOUT.ERROR_EMPTY_CART',
         undefined,
-        'Agrega productos en tu carrito para continuar.'
+        'Agrega productos en tu carrito para continuar.',
       );
       this.paso = 'resumen';
       return;
@@ -270,12 +282,12 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       lngEntrega: this.lngEntregaNumero,
       notaGeneral: this.notaPedido.trim(),
       total: this.totalCarrito,
-      items: this.carritoItems.map(item => ({
+      items: this.carritoItems.map((item) => ({
         nombre: item.nombre,
         cantidad: item.cantidad,
         nota: '',
-        precio: item.precio
-      }))
+        precio: item.precio,
+      })),
     };
 
     this.procesandoPedido = true;
@@ -304,7 +316,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
       await this.router.navigate(['/checkout/qr']);
 
-      void this.pedidoSvc.confirmarPersistenciaFirestore(response.id).catch(error => {
+      void this.pedidoSvc.confirmarPersistenciaFirestore(response.id).catch((error) => {
         this.avisoCheckout = this.resolverMensajeAvisoFirestore(error);
         this.guardarSesionQr();
       });
@@ -328,21 +340,24 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
       this.pagoConfirmado = true;
       this.esperandoConfirmacionPago = false;
-
-      this.pedidoCreado = {
-        ...this.pedidoCreado,
-        estado: 'pendiente'
-      };
+      this.pedidoCreado = { ...this.pedidoCreado, estado: 'pendiente' };
 
       this.detenerSeguimientoPago();
       this.limpiarSesionQr();
 
-      await this.router.navigate(['/menu']);
+      // Muestra el overlay y fuerza render inmediato
+      this.mostrarExitoPago = true;
+      this.cdr.detectChanges(); // ← Angular renderiza el overlay YA
+
+      // Espera 5 segundos con el overlay visible
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+
+      void this.router.navigate(['/menu']);
     } catch {
       this.errorCheckout = this.t(
         'CHECKOUT.ERROR_CONFIRM_PAYMENT',
         undefined,
-        'No se pudo confirmar el pago. Intenta nuevamente en unos segundos.'
+        'No se pudo confirmar el pago. Intenta nuevamente en unos segundos.',
       );
     } finally {
       this.confirmandoPago = false;
@@ -386,11 +401,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.avisoCheckout = this.t(
       'CHECKOUT.PAYMENT_WAITING_CONFIRMATION',
       undefined,
-      'Esperando confirmacion automatica del pago QR...'
+      'Esperando confirmacion automatica del pago QR...',
     );
 
     this.seguimientoPagoSub = this.pedidoSvc.escucharPedido(pedidoId).subscribe({
-      next: snapshot => {
+      next: (snapshot) => {
         if (!this.esPagoConfirmado(snapshot)) {
           return;
         }
@@ -401,14 +416,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         if (this.pedidoCreado) {
           this.pedidoCreado = {
             ...this.pedidoCreado,
-            estado: 'pendiente'
+            estado: 'pendiente',
           };
         }
 
         this.avisoCheckout = this.t(
           'CHECKOUT.PAYMENT_CONFIRMED_KITCHEN',
           undefined,
-          'Pago confirmado. Tu pedido ya fue enviado a cocina y quedo en pendiente.'
+          'Pago confirmado. Tu pedido ya fue enviado a cocina y quedo en pendiente.',
         );
         this.guardarSesionQr();
         this.detenerSeguimientoPago();
@@ -418,10 +433,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         this.avisoCheckout = this.t(
           'CHECKOUT.PAYMENT_WAITING_RETRY',
           undefined,
-          'No pudimos escuchar la confirmacion de pago en tiempo real. Actualiza la pagina en unos segundos.'
+          'No pudimos escuchar la confirmacion de pago en tiempo real. Actualiza la pagina en unos segundos.',
         );
         this.guardarSesionQr();
-      }
+      },
     });
   }
 
@@ -445,7 +460,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       return this.t(
         'CHECKOUT.WARNING_FIREBASE_TIMEOUT',
         undefined,
-        'Tu pedido fue creado, pero Firebase todavia esta sincronizando la informacion.'
+        'Tu pedido fue creado, pero Firebase todavia esta sincronizando la informacion.',
       );
     }
 
@@ -453,14 +468,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       return this.t(
         'CHECKOUT.WARNING_FIREBASE_SYNC',
         undefined,
-        'Tu pedido fue creado, pero hubo demora validando la sincronizacion en Firebase.'
+        'Tu pedido fue creado, pero hubo demora validando la sincronizacion en Firebase.',
       );
     }
 
     return this.t(
       'CHECKOUT.WARNING_FIREBASE_SYNC',
       undefined,
-      'Tu pedido fue creado, pero hubo demora validando la sincronizacion en Firebase.'
+      'Tu pedido fue creado, pero hubo demora validando la sincronizacion en Firebase.',
     );
   }
 
@@ -481,12 +496,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const validacion = this.coberturaSvc.validarDireccion(
-      direccion,
-      this.zonasCobertura,
-      lat,
-      lng
-    );
+    const validacion = this.coberturaSvc.validarDireccion(direccion, this.zonasCobertura, lat, lng);
 
     this.coberturaValida = validacion.enCobertura;
     this.zonaCoberturaDetectada = validacion.zona ?? '';
@@ -502,7 +512,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.errorCheckout = this.t(
         'CHECKOUT.ERROR_ADDRESS_REQUIRED',
         undefined,
-        'Ingresa la direccion de entrega para continuar.'
+        'Ingresa la direccion de entrega para continuar.',
       );
       return false;
     }
@@ -516,7 +526,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.errorCheckout = this.t(
         'CHECKOUT.ERROR_OUT_OF_COVERAGE',
         undefined,
-        'La direccion ingresada no esta dentro de la zona de cobertura.'
+        'La direccion ingresada no esta dentro de la zona de cobertura.',
       );
       return false;
     }
@@ -529,7 +539,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       return this.t(
         'CHECKOUT.ERROR_FIREBASE_TIMEOUT',
         undefined,
-        'El pedido se envio, pero Firebase no lo confirmo a tiempo. Intenta nuevamente.'
+        'El pedido se envio, pero Firebase no lo confirmo a tiempo. Intenta nuevamente.',
       );
     }
 
@@ -537,7 +547,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       return this.t(
         'CHECKOUT.ERROR_FIREBASE_SYNC',
         undefined,
-        'No se pudo validar el pedido en Firebase. Revisa tu conexion e intenta otra vez.'
+        'No se pudo validar el pedido en Firebase. Revisa tu conexion e intenta otra vez.',
       );
     }
 
@@ -545,7 +555,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       return this.t(
         'CHECKOUT.ERROR_CREATE_ORDER',
         undefined,
-        'La creacion del pedido tardó demasiado. Intenta nuevamente en unos segundos.'
+        'La creacion del pedido tardó demasiado. Intenta nuevamente en unos segundos.',
       );
     }
 
@@ -553,14 +563,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       return this.t(
         'CHECKOUT.ERROR_CREATE_ORDER',
         undefined,
-        'No se pudo conectar con el backend local. Verifica que la API este activa.'
+        'No se pudo conectar con el backend local. Verifica que la API este activa.',
       );
     }
 
     return this.t(
       'CHECKOUT.ERROR_CREATE_ORDER',
       undefined,
-      'No se pudo completar el pedido. Intenta nuevamente.'
+      'No se pudo completar el pedido. Intenta nuevamente.',
     );
   }
 
@@ -580,15 +590,15 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.esperandoConfirmacionPago = !this.pagoConfirmado;
     this.avisoCheckout = this.pagoConfirmado
       ? this.t(
-        'CHECKOUT.PAYMENT_CONFIRMED_KITCHEN',
-        undefined,
-        'Pago confirmado. Tu pedido ya fue enviado a cocina y quedo en pendiente.'
-      )
+          'CHECKOUT.PAYMENT_CONFIRMED_KITCHEN',
+          undefined,
+          'Pago confirmado. Tu pedido ya fue enviado a cocina y quedo en pendiente.',
+        )
       : this.t(
-        'CHECKOUT.PAYMENT_WAITING_CONFIRMATION',
-        undefined,
-        'Esperando confirmacion automatica del pago QR...'
-      );
+          'CHECKOUT.PAYMENT_WAITING_CONFIRMATION',
+          undefined,
+          'Esperando confirmacion automatica del pago QR...',
+        );
 
     if (this.esperandoConfirmacionPago) {
       this.iniciarSeguimientoPago(this.pedidoCreado.id);
@@ -603,7 +613,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     const session: CheckoutQrSession = {
       pedidoCreado: this.pedidoCreado,
       nombreUsuario: this.nombreUsuario,
-      emailUsuario: this.emailUsuario
+      emailUsuario: this.emailUsuario,
     };
 
     sessionStorage.setItem(CHECKOUT_QR_SESSION_KEY, JSON.stringify(session));
@@ -628,7 +638,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       return {
         pedidoCreado: parsed.pedidoCreado,
         nombreUsuario: parsed.nombreUsuario ?? '',
-        emailUsuario: parsed.emailUsuario ?? ''
+        emailUsuario: parsed.emailUsuario ?? '',
       };
     } catch {
       return null;
