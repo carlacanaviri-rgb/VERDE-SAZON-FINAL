@@ -126,7 +126,19 @@ export class SeguimientoComponent implements OnInit, OnDestroy {
   get tiempoRestante(): number {
     return this.pedido?.tiempoEstimado ?? 25;
   }
-
+  /**
+   * True si el pedido lleva más de 1 hora desde que se creó y todavía no fue
+   * entregado ni cancelado: probablemente no lo están atendiendo en este momento.
+   */
+  get fueraDeAtencion(): boolean {
+    if (!this.pedido?.creadoEn) return false;
+    const estado = this.pedido.estado ?? '';
+    if (estado === 'entregado' || estado === 'cancelado') return false;
+    const creado = new Date(this.pedido.creadoEn).getTime();
+    if (Number.isNaN(creado)) return false;
+    const UNA_HORA = 60 * 60 * 1000;
+    return Date.now() - creado > UNA_HORA;
+  }
   ngOnInit(): void {
     this.pedidoId = this.route.snapshot.paramMap.get('id') ?? '';
     if (!this.pedidoId) {

@@ -1,0 +1,81 @@
+/* =============================================
+   MENU — Responsive
+   ============================================= */
+
+/* HEADER */
+.menu-header {
+  background: white;
+  border-bottom: 1px solid #e5e5e5;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* HERO SECTION */
+.menu-hero {
+  background: linear-gradient(135deg, #1D9E75 0%, #0F6E56 100%);
+  padding: 60px 40px;
+  text-align: center;
+  color: white;
+}
+
+.menu-hero h1 {
+  margin: 0 0 12px;
+  font-size: 36px;
+  font-weight: 700;
+}
+
+/* CONTENEDOR PRINCIPAL */
+.menu-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+/* SECCIÓN OFERTAS BANNER */
+.menu-oferta-banner {
+  background: linear-gradient(135deg, #1D9E75, #0F6E56);
+  border-radius: 16px;
+  padding: 32px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* FOOTER */
+.menu-footer {
+  background: white;
+  border-top: 1px solid #e5e5e5;
+  padding: 24px 40px;
+  text-align: center;
+}
+
+/* ---- MOBILE (≤ 480px) ---- */
+@media (max-width: 480px) {
+  .menu-hero {
+    padding: 36px 20px;
+  }
+  .menu-hero h1 {
+    font-size: 24px !important;
+  }
+  .menu-container {
+    padding: 20px 16px;
+  }
+  .menu-oferta-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+  }
+  .menu-footer {
+    padding: 20px 16px;
+  }
+}
